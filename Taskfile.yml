@@ -1,0 +1,76 @@
+# https://taskfile.dev
+
+version: '3'
+
+dotenv: ['.env', '{{.ENV}}/.env', '{{.HOME}}/.env']
+
+vars:
+  PACKAGE_NAME:
+    sh: grep -m 1 "^module" go.mod | awk '{print $2}'
+  COMMIT_HASH:
+    sh: '[ -n "$SOURCE_COMMIT" ] && echo "$SOURCE_COMMIT" || git rev-parse HEAD || echo "unknown"'
+  BUILD_TIME:
+    sh: date -u +"%Y-%m-%dT%H:%M:%SZ"
+  BUILD_PATH: build
+
+env:
+  PACKAGE_NAME: '{{.PACKAGE_NAME}}'
+  GOOS: linux
+  GOARCH: amd64
+  CGO_ENABLED: 0
+
+includes:
+  gen:
+    taskfile: Taskfile.codegen.yml
+    dir: .
+
+tasks:
+  cleanup:
+    desc: Cleanup build artifacts
+    cmds:
+      - rm -rf {{.BUILD_PATH}}/
+
+  build:
+    desc: Build service
+    deps: [ deps, cleanup ]
+    cmds:
+      - cmd: go build -ldflags="-w -s -X 'main.Version=1.0.0' -X 'main.Commit=$COMMIT_HASH' -X 'main.BuildTime=$BUILD_TIME'" -trimpath -mod vendor -o {{.BUILD_PATH}}/app .
+        platforms: [linux/amd64,linux/arm64]
+
+  deps:
+    desc: Install go vendor dependencies
+    sources:
+      - go.mod
+      - go.sum
+    cmds:
+      - go env -w GOPROXY=https://proxy.golang.org,direct
+      - go env -w GOSUMDB=off
+      - go mod download
+      - go mod tidy
+      - go mod vendor
+    generates:
+      - vendor/modules.txt
+    method: timestamp
+
+  fmt:
+    desc: Format go code
+    deps: [ deps ]
+    cmds:
+      - gci write -s standard -s default -s "prefix(github.com/openserbia)" -s "prefix({{.PACKAGE_NAME}})" --skip-generated internal
+      - gofumpt -l -w .
+
+  lint:
+    desc: Run go linters
+    deps: [ fmt ]
+    cmds:
+      - golangci-lint run
+
+  test:
+    desc: Run go unit tests
+    deps: [ deps ]
+    cmds:
+      - go test -mod vendor -covermode=count -coverprofile=../service-unit.cov -coverpkg ./... ./...
+
+  default:
+    cmds:
+      - task -l

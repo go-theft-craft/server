@@ -1,0 +1,7 @@
+version: '3'
+
+tasks:
+  start:
+    desc: Generate code
+    cmds:
+      - echo "Nothing to do"

@@ -73,6 +73,29 @@ func TestWorldSpawnHeight(t *testing.T) {
 	}
 }
 
+func TestPreGenerateRadius(t *testing.T) {
+	w := NewWorld(gen.NewFlatGenerator(0))
+	count := w.PreGenerateRadius(2)
+
+	// Radius 2 → 5×5 = 25 chunks.
+	if count != 25 {
+		t.Errorf("PreGenerateRadius(2) returned %d, want 25", count)
+	}
+
+	// Verify all 25 chunks are cached (no generation needed on second access).
+	for cx := -2; cx <= 2; cx++ {
+		for cz := -2; cz <= 2; cz++ {
+			pos := gen.ChunkPos{X: cx, Z: cz}
+			w.mu.RLock()
+			_, ok := w.chunks[pos]
+			w.mu.RUnlock()
+			if !ok {
+				t.Errorf("chunk (%d,%d) not pre-generated", cx, cz)
+			}
+		}
+	}
+}
+
 func TestWorldDefaultGenerator(t *testing.T) {
 	w := NewWorld(gen.NewDefaultGenerator(12345))
 

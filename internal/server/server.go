@@ -50,6 +50,13 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 	defer listener.Close()
 
+	if s.cfg.WorldRadius > 0 {
+		total := (2*s.cfg.WorldRadius + 1) * (2*s.cfg.WorldRadius + 1)
+		s.log.Info("pre-generating world", "radius", s.cfg.WorldRadius, "chunks", total)
+		s.world.PreGenerateRadius(s.cfg.WorldRadius)
+		s.log.Info("world pre-generation complete")
+	}
+
 	s.log.Info("server started",
 		"port", s.cfg.Port,
 		"onlineMode", s.cfg.OnlineMode,

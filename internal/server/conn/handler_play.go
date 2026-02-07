@@ -14,6 +14,7 @@ import (
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/packet"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
 )
 
 func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinProperty) error {
@@ -66,9 +67,9 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		return fmt.Errorf("write position and look: %w", err)
 	}
 
-	// 5. Chunk Data (view distance radius grid)
-	if err := c.world.WriteChunkGrid(c.rw, c.cfg.ViewDistance); err != nil {
-		return fmt.Errorf("write chunk grid: %w", err)
+	// 5. Chunk Data (view distance radius around spawn)
+	if err := c.sendInitialChunks(); err != nil {
+		return fmt.Errorf("send initial chunks: %w", err)
 	}
 
 	// 6. Chat Message — "Hello, world!"
@@ -248,6 +249,11 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 		return
 	}
 
+	// Clamp to world boundary if configured.
+	if c.cfg.WorldRadius > 0 {
+		x, z = c.clampToWorldBounds(x, y, z, yaw, pitch)
+	}
+
 	// Preserve current look if only position changed.
 	if !lookChanged {
 		pos := c.self.GetPosition()
@@ -255,7 +261,14 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 		pitch = pos.Pitch
 	}
 
+	oldCX, oldCZ := c.self.ChunkX(), c.self.ChunkZ()
 	oldFX, oldFY, oldFZ, newFX, newFY, newFZ := c.self.SetPosition(x, y, z, yaw, pitch, onGround)
+
+	// Update loaded chunks when crossing a chunk boundary.
+	newCX, newCZ := c.self.ChunkX(), c.self.ChunkZ()
+	if oldCX != newCX || oldCZ != newCZ {
+		c.updateLoadedChunks(newCX, newCZ)
+	}
 
 	dx := newFX - oldFX
 	dy := newFY - oldFY
@@ -490,6 +503,110 @@ func parseUUID(s string) [16]byte {
 func escapeJSON(s string) string {
 	b, _ := json.Marshal(s)
 	return string(b)
+}
+
+// sendInitialChunks sends chunks around the player's current position and tracks them.
+func (c *Connection) sendInitialChunks() error {
+	centerCX, centerCZ := 0, 0 // spawn is at (0,0)
+	viewDist := c.cfg.ViewDistance
+
+	for cx := centerCX - viewDist; cx <= centerCX+viewDist; cx++ {
+		for cz := centerCZ - viewDist; cz <= centerCZ+viewDist; cz++ {
+			if !c.isChunkInBounds(cx, cz) {
+				continue
+			}
+			chunk := c.world.EncodeChunk(cx, cz)
+			if err := c.writePacket(&chunk); err != nil {
+				return err
+			}
+			c.loadedChunks[gen.ChunkPos{X: cx, Z: cz}] = struct{}{}
+		}
+	}
+	return nil
+}
+
+// updateLoadedChunks sends new chunks and unloads old ones when the player crosses a chunk boundary.
+func (c *Connection) updateLoadedChunks(newCX, newCZ int) {
+	viewDist := c.cfg.ViewDistance
+
+	// Load new chunks in the view square.
+	for cx := newCX - viewDist; cx <= newCX+viewDist; cx++ {
+		for cz := newCZ - viewDist; cz <= newCZ+viewDist; cz++ {
+			pos := gen.ChunkPos{X: cx, Z: cz}
+			if _, loaded := c.loadedChunks[pos]; loaded {
+				continue
+			}
+			if !c.isChunkInBounds(cx, cz) {
+				continue
+			}
+			chunk := c.world.EncodeChunk(cx, cz)
+			if err := c.writePacket(&chunk); err != nil {
+				c.log.Error("send chunk", "cx", cx, "cz", cz, "error", err)
+				return
+			}
+			c.loadedChunks[pos] = struct{}{}
+		}
+	}
+
+	// Unload chunks outside view distance.
+	for pos := range c.loadedChunks {
+		if player.InViewDistance(pos.X, pos.Z, newCX, newCZ, viewDist) {
+			continue
+		}
+		// MC 1.8: send MapChunk with GroundUp=true, BitMap=0, empty data to unload.
+		if err := c.writePacket(&pkt.MapChunk{
+			X:         int32(pos.X),
+			Z:         int32(pos.Z),
+			GroundUp:  true,
+			BitMap:    0,
+			ChunkData: []byte{},
+		}); err != nil {
+			c.log.Error("unload chunk", "cx", pos.X, "cz", pos.Z, "error", err)
+		}
+		delete(c.loadedChunks, pos)
+	}
+}
+
+// clampToWorldBounds clamps player position to world boundary.
+// Returns (possibly clamped) x and z. Sends a position correction if clamped.
+func (c *Connection) clampToWorldBounds(x, y, z float64, yaw, pitch float32) (float64, float64) {
+	r := c.cfg.WorldRadius
+	minBlock := float64(-r * 16)
+	maxBlock := float64(r*16 + 16)
+
+	clampedX, clampedZ := x, z
+	if clampedX < minBlock {
+		clampedX = minBlock
+	} else if clampedX >= maxBlock {
+		clampedX = maxBlock - 0.01
+	}
+	if clampedZ < minBlock {
+		clampedZ = minBlock
+	} else if clampedZ >= maxBlock {
+		clampedZ = maxBlock - 0.01
+	}
+
+	if clampedX != x || clampedZ != z {
+		_ = c.writePacket(&pkt.PositionCB{
+			X:     clampedX,
+			Y:     y,
+			Z:     clampedZ,
+			Yaw:   yaw,
+			Pitch: pitch,
+			Flags: 0x00,
+		})
+	}
+
+	return clampedX, clampedZ
+}
+
+// isChunkInBounds returns whether a chunk is within the world boundary.
+func (c *Connection) isChunkInBounds(cx, cz int) bool {
+	r := c.cfg.WorldRadius
+	if r <= 0 {
+		return true
+	}
+	return cx >= -r && cx <= r && cz >= -r && cz <= r
 }
 
 // buildSprintParticles builds WorldParticles raw data for sprint block-crack particles.

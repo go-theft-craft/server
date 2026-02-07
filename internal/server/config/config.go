@@ -11,6 +11,7 @@ type Config struct {
 	ViewDistance  int
 	Seed          int64
 	GeneratorType string // "default" or "flat"
+	WorldRadius   int    // world boundary in chunks (0 = infinite)
 
 	// RSA keypair for online-mode encryption handshake.
 	PrivateKey   *rsa.PrivateKey

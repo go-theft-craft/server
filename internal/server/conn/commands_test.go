@@ -7,9 +7,11 @@ import (
 	"testing"
 
 	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
 )
 
 // packetRecorder captures packets written via mcnet.WritePacket.
@@ -64,14 +66,16 @@ func newTestConn(username string) (*Connection, *sentPackets, *player.Manager) {
 	p.SetPosition(0.5, 4, 0.5, 0, 0, true)
 	m.Add(p)
 
-	w := world.NewWorld()
+	w := world.NewWorld(gen.NewFlatGenerator(0))
 	rec := &packetRecorder{}
 
 	c := &Connection{
 		rw:             rec,
+		cfg:            config.DefaultConfig(),
 		self:           p,
 		players:        m,
 		world:          w,
+		loadedChunks:   make(map[gen.ChunkPos]struct{}),
 		keepAliveAcked: true,
 	}
 	return c, sp, m

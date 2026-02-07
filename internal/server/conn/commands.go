@@ -81,7 +81,15 @@ func (c *Connection) sendSuccessMsg(text string) {
 // broadcasting the teleport to trackers and updating tracking.
 func (c *Connection) teleportSelf(x, y, z float64) {
 	pos := c.self.GetPosition()
+	oldCX, oldCZ := c.self.ChunkX(), c.self.ChunkZ()
 	c.self.SetPosition(x, y, z, pos.Yaw, pos.Pitch, false)
+
+	// Load chunks around the new position before sending the teleport,
+	// so the client has terrain to render on arrival.
+	newCX, newCZ := c.self.ChunkX(), c.self.ChunkZ()
+	if oldCX != newCX || oldCZ != newCZ {
+		c.updateLoadedChunks(newCX, newCZ)
+	}
 
 	_ = c.writePacket(&pkt.PositionCB{
 		X:     x,

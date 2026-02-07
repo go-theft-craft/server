@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 
 	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
-	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
 )
 
 const (
@@ -110,17 +109,4 @@ func (w *World) applyOverrides(blocks []byte, cx, cz, sectionIdx int) {
 		idx := (ly*256 + lz*16 + lx) * 2
 		binary.LittleEndian.PutUint16(blocks[idx:], uint16(stateID))
 	}
-}
-
-// WriteChunkGrid writes a radius-based grid of chunks centered on (0,0).
-func (w *World) WriteChunkGrid(writer interface{ Write([]byte) (int, error) }, radius int) error {
-	for cx := -radius; cx <= radius; cx++ {
-		for cz := -radius; cz <= radius; cz++ {
-			chunk := w.EncodeChunk(cx, cz)
-			if err := mcnet.WritePacket(writer, &chunk); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }

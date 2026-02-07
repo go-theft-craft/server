@@ -113,6 +113,18 @@ func (w *World) ForEachOverride(fn func(pos BlockPos, stateID int32)) {
 	}
 }
 
+// PreGenerateRadius generates all chunks within the given radius centered on (0,0).
+func (w *World) PreGenerateRadius(radius int) int {
+	count := 0
+	for cx := -radius; cx <= radius; cx++ {
+		for cz := -radius; cz <= radius; cz++ {
+			w.GetOrGenerateChunk(cx, cz)
+			count++
+		}
+	}
+	return count
+}
+
 // SpawnHeight returns the terrain height at spawn (0, 0) + 1 for the player to stand on.
 func (w *World) SpawnHeight() int {
 	return w.generator.HeightAt(0, 0) + 1

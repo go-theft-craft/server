@@ -13,6 +13,7 @@ import (
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
 )
 
 // State represents the connection state.
@@ -46,6 +47,9 @@ type Connection struct {
 	loginUsername    string
 	loginVerifyToken []byte
 
+	// Chunk tracking (only accessed from Handle goroutine, no mutex needed)
+	loadedChunks map[gen.ChunkPos]struct{}
+
 	// KeepAlive tracking
 	lastKeepAliveID   int32
 	lastKeepAliveSent time.Time
@@ -65,6 +69,7 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		state:          StateHandshake,
 		world:          w,
 		players:        players,
+		loadedChunks:   make(map[gen.ChunkPos]struct{}),
 		keepAliveAcked: true,
 	}
 }

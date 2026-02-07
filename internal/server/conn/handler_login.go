@@ -2,6 +2,8 @@ package conn
 
 import (
 	"crypto/md5"
+	"crypto/rand"
+	"crypto/rsa"
 	"fmt"
 
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
@@ -9,10 +11,17 @@ import (
 )
 
 func (c *Connection) handleLogin(packetID int32, data []byte) error {
-	if packetID != 0x00 {
-		return fmt.Errorf("expected LoginStart (0x00), got 0x%02X", packetID)
+	switch packetID {
+	case 0x00: // LoginStart
+		return c.handleLoginStart(data)
+	case 0x01: // EncryptionResponse
+		return c.handleEncryptionResponse(data)
+	default:
+		return fmt.Errorf("unexpected login packet 0x%02X", packetID)
 	}
+}
 
+func (c *Connection) handleLoginStart(data []byte) error {
 	var login packet.LoginStart
 	if err := mcnet.Unmarshal(data, &login); err != nil {
 		return fmt.Errorf("unmarshal login start: %w", err)
@@ -21,7 +30,7 @@ func (c *Connection) handleLogin(packetID int32, data []byte) error {
 	c.log.Info("login start", "username", login.Name)
 
 	if c.cfg.OnlineMode {
-		return c.handleOnlineLogin(login.Name)
+		return c.startOnlineLogin(login.Name)
 	}
 
 	return c.handleOfflineLogin(login.Name)
@@ -44,14 +53,85 @@ func (c *Connection) handleOfflineLogin(username string) error {
 	return c.startPlay(username, uuidStr)
 }
 
-func (c *Connection) handleOnlineLogin(username string) error {
-	// Online mode requires crypto — send disconnect for now if crypto is not yet initialized.
-	reason := `{"text":"Online mode is not yet supported."}`
-	if err := c.writePacket(&packet.LoginDisconnect{Reason: reason}); err != nil {
-		return fmt.Errorf("write disconnect: %w", err)
+func (c *Connection) startOnlineLogin(username string) error {
+	// Generate a random 4-byte verify token.
+	verifyToken := make([]byte, 4)
+	if _, err := rand.Read(verifyToken); err != nil {
+		return fmt.Errorf("generate verify token: %w", err)
 	}
-	c.disconnect("online mode not yet implemented")
+
+	c.loginUsername = username
+	c.loginVerifyToken = verifyToken
+
+	// Send EncryptionRequest. ServerID is empty string per Minecraft 1.8.
+	if err := c.writePacket(&packet.EncryptionRequest{
+		ServerID:    "",
+		PublicKey:   c.cfg.PublicKeyDER,
+		VerifyToken: verifyToken,
+	}); err != nil {
+		return fmt.Errorf("write encryption request: %w", err)
+	}
+
+	// Stay in StateLogin — next packet will be EncryptionResponse.
 	return nil
+}
+
+func (c *Connection) handleEncryptionResponse(data []byte) error {
+	var resp packet.EncryptionResponse
+	if err := mcnet.Unmarshal(data, &resp); err != nil {
+		return fmt.Errorf("unmarshal encryption response: %w", err)
+	}
+
+	// Decrypt shared secret.
+	sharedSecret, err := rsa.DecryptPKCS1v15(rand.Reader, c.cfg.PrivateKey, resp.SharedSecret)
+	if err != nil {
+		return fmt.Errorf("decrypt shared secret: %w", err)
+	}
+
+	// Decrypt and verify token.
+	verifyToken, err := rsa.DecryptPKCS1v15(rand.Reader, c.cfg.PrivateKey, resp.VerifyToken)
+	if err != nil {
+		return fmt.Errorf("decrypt verify token: %w", err)
+	}
+
+	if len(verifyToken) != len(c.loginVerifyToken) {
+		return fmt.Errorf("verify token length mismatch")
+	}
+	for i := range verifyToken {
+		if verifyToken[i] != c.loginVerifyToken[i] {
+			return fmt.Errorf("verify token mismatch")
+		}
+	}
+
+	// Enable encryption. The EncryptionResponse was received unencrypted;
+	// everything from here on (including LoginSuccess) is encrypted.
+	if err := c.enableEncryption(sharedSecret); err != nil {
+		return fmt.Errorf("enable encryption: %w", err)
+	}
+
+	// Verify with Mojang.
+	serverHash := minecraftSHA1HexDigest("", sharedSecret, c.cfg.PublicKeyDER)
+	profile, err := verifyWithMojang(c.ctx, c.loginUsername, serverHash)
+	if err != nil {
+		reason := `{"text":"Failed to verify with Mojang."}`
+		_ = c.writePacket(&packet.LoginDisconnect{Reason: reason})
+		c.disconnect("mojang auth failed")
+		return fmt.Errorf("mojang verify: %w", err)
+	}
+
+	uuidStr := formatMojangUUID(profile.ID)
+
+	c.log.Info("online login success", "username", profile.Name, "uuid", uuidStr)
+
+	if err := c.writePacket(&packet.LoginSuccess{
+		UUID:     uuidStr,
+		Username: profile.Name,
+	}); err != nil {
+		return fmt.Errorf("write login success: %w", err)
+	}
+
+	c.state = StatePlay
+	return c.startPlay(profile.Name, uuidStr)
 }
 
 // offlineUUID generates UUID v3 from "OfflinePlayer:<username>" using the MD5 namespace.

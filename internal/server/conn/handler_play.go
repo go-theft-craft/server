@@ -19,9 +19,9 @@ func (c *Connection) startPlay(username, uuid string) error {
 	// 1. Join Game
 	if err := c.writePacket(&packet.JoinGame{
 		EntityID:         1,
-		GameMode:         1, // Creative
-		Dimension:        0, // Overworld
-		Difficulty:       1, // Easy
+		GameMode:         packet.GameModeCreative,
+		Dimension:        packet.DimensionOverworld,
+		Difficulty:       packet.DifficultyEasy,
 		MaxPlayers:       uint8(c.cfg.MaxPlayers),
 		LevelType:        "flat",
 		ReducedDebugInfo: false,
@@ -36,9 +36,9 @@ func (c *Connection) startPlay(username, uuid string) error {
 		return fmt.Errorf("write spawn position: %w", err)
 	}
 
-	// 3. Player Abilities (Creative: Invulnerable + AllowFlight + CreativeMode = 0x0D)
+	// 3. Player Abilities (Creative: Invulnerable + AllowFlight + CreativeMode)
 	if err := c.writePacket(&packet.PlayerAbilities{
-		Flags:        0x0D,
+		Flags:        packet.AbilityInvulnerable | packet.AbilityAllowFlight | packet.AbilityCreativeMode,
 		FlyingSpeed:  0.05,
 		WalkingSpeed: 0.1,
 	}); err != nil {
@@ -58,8 +58,13 @@ func (c *Connection) startPlay(username, uuid string) error {
 	}
 
 	// 5. Chunk Data (7×7 grid)
-	if err := world.WriteChunkGrid(c.conn); err != nil {
+	if err := world.WriteChunkGrid(c.rw); err != nil {
 		return fmt.Errorf("write chunk grid: %w", err)
+	}
+
+	// 5b. Replay block overrides so dig/place changes survive relogin.
+	if err := c.sendBlockOverrides(); err != nil {
+		return fmt.Errorf("send block overrides: %w", err)
 	}
 
 	// 6. Player Info (Add Player action)
@@ -109,8 +114,8 @@ func (c *Connection) writePlayerInfo(username, uuid string) error {
 		return fmt.Errorf("write player info properties: %w", err)
 	}
 
-	// Gamemode: VarInt = 1 (Creative)
-	if _, err := mcnet.WriteVarInt(&buf, 1); err != nil {
+	// Gamemode: VarInt (Creative)
+	if _, err := mcnet.WriteVarInt(&buf, int32(packet.GameModeCreative)); err != nil {
 		return fmt.Errorf("write player info gamemode: %w", err)
 	}
 
@@ -139,7 +144,23 @@ func (c *Connection) keepAliveLoop() {
 		case <-c.ctx.Done():
 			return
 		case <-ticker.C:
+			c.mu.Lock()
+			if !c.keepAliveAcked && id > 0 {
+				if time.Since(c.lastKeepAliveSent) > 30*time.Second {
+					c.mu.Unlock()
+					_ = c.writePacket(&packet.PlayDisconnect{
+						Reason: `{"text":"Timed out"}`,
+					})
+					c.disconnect("keepalive timeout")
+					return
+				}
+			}
 			id++
+			c.lastKeepAliveID = id
+			c.lastKeepAliveSent = time.Now()
+			c.keepAliveAcked = false
+			c.mu.Unlock()
+
 			if err := c.writePacket(&packet.KeepAliveClientbound{
 				KeepAliveID: id,
 			}); err != nil {
@@ -158,7 +179,11 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		if err := mcnet.Unmarshal(data, &pkt); err != nil {
 			return fmt.Errorf("unmarshal keep alive: %w", err)
 		}
-		// acknowledged, no action needed
+		c.mu.Lock()
+		if pkt.KeepAliveID == c.lastKeepAliveID {
+			c.keepAliveAcked = true
+		}
+		c.mu.Unlock()
 
 	case 0x01: // Chat Message
 		var pkt packet.ChatMessageServerbound
@@ -179,6 +204,12 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 	case 0x06: // Player Position And Look
 		// track position+look silently
 
+	case 0x07: // Block Dig
+		return c.handleBlockDig(data)
+
+	case 0x08: // Block Place
+		return c.handleBlockPlace(data)
+
 	case 0x15: // Client Settings
 		var pkt packet.ClientSettings
 		if err := mcnet.Unmarshal(data, &pkt); err != nil {
@@ -191,6 +222,124 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 	}
 
 	return nil
+}
+
+func (c *Connection) handleBlockDig(data []byte) error {
+	r := bytes.NewReader(data)
+
+	status, _, err := mcnet.ReadVarInt(r)
+	if err != nil {
+		return fmt.Errorf("read dig status: %w", err)
+	}
+
+	posVal, err := mcnet.ReadI64(r)
+	if err != nil {
+		return fmt.Errorf("read dig position: %w", err)
+	}
+	x, y, z := mcnet.DecodePosition(posVal)
+
+	// status 0 = Started digging, 2 = Finished digging
+	// In Creative mode, the client sends status=0 for instant break.
+	if status == 0 || status == 2 {
+		c.world.SetBlock(x, y, z, 0) // air
+		return c.writePacket(&packet.BlockChange{
+			Location: posVal,
+			BlockID:  0,
+		})
+	}
+
+	return nil
+}
+
+func (c *Connection) handleBlockPlace(data []byte) error {
+	r := bytes.NewReader(data)
+
+	posVal, err := mcnet.ReadI64(r)
+	if err != nil {
+		return fmt.Errorf("read place position: %w", err)
+	}
+
+	face, err := mcnet.ReadI8(r)
+	if err != nil {
+		return fmt.Errorf("read place face: %w", err)
+	}
+
+	slot, err := readSlot(r)
+	if err != nil {
+		return fmt.Errorf("read place slot: %w", err)
+	}
+
+	// Read cursor position (3 x u8) - we don't use these but must consume them.
+	if _, err := mcnet.ReadU8(r); err != nil {
+		return fmt.Errorf("read cursor x: %w", err)
+	}
+	if _, err := mcnet.ReadU8(r); err != nil {
+		return fmt.Errorf("read cursor y: %w", err)
+	}
+	if _, err := mcnet.ReadU8(r); err != nil {
+		return fmt.Errorf("read cursor z: %w", err)
+	}
+
+	// Special position -1,-1,-1 means the player is using an item (not placing a block).
+	if posVal == -1 {
+		return nil
+	}
+
+	// Empty slot means no block to place.
+	if slot.BlockID <= 0 {
+		return nil
+	}
+
+	x, y, z := mcnet.DecodePosition(posVal)
+
+	// Compute target position from face direction.
+	switch face {
+	case 0: // -Y
+		y--
+	case 1: // +Y
+		y++
+	case 2: // -Z
+		z--
+	case 3: // +Z
+		z++
+	case 4: // -X
+		x--
+	case 5: // +X
+		x++
+	default:
+		return nil
+	}
+
+	stateID := int32(slot.BlockID) << 4
+	c.world.SetBlock(x, y, z, stateID)
+
+	return c.writePacket(&packet.BlockChange{
+		Location: mcnet.EncodePosition(x, y, z),
+		BlockID:  stateID,
+	})
+}
+
+// sendBlockOverrides sends BlockChange packets for all world overrides
+// within the visible chunk grid so changes persist across relogins.
+func (c *Connection) sendBlockOverrides() error {
+	const chunkRange = 3 // chunks -3..3 → blocks -48..63
+	minBlock := -chunkRange * 16
+	maxBlock := (chunkRange+1)*16 - 1
+
+	var sendErr error
+	c.world.ForEachOverride(func(pos world.BlockPos, stateID int32) {
+		if sendErr != nil {
+			return
+		}
+		if pos.X < minBlock || pos.X > maxBlock || pos.Z < minBlock || pos.Z > maxBlock {
+			return
+		}
+		sendErr = c.writePacket(&packet.BlockChange{
+			Location: mcnet.EncodePosition(pos.X, pos.Y, pos.Z),
+			BlockID:  stateID,
+		})
+	})
+	return sendErr
 }
 
 // parseUUID parses a hyphenated UUID string into 16 bytes.

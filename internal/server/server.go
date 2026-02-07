@@ -8,17 +8,19 @@ import (
 
 	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/conn"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
 )
 
 // Server is the main Minecraft server that accepts TCP connections.
 type Server struct {
-	cfg *config.Config
-	log *slog.Logger
+	cfg   *config.Config
+	log   *slog.Logger
+	world *world.World
 }
 
 // New creates a new Server with the given config and logger.
 func New(cfg *config.Config, log *slog.Logger) *Server {
-	return &Server{cfg: cfg, log: log}
+	return &Server{cfg: cfg, log: log, world: world.NewWorld()}
 }
 
 // Start begins listening for connections and blocks until the context is cancelled.
@@ -55,7 +57,7 @@ func (s *Server) Start(ctx context.Context) error {
 			continue
 		}
 
-		connection := conn.NewConnection(ctx, c, s.cfg, s.log)
+		connection := conn.NewConnection(ctx, c, s.cfg, s.log, s.world)
 		go connection.Handle()
 	}
 }

@@ -2,6 +2,37 @@ package packet
 
 // Clientbound play packets
 
+// GameMode constants.
+const (
+	GameModeSurvival  uint8 = 0
+	GameModeCreative  uint8 = 1
+	GameModeAdventure uint8 = 2
+	GameModeSpectator uint8 = 3
+)
+
+// Dimension constants.
+const (
+	DimensionNether    int8 = -1
+	DimensionOverworld int8 = 0
+	DimensionEnd       int8 = 1
+)
+
+// Difficulty constants.
+const (
+	DifficultyPeaceful uint8 = 0
+	DifficultyEasy     uint8 = 1
+	DifficultyNormal   uint8 = 2
+	DifficultyHard     uint8 = 3
+)
+
+// PlayerAbility flag bits.
+const (
+	AbilityInvulnerable int8 = 0x01
+	AbilityFlying       int8 = 0x02
+	AbilityAllowFlight  int8 = 0x04
+	AbilityCreativeMode int8 = 0x08
+)
+
 // KeepAliveClientbound is sent by the server periodically (clientbound 0x00).
 type KeepAliveClientbound struct {
 	KeepAliveID int32 `mc:"varint"`
@@ -90,6 +121,14 @@ type PlayerInfo struct {
 }
 
 func (PlayerInfo) PacketID() int32 { return 0x38 }
+
+// BlockChange notifies the client of a single block change (clientbound 0x23).
+type BlockChange struct {
+	Location int64 `mc:"position"`
+	BlockID  int32 `mc:"varint"`
+}
+
+func (BlockChange) PacketID() int32 { return 0x23 }
 
 // PluginMessage sends a custom plugin channel message (clientbound 0x3F).
 type PluginMessage struct {

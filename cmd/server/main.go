@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"flag"
 	"log/slog"
 	"os"
@@ -22,6 +25,21 @@ func main() {
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+
+	if cfg.OnlineMode {
+		key, err := rsa.GenerateKey(rand.Reader, 1024)
+		if err != nil {
+			log.Error("generate RSA key", "error", err)
+			os.Exit(1)
+		}
+		cfg.PrivateKey = key
+		cfg.PublicKeyDER, err = x509.MarshalPKIXPublicKey(&key.PublicKey)
+		if err != nil {
+			log.Error("marshal public key", "error", err)
+			os.Exit(1)
+		}
+		log.Info("online mode enabled, RSA keypair generated")
+	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()

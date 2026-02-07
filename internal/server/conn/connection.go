@@ -7,9 +7,11 @@ import (
 	"log/slog"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
 )
 
 // State represents the connection state.
@@ -25,25 +27,39 @@ const (
 // Connection manages a single client connection through the protocol state machine.
 type Connection struct {
 	conn   net.Conn
+	rw     io.ReadWriter
 	cfg    *config.Config
 	log    *slog.Logger
 	ctx    context.Context
 	cancel context.CancelFunc
+	world  *world.World
 
 	mu    sync.Mutex
 	state State
+
+	// Login state (online mode)
+	loginUsername    string
+	loginVerifyToken []byte
+
+	// KeepAlive tracking
+	lastKeepAliveID   int32
+	lastKeepAliveSent time.Time
+	keepAliveAcked    bool
 }
 
 // NewConnection creates a new Connection from a raw TCP connection.
-func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger) *Connection {
+func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World) *Connection {
 	ctx, cancel := context.WithCancel(ctx)
 	return &Connection{
-		conn:   conn,
-		cfg:    cfg,
-		log:    log.With("addr", conn.RemoteAddr().String()),
-		ctx:    ctx,
-		cancel: cancel,
-		state:  StateHandshake,
+		conn:           conn,
+		rw:             conn,
+		cfg:            cfg,
+		log:            log.With("addr", conn.RemoteAddr().String()),
+		ctx:            ctx,
+		cancel:         cancel,
+		state:          StateHandshake,
+		world:          w,
+		keepAliveAcked: true,
 	}
 }
 
@@ -79,7 +95,7 @@ func (c *Connection) Handle() {
 }
 
 func (c *Connection) handleNextPacket() error {
-	packetID, data, err := mcnet.ReadRawPacket(c.conn)
+	packetID, data, err := mcnet.ReadRawPacket(c.rw)
 	if err != nil {
 		return err
 	}
@@ -102,11 +118,21 @@ func (c *Connection) handleNextPacket() error {
 func (c *Connection) writePacket(p mcnet.Packet) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return mcnet.WritePacket(c.conn, p)
+	return mcnet.WritePacket(c.rw, p)
 }
 
 // disconnect sends a disconnect packet and closes the connection.
 func (c *Connection) disconnect(reason string) {
 	c.log.Info("disconnecting", "reason", reason)
 	c.cancel()
+}
+
+// enableEncryption wraps the connection with AES/CFB8 encryption.
+func (c *Connection) enableEncryption(sharedSecret []byte) error {
+	enc, err := newEncryptedConn(c.conn, sharedSecret)
+	if err != nil {
+		return err
+	}
+	c.rw = enc
+	return nil
 }

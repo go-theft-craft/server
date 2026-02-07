@@ -1,0 +1,85 @@
+# golangci-lint v2 configuration
+# https://golangci-lint.run/docs/configuration/
+
+version: "2"
+
+run:
+  timeout: 5m
+  modules-download-mode: vendor
+
+output:
+  # Show all issues, not just unique by line
+  uniq-by-line: false
+
+linters:
+  enable:
+    - forbidigo    # Forbid specific function calls (fmt.Print*, log.*)
+    - errcheck     # Check for unchecked errors
+    - govet        # Report suspicious constructs
+    - ineffassign  # Detect ineffective assignments
+    - staticcheck  # Static analysis checks (includes gosimple)
+    - unused       # Find unused code
+    - gocritic     # Custom rules via ruleguard (gui spacing, etc.)
+
+  settings:
+    gocritic:
+      # Enable ruleguard checker for custom lint rules
+      enabled-checks:
+        - ruleguard
+      settings:
+        ruleguard:
+          # Path to ruleguard rules file(s) - ${config-path} resolves to config file directory
+          # Glob pattern includes all rule files: gui_spacing.go, gui_hotkeys.go, etc.
+          rules: "${config-path}/rules/*.go"
+          # Fail on errors loading ruleguard files
+          failOn: dsl
+
+    forbidigo:
+      forbid:
+        # Block fmt.Print* functions - use pkg/log instead
+        - pattern: ^fmt\.Print.*$
+          msg: >-
+            Use pkg/log for logging instead of fmt.Print*.
+            Example: logger.Info("message", "key", value)
+            See CLAUDE.md "Logging Guidelines" for details.
+
+        # Block standard log package print functions - use pkg/log instead
+        - pattern: ^log\.(Print|Fatal|Panic).*$
+          msg: >-
+            Use pkg/log for logging instead of the standard log package.
+            Example: logger.Error("message", "error", err)
+            See CLAUDE.md "Logging Guidelines" for details.
+
+      # Don't analyze types - use simple pattern matching
+      # This avoids false positives with our own pkg/log.New()
+      analyze-types: false
+
+  exclusions:
+    # Enable common presets
+    presets:
+      - std-error-handling    # Allow unchecked errors for common cases
+      - common-false-positives
+
+    rules:
+      # Exclude ruleguard rules directory from linting (it's parsed by ruleguard, not compiled)
+      - path: ^rules/
+        linters:
+          - typecheck
+          - unused
+          - govet
+
+      # Allow fmt.Print* in cmd/ directory for CLI output (help text, progress)
+      # These are dump/export tools where stdout output is intentional
+      - path: ^cmd/
+        linters:
+          - forbidigo
+
+      # Exclude test files from errcheck (defer Close() is fine in tests)
+      - path: _test\.go$
+        linters:
+          - errcheck
+
+      # Allow fmt.Fprint* everywhere (writing to io.Writer, not stdout logging)
+      - text: "fmt\\.Fprint"
+        linters:
+          - forbidigo

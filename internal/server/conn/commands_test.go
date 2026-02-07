@@ -77,6 +77,9 @@ func newTestConn(username string) (*Connection, *sentPackets, *player.Manager) {
 		world:          w,
 		loadedChunks:   make(map[gen.ChunkPos]struct{}),
 		keepAliveAcked: true,
+		cursorSlot:     player.EmptySlot,
+		craftingOutput: player.EmptySlot,
+		craftingGrid:   [4]player.Slot{player.EmptySlot, player.EmptySlot, player.EmptySlot, player.EmptySlot},
 	}
 	return c, sp, m
 }

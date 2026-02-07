@@ -13,11 +13,14 @@ import (
 
 	"github.com/OCharnyshevich/minecraft-server/internal/server"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/storage"
 )
 
 func main() {
 	cfg := config.DefaultConfig()
 
+	var dataDir string
+	flag.StringVar(&dataDir, "data-dir", "data", "directory for persistent data")
 	flag.IntVar(&cfg.Port, "port", cfg.Port, "server port")
 	flag.BoolVar(&cfg.OnlineMode, "online-mode", cfg.OnlineMode, "enable Mojang authentication")
 	flag.StringVar(&cfg.MOTD, "motd", cfg.MOTD, "server description")
@@ -29,6 +32,32 @@ func main() {
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+
+	// Create storage manager.
+	store, err := storage.New(dataDir, log)
+	if err != nil {
+		log.Error("create storage", "error", err)
+		os.Exit(1)
+	}
+
+	// Load config from file, then merge with CLI flags.
+	// CLI flags take precedence when explicitly set.
+	fileCfg := config.DefaultConfig()
+	if err := store.LoadConfig(fileCfg); err != nil {
+		log.Error("load config", "error", err)
+		os.Exit(1)
+	}
+
+	explicitFlags := make(map[string]bool)
+	flag.Visit(func(f *flag.Flag) {
+		explicitFlags[f.Name] = true
+	})
+	config.Merge(cfg, fileCfg, explicitFlags)
+
+	// Save effective config back to file.
+	if err := store.SaveConfig(cfg); err != nil {
+		log.Error("save config", "error", err)
+	}
 
 	if cfg.OnlineMode {
 		key, err := rsa.GenerateKey(rand.Reader, 1024)
@@ -48,7 +77,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	srv := server.New(cfg, log)
+	srv := server.New(cfg, log, store)
 	if err := srv.Start(ctx); err != nil {
 		log.Error("server error", "error", err)
 		os.Exit(1)

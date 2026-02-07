@@ -73,6 +73,62 @@ func verifyWithMojang(ctx context.Context, username, serverHash string) (*mojang
 	return &profile, nil
 }
 
+// fetchSkinByUsername looks up a Mojang account by username and returns its
+// signed skin/cape properties. Returns (nil, nil) if the username does not
+// correspond to a real Mojang account.
+func fetchSkinByUsername(ctx context.Context, username string) ([]mojangProperty, error) {
+	// Step 1: username → UUID
+	uuidURL := fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", username)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uuidURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create mojang profile request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("mojang profile request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("mojang profile unexpected status: %d", resp.StatusCode)
+	}
+
+	var profile mojangProfile
+	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
+		return nil, fmt.Errorf("decode mojang profile: %w", err)
+	}
+
+	// Step 2: UUID → profile with signed textures
+	skinURL := fmt.Sprintf("https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false", profile.ID)
+
+	req2, err := http.NewRequestWithContext(ctx, http.MethodGet, skinURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create mojang skin request: %w", err)
+	}
+
+	resp2, err := http.DefaultClient.Do(req2)
+	if err != nil {
+		return nil, fmt.Errorf("mojang skin request: %w", err)
+	}
+	defer resp2.Body.Close()
+
+	if resp2.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("mojang skin unexpected status: %d", resp2.StatusCode)
+	}
+
+	var skinProfile mojangProfile
+	if err := json.NewDecoder(resp2.Body).Decode(&skinProfile); err != nil {
+		return nil, fmt.Errorf("decode mojang skin response: %w", err)
+	}
+
+	return skinProfile.Properties, nil
+}
+
 // formatMojangUUID inserts hyphens into a 32-char hex UUID string.
 func formatMojangUUID(hexID string) string {
 	if len(hexID) != 32 {

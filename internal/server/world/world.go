@@ -113,6 +113,22 @@ func (w *World) ForEachOverride(fn func(pos BlockPos, stateID int32)) {
 	}
 }
 
+// LoadOverrides bulk-loads saved block overrides at startup.
+func (w *World) LoadOverrides(overrides map[BlockPos]int32) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	for pos, stateID := range overrides {
+		w.blocks[pos] = stateID
+	}
+}
+
+// OverrideCount returns the number of block overrides currently stored.
+func (w *World) OverrideCount() int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return len(w.blocks)
+}
+
 // PreGenerateRadius generates all chunks within the given radius centered on (0,0).
 func (w *World) PreGenerateRadius(radius int) int {
 	count := 0

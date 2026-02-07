@@ -10,10 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/OCharnyshevich/minecraft-server/internal/gamedata"
 	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/packet"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/storage"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
 )
 
@@ -24,10 +26,52 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	entityID := c.players.AllocateEntityID()
 	c.self = player.NewPlayer(entityID, uuid, uuidBytes, username, skinProps, c.writePacket)
 
+	// Try to load saved player data.
+	var savedData *storage.PlayerData
+	if c.storage != nil {
+		var err error
+		savedData, err = c.storage.LoadPlayer(uuid)
+		if err != nil {
+			c.log.Error("load player data", "error", err)
+		}
+	}
+
+	gameMode := uint8(packet.GameModeCreative)
+	spawnY := c.world.SpawnHeight()
+	posX, posY, posZ := 0.5, float64(spawnY), 0.5
+	var posYaw float32
+	var posPitch float32
+
+	if savedData != nil {
+		gameMode = savedData.GameMode
+		posX = savedData.Position.X
+		posY = savedData.Position.Y
+		posZ = savedData.Position.Z
+		posYaw = savedData.Position.Yaw
+		posPitch = savedData.Position.Pitch
+
+		// Convert saved inventory data to runtime types.
+		var slots [36]player.Slot
+		var armor [4]player.Slot
+		for i, s := range savedData.Inventory.Slots {
+			slots[i] = player.Slot{BlockID: s.BlockID, ItemCount: s.ItemCount, ItemDamage: s.ItemDamage}
+		}
+		for i, s := range savedData.Inventory.Armor {
+			armor[i] = player.Slot{BlockID: s.BlockID, ItemCount: s.ItemCount, ItemDamage: s.ItemDamage}
+		}
+
+		c.self.ApplyData(player.Position{
+			X: posX, Y: posY, Z: posZ,
+			Yaw: posYaw, Pitch: posPitch,
+		}, gameMode, slots, armor, savedData.Inventory.HeldSlot)
+
+		c.log.Info("restored saved player data")
+	}
+
 	// 1. Join Game
 	if err := c.writePacket(&pkt.Login{
 		EntityID:         entityID,
-		GameMode:         packet.GameModeCreative,
+		GameMode:         gameMode,
 		Dimension:        packet.DimensionOverworld,
 		Difficulty:       packet.DifficultyEasy,
 		MaxPlayers:       uint8(c.cfg.MaxPlayers),
@@ -37,8 +81,6 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		return fmt.Errorf("write join game: %w", err)
 	}
 
-	spawnY := c.world.SpawnHeight()
-
 	// 2. Spawn Position
 	if err := c.writePacket(&pkt.SpawnPosition{
 		Location: mcnet.EncodePosition(0, spawnY, 0),
@@ -46,9 +88,10 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		return fmt.Errorf("write spawn position: %w", err)
 	}
 
-	// 3. Player Abilities (Creative: Invulnerable + AllowFlight + CreativeMode)
+	// 3. Player Abilities (based on actual game mode)
+	abilities := abilitiesForGameMode(gameMode)
 	if err := c.writePacket(&pkt.AbilitiesCB{
-		Flags:        packet.AbilityInvulnerable | packet.AbilityAllowFlight | packet.AbilityCreativeMode,
+		Flags:        abilities,
 		FlyingSpeed:  0.05,
 		WalkingSpeed: 0.1,
 	}); err != nil {
@@ -57,22 +100,27 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 
 	// 4. Player Position And Look
 	if err := c.writePacket(&pkt.PositionCB{
-		X:     0.5,
-		Y:     float64(spawnY),
-		Z:     0.5,
-		Yaw:   0,
-		Pitch: 0,
+		X:     posX,
+		Y:     posY,
+		Z:     posZ,
+		Yaw:   posYaw,
+		Pitch: posPitch,
 		Flags: 0x00, // all absolute
 	}); err != nil {
 		return fmt.Errorf("write position and look: %w", err)
 	}
 
-	// 5. Chunk Data (view distance radius around spawn)
+	// 5. Chunk Data (view distance radius around player position)
 	if err := c.sendInitialChunks(); err != nil {
 		return fmt.Errorf("send initial chunks: %w", err)
 	}
 
-	// 6. Chat Message — "Hello, world!"
+	// 6. Window Items (inventory sync)
+	if err := c.sendWindowItems(); err != nil {
+		return fmt.Errorf("send window items: %w", err)
+	}
+
+	// 7. Chat Message — "Hello, world!"
 	if err := c.writePacket(&pkt.ChatCB{
 		Message:  `{"text":"Hello, world!","color":"gold"}`,
 		Position: 0,
@@ -80,14 +128,26 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		return fmt.Errorf("write chat message: %w", err)
 	}
 
-	// 7. Register with player manager (sends cross-wise PlayerInfo + spawns).
+	// 8. Register with player manager (sends cross-wise PlayerInfo + spawns).
 	c.players.Add(c.self)
 
-	// 8. Start KeepAlive goroutine
+	// 9. Start KeepAlive goroutine
 	go c.keepAliveLoop()
 
 	c.log.Info("join sequence complete", "entityID", entityID)
 	return nil
+}
+
+// abilitiesForGameMode returns the ability flags for a given game mode.
+func abilitiesForGameMode(mode uint8) int8 {
+	switch mode {
+	case packet.GameModeCreative:
+		return packet.AbilityInvulnerable | packet.AbilityAllowFlight | packet.AbilityCreativeMode
+	case packet.GameModeSpectator:
+		return packet.AbilityInvulnerable | packet.AbilityAllowFlight
+	default:
+		return 0
+	}
 }
 
 func (c *Connection) keepAliveLoop() {
@@ -228,6 +288,21 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 			c.players.BroadcastEntityMetadata(c.self)
 		}
 
+	case 0x0D: // Close Window
+		return c.handleCloseWindow(data)
+
+	case 0x0E: // Window Click
+		return c.handleWindowClick(data)
+
+	case 0x0F: // Transaction
+		return c.handleTransaction(data)
+
+	case 0x10: // Set Creative Slot
+		return c.handleCreativeSlot(data)
+
+	case 0x14: // Tab Complete
+		return c.handleTabComplete(data)
+
 	case 0x15: // Client Settings
 		var p pkt.Settings
 		if err := mcnet.Unmarshal(data, &p); err != nil {
@@ -261,14 +336,7 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 		pitch = pos.Pitch
 	}
 
-	oldCX, oldCZ := c.self.ChunkX(), c.self.ChunkZ()
-	oldFX, oldFY, oldFZ, newFX, newFY, newFZ := c.self.SetPosition(x, y, z, yaw, pitch, onGround)
-
-	// Update loaded chunks when crossing a chunk boundary.
-	newCX, newCZ := c.self.ChunkX(), c.self.ChunkZ()
-	if oldCX != newCX || oldCZ != newCZ {
-		c.updateLoadedChunks(newCX, newCZ)
-	}
+	oldFX, oldFY, oldFZ, newFX, newFY, newFZ := c.setPositionAndUpdateChunks(x, y, z, yaw, pitch, onGround)
 
 	dx := newFX - oldFX
 	dy := newFY - oldFY
@@ -366,28 +434,68 @@ func (c *Connection) handleBlockDig(data []byte) error {
 	}
 	x, y, z := mcnet.DecodePosition(posVal)
 
-	// status 0 = Started digging, 2 = Finished digging
-	// In Creative mode, the client sends status=0 for instant break.
-	if status == 0 || status == 2 {
-		oldBlockState := c.world.GetBlock(x, y, z)
-		c.world.SetBlock(x, y, z, 0) // air
-		blockChange := &pkt.BlockChange{
-			Location: posVal,
-			Type:     0,
-		}
-		c.players.BroadcastExcept(blockChange, c.self.EntityID)
-
-		// Broadcast block break effect (particles + sound).
-		if oldBlockState != 0 {
-			c.players.BroadcastToTrackers(&pkt.WorldEvent{
-				EffectID: 2001,
-				Location: posVal,
-				Data:     oldBlockState,
-				Global:   false,
+	switch status {
+	case 0: // Started digging
+		if c.self.GetGameMode() == packet.GameModeCreative {
+			// Creative mode: instant break.
+			c.breakBlock(x, y, z, posVal)
+		} else {
+			// Check if block is instant-break (hardness 0) in survival.
+			stateID := c.world.GetBlock(x, y, z)
+			if block, ok := c.lookupBlock(stateID); ok {
+				heldItem := c.self.Inventory.HeldItem()
+				var materials gamedata.MaterialRegistry
+				if c.gameData != nil {
+					materials = c.gameData.Materials
+				}
+				breakTicks := calcBreakTime(block, heldItem.BlockID, materials)
+				if breakTicks == 0 {
+					// Instant break even in survival (e.g. tall grass, torches).
+					c.breakBlock(x, y, z, posVal)
+					return nil
+				}
+				if breakTicks < 0 {
+					// Unbreakable block, don't start animation.
+					return nil
+				}
+			}
+			// Broadcast dig start animation to other players.
+			c.players.BroadcastToTrackers(&pkt.BlockBreakAnimation{
+				EntityID:     c.self.EntityID,
+				Location:     posVal,
+				DestroyStage: 0,
 			}, c.self.EntityID)
 		}
+		return nil
 
-		return c.writePacket(blockChange)
+	case 1: // Cancelled digging
+		// Reset block break animation for other players.
+		c.players.BroadcastToTrackers(&pkt.BlockBreakAnimation{
+			EntityID:     c.self.EntityID,
+			Location:     posVal,
+			DestroyStage: -1,
+		}, c.self.EntityID)
+		return nil
+
+	case 2: // Finished digging
+		// Validate that the block is actually diggable.
+		stateID := c.world.GetBlock(x, y, z)
+		if block, ok := c.lookupBlock(stateID); ok {
+			if !block.Diggable || block.Hardness == nil {
+				// Unbreakable — resend the block to the client.
+				_ = c.writePacket(&pkt.BlockChange{Location: posVal, Type: stateID})
+				return nil
+			}
+		}
+
+		// Reset animation and break the block.
+		c.players.BroadcastToTrackers(&pkt.BlockBreakAnimation{
+			EntityID:     c.self.EntityID,
+			Location:     posVal,
+			DestroyStage: -1,
+		}, c.self.EntityID)
+		c.breakBlock(x, y, z, posVal)
+		return nil
 	}
 
 	// status 3 = drop stack, status 4 = drop single item
@@ -418,6 +526,43 @@ func (c *Connection) handleBlockDig(data []byte) error {
 	}
 
 	return nil
+}
+
+// breakBlock removes a block from the world, broadcasts the change + break effect,
+// and spawns item drops in survival mode.
+func (c *Connection) breakBlock(x, y, z int, posVal int64) {
+	oldBlockState := c.world.GetBlock(x, y, z)
+	c.world.SetBlock(x, y, z, 0)
+	blockChange := &pkt.BlockChange{
+		Location: posVal,
+		Type:     0,
+	}
+	c.players.BroadcastExcept(blockChange, c.self.EntityID)
+
+	if oldBlockState != 0 {
+		c.players.BroadcastToTrackers(&pkt.WorldEvent{
+			EffectID: 2001,
+			Location: posVal,
+			Data:     oldBlockState,
+			Global:   false,
+		}, c.self.EntityID)
+	}
+
+	_ = c.writePacket(blockChange)
+
+	// Spawn item drops in survival mode.
+	if c.self.GetGameMode() != packet.GameModeCreative {
+		if block, ok := c.lookupBlock(oldBlockState); ok {
+			heldItem := c.self.Inventory.HeldItem()
+			drops := blockDrops(block, heldItem.BlockID)
+			for _, drop := range drops {
+				cx := float64(x) + 0.5
+				cy := float64(y) + 0.5
+				cz := float64(z) + 0.5
+				c.players.SpawnItemEntity(c.self.EntityID, drop, cx, cy, cz, 0)
+			}
+		}
+	}
 }
 
 func (c *Connection) handleBlockPlace(data []byte) error {
@@ -505,9 +650,20 @@ func escapeJSON(s string) string {
 	return string(b)
 }
 
+// setPositionAndUpdateChunks wraps SetPosition and triggers chunk loading if the player crossed a chunk boundary.
+func (c *Connection) setPositionAndUpdateChunks(x, y, z float64, yaw, pitch float32, onGround bool) (oldFX, oldFY, oldFZ, newFX, newFY, newFZ int32) {
+	oldCX, oldCZ := c.self.ChunkX(), c.self.ChunkZ()
+	oldFX, oldFY, oldFZ, newFX, newFY, newFZ = c.self.SetPosition(x, y, z, yaw, pitch, onGround)
+	newCX, newCZ := c.self.ChunkX(), c.self.ChunkZ()
+	if oldCX != newCX || oldCZ != newCZ {
+		c.updateLoadedChunks(newCX, newCZ)
+	}
+	return
+}
+
 // sendInitialChunks sends chunks around the player's current position and tracks them.
 func (c *Connection) sendInitialChunks() error {
-	centerCX, centerCZ := 0, 0 // spawn is at (0,0)
+	centerCX, centerCZ := c.self.ChunkX(), c.self.ChunkZ()
 	viewDist := c.cfg.ViewDistance
 
 	for cx := centerCX - viewDist; cx <= centerCX+viewDist; cx++ {

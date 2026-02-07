@@ -36,6 +36,7 @@ type Player struct {
 	lastFixedZ int32
 
 	Inventory   *Inventory
+	gameMode    uint8   // 0=survival, 1=creative, 2=adventure, 3=spectator
 	entityFlags byte    // bit 1 = sneaking, bit 3 = sprinting
 	skinParts   byte    // from ClientSettings
 	Height      float64 // 1.8 normal, 1.65 sneaking
@@ -214,4 +215,32 @@ func (p *Player) GetEntityFlags() byte {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.entityFlags
+}
+
+// GetGameMode returns the player's current game mode.
+func (p *Player) GetGameMode() uint8 {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.gameMode
+}
+
+// SetGameMode sets the player's game mode.
+func (p *Player) SetGameMode(mode uint8) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.gameMode = mode
+}
+
+// ApplyData restores a player's saved state (position, game mode, inventory).
+func (p *Player) ApplyData(pos Position, gameMode uint8, slots [36]Slot, armor [4]Slot, heldSlot int16) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.pos = pos
+	p.lastFixedX = FixedPoint(pos.X)
+	p.lastFixedY = FixedPoint(pos.Y)
+	p.lastFixedZ = FixedPoint(pos.Z)
+	p.gameMode = gameMode
+
+	p.Inventory.ApplyState(slots, armor, heldSlot)
 }

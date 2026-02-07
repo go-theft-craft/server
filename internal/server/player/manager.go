@@ -52,6 +52,9 @@ func (m *Manager) Add(p *Player) {
 	newPlayerInfo := buildPlayerInfoAdd(p)
 	cx, cz := p.ChunkX(), p.ChunkZ()
 
+	// Send the player their own PlayerInfo so the client knows its skin for the inventory.
+	_ = p.WritePacket(&pkt.PlayerInfo{Data: newPlayerInfo})
+
 	for _, other := range m.players {
 		if other.EntityID == p.EntityID {
 			continue

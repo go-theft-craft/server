@@ -36,3 +36,6 @@ go.work.sum
 .task
 .idea
 .venv
+
+# Persistence data
+data/

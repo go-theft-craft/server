@@ -30,6 +30,7 @@ func init() {
 		{name: "me", usage: "/me <action>", desc: "Send an action message", handler: cmdMe},
 		{name: "kill", usage: "/kill", desc: "Kill yourself", handler: cmdKill},
 		{name: "seed", usage: "/seed", desc: "Show world seed", handler: cmdSeed},
+		{name: "save", usage: "/save", desc: "Save world and player data", handler: cmdSave},
 	}
 }
 
@@ -81,15 +82,7 @@ func (c *Connection) sendSuccessMsg(text string) {
 // broadcasting the teleport to trackers and updating tracking.
 func (c *Connection) teleportSelf(x, y, z float64) {
 	pos := c.self.GetPosition()
-	oldCX, oldCZ := c.self.ChunkX(), c.self.ChunkZ()
-	c.self.SetPosition(x, y, z, pos.Yaw, pos.Pitch, false)
-
-	// Load chunks around the new position before sending the teleport,
-	// so the client has terrain to render on arrival.
-	newCX, newCZ := c.self.ChunkX(), c.self.ChunkZ()
-	if oldCX != newCX || oldCZ != newCZ {
-		c.updateLoadedChunks(newCX, newCZ)
-	}
+	c.setPositionAndUpdateChunks(x, y, z, pos.Yaw, pos.Pitch, false)
 
 	_ = c.writePacket(&pkt.PositionCB{
 		X:     x,
@@ -193,6 +186,8 @@ func cmdGamemode(c *Connection, args []string) {
 		GameMode: float32(mode),
 	})
 
+	c.self.SetGameMode(mode)
+
 	_ = c.writePacket(&pkt.AbilitiesCB{
 		Flags:        abilities,
 		FlyingSpeed:  0.05,
@@ -276,5 +271,17 @@ func cmdKill(c *Connection, _ []string) {
 }
 
 func cmdSeed(c *Connection, _ []string) {
-	c.sendSuccessMsg("Seed: [0]")
+	c.sendSuccessMsg(fmt.Sprintf("Seed: [%d]", c.cfg.Seed))
+}
+
+func cmdSave(c *Connection, _ []string) {
+	if c.SaveAll == nil {
+		c.sendErrorMsg("Save is not available.")
+		return
+	}
+	c.sendSuccessMsg("Saving world and player data...")
+	go func() {
+		c.SaveAll()
+		c.sendSuccessMsg("Save complete.")
+	}()
 }

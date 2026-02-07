@@ -9,9 +9,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/OCharnyshevich/minecraft-server/internal/gamedata"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/storage"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
 )
@@ -28,13 +30,14 @@ const (
 
 // Connection manages a single client connection through the protocol state machine.
 type Connection struct {
-	conn   net.Conn
-	rw     io.ReadWriter
-	cfg    *config.Config
-	log    *slog.Logger
-	ctx    context.Context
-	cancel context.CancelFunc
-	world  *world.World
+	conn    net.Conn
+	rw      io.ReadWriter
+	cfg     *config.Config
+	log     *slog.Logger
+	ctx     context.Context
+	cancel  context.CancelFunc
+	world   *world.World
+	storage *storage.Storage
 
 	mu    sync.Mutex
 	state State
@@ -54,10 +57,26 @@ type Connection struct {
 	lastKeepAliveID   int32
 	lastKeepAliveSent time.Time
 	keepAliveAcked    bool
+
+	// Inventory state (only accessed from Handle goroutine)
+	cursorSlot     player.Slot
+	craftingGrid   [4]player.Slot
+	craftingOutput player.Slot
+
+	// Drag state for mode 5 (paint/drag click)
+	dragMode   int8
+	dragSlots  []int16
+	dragActive bool
+
+	// Game data registries (blocks, materials, recipes, etc.)
+	gameData *gamedata.GameData
+
+	// SaveAll triggers a server-wide save (set by Server).
+	SaveAll func()
 }
 
 // NewConnection creates a new Connection from a raw TCP connection.
-func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World, players *player.Manager) *Connection {
+func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World, players *player.Manager, store *storage.Storage, gd *gamedata.GameData) *Connection {
 	ctx, cancel := context.WithCancel(ctx)
 	return &Connection{
 		conn:           conn,
@@ -68,9 +87,14 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		cancel:         cancel,
 		state:          StateHandshake,
 		world:          w,
+		storage:        store,
 		players:        players,
 		loadedChunks:   make(map[gen.ChunkPos]struct{}),
 		keepAliveAcked: true,
+		cursorSlot:     player.EmptySlot,
+		craftingOutput: player.EmptySlot,
+		craftingGrid:   [4]player.Slot{player.EmptySlot, player.EmptySlot, player.EmptySlot, player.EmptySlot},
+		gameData:       gd,
 	}
 }
 
@@ -79,6 +103,11 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 func (c *Connection) Handle() {
 	defer func() {
 		if c.self != nil {
+			if c.storage != nil {
+				if err := c.storage.SavePlayer(c.self); err != nil {
+					c.log.Error("save player on disconnect", "error", err)
+				}
+			}
 			c.players.Remove(c.self)
 		}
 		c.cancel()

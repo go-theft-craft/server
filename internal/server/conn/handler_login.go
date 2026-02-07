@@ -50,8 +50,16 @@ func (c *Connection) handleOfflineLogin(username string) error {
 		return fmt.Errorf("write login success: %w", err)
 	}
 
+	var skinProps []player.SkinProperty
+	if props, err := fetchSkinByUsername(c.ctx, username); err == nil && props != nil {
+		skinProps = make([]player.SkinProperty, len(props))
+		for i, p := range props {
+			skinProps[i] = player.SkinProperty{Name: p.Name, Value: p.Value, Signature: p.Signature}
+		}
+	}
+
 	c.state = StatePlay
-	return c.startPlay(username, uuidStr, nil)
+	return c.startPlay(username, uuidStr, skinProps)
 }
 
 func (c *Connection) startOnlineLogin(username string) error {

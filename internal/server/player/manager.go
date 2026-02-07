@@ -3,6 +3,7 @@ package player
 import (
 	"bytes"
 	"encoding/binary"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -176,6 +177,27 @@ func (m *Manager) PlayerCount() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return len(m.players)
+}
+
+// GetByName returns the player with the given username (case-insensitive), or nil.
+func (m *Manager) GetByName(name string) *Player {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	for _, p := range m.players {
+		if strings.EqualFold(p.Username, name) {
+			return p
+		}
+	}
+	return nil
+}
+
+// ForEach calls fn for every connected player under a read lock.
+func (m *Manager) ForEach(fn func(*Player)) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	for _, p := range m.players {
+		fn(p)
+	}
 }
 
 // spawnPlayerFor sends the SpawnNamedEntity + EntityHeadLook + EntityTeleport

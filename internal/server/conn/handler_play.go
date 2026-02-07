@@ -146,6 +146,9 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 			return fmt.Errorf("unmarshal chat: %w", err)
 		}
 		c.log.Info("chat", "message", p.Message)
+		if c.handleCommand(p.Message) {
+			break
+		}
 		chatJSON := fmt.Sprintf(
 			`{"translate":"chat.type.text","with":[%s,%s]}`,
 			escapeJSON(c.self.Username), escapeJSON(p.Message),

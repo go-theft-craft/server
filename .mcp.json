@@ -12,8 +12,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/home/ocharnyshevich/Titan/SteamLibrary/steamapps/common/Grand Theft Auto San Andreas"
+        "@modelcontextprotocol/server-filesystem"
       ]
     }
   }

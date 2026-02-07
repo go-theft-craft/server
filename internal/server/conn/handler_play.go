@@ -2,23 +2,29 @@ package conn
 
 import (
 	"bytes"
-	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/packet"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
 )
 
-func (c *Connection) startPlay(username, uuid string) error {
+func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinProperty) error {
 	c.log = c.log.With("player", username)
 
+	uuidBytes := parseUUID(uuid)
+	entityID := c.players.AllocateEntityID()
+	c.self = player.NewPlayer(entityID, uuid, uuidBytes, username, skinProps, c.writePacket)
+
 	// 1. Join Game
-	if err := c.writePacket(&packet.JoinGame{
-		EntityID:         1,
+	if err := c.writePacket(&pkt.Login{
+		EntityID:         entityID,
 		GameMode:         packet.GameModeCreative,
 		Dimension:        packet.DimensionOverworld,
 		Difficulty:       packet.DifficultyEasy,
@@ -30,14 +36,14 @@ func (c *Connection) startPlay(username, uuid string) error {
 	}
 
 	// 2. Spawn Position
-	if err := c.writePacket(&packet.SpawnPosition{
+	if err := c.writePacket(&pkt.SpawnPosition{
 		Location: mcnet.EncodePosition(0, 4, 0),
 	}); err != nil {
 		return fmt.Errorf("write spawn position: %w", err)
 	}
 
 	// 3. Player Abilities (Creative: Invulnerable + AllowFlight + CreativeMode)
-	if err := c.writePacket(&packet.PlayerAbilities{
+	if err := c.writePacket(&pkt.AbilitiesCB{
 		Flags:        packet.AbilityInvulnerable | packet.AbilityAllowFlight | packet.AbilityCreativeMode,
 		FlyingSpeed:  0.05,
 		WalkingSpeed: 0.1,
@@ -46,7 +52,7 @@ func (c *Connection) startPlay(username, uuid string) error {
 	}
 
 	// 4. Player Position And Look
-	if err := c.writePacket(&packet.PlayerPositionAndLook{
+	if err := c.writePacket(&pkt.PositionCB{
 		X:     0.5,
 		Y:     4.0,
 		Z:     0.5,
@@ -57,7 +63,7 @@ func (c *Connection) startPlay(username, uuid string) error {
 		return fmt.Errorf("write position and look: %w", err)
 	}
 
-	// 5. Chunk Data (7×7 grid)
+	// 5. Chunk Data (7x7 grid)
 	if err := world.WriteChunkGrid(c.rw); err != nil {
 		return fmt.Errorf("write chunk grid: %w", err)
 	}
@@ -67,71 +73,22 @@ func (c *Connection) startPlay(username, uuid string) error {
 		return fmt.Errorf("send block overrides: %w", err)
 	}
 
-	// 6. Player Info (Add Player action)
-	if err := c.writePlayerInfo(username, uuid); err != nil {
-		return fmt.Errorf("write player info: %w", err)
-	}
-
-	// 7. Chat Message — "Hello, world!"
-	if err := c.writePacket(&packet.ChatMessage{
-		JSONData: `{"text":"Hello, world!","color":"gold"}`,
+	// 6. Chat Message — "Hello, world!"
+	if err := c.writePacket(&pkt.ChatCB{
+		Message:  `{"text":"Hello, world!","color":"gold"}`,
 		Position: 0,
 	}); err != nil {
 		return fmt.Errorf("write chat message: %w", err)
 	}
 
+	// 7. Register with player manager (sends cross-wise PlayerInfo + spawns).
+	c.players.Add(c.self)
+
 	// 8. Start KeepAlive goroutine
 	go c.keepAliveLoop()
 
-	c.log.Info("join sequence complete")
+	c.log.Info("join sequence complete", "entityID", entityID)
 	return nil
-}
-
-func (c *Connection) writePlayerInfo(username, uuid string) error {
-	// PlayerInfo packet with action=0 (Add Player), one entry
-	var buf bytes.Buffer
-
-	// Action: VarInt = 0 (Add Player)
-	if _, err := mcnet.WriteVarInt(&buf, 0); err != nil {
-		return fmt.Errorf("write player info action: %w", err)
-	}
-	// Number of players: VarInt = 1
-	if _, err := mcnet.WriteVarInt(&buf, 1); err != nil {
-		return fmt.Errorf("write player info count: %w", err)
-	}
-
-	// UUID: 16 bytes
-	uuidBytes := parseUUID(uuid)
-	buf.Write(uuidBytes[:])
-
-	// Name
-	if _, err := mcnet.WriteString(&buf, username); err != nil {
-		return fmt.Errorf("write player info name: %w", err)
-	}
-
-	// Number of properties: VarInt = 0
-	if _, err := mcnet.WriteVarInt(&buf, 0); err != nil {
-		return fmt.Errorf("write player info properties: %w", err)
-	}
-
-	// Gamemode: VarInt (Creative)
-	if _, err := mcnet.WriteVarInt(&buf, int32(packet.GameModeCreative)); err != nil {
-		return fmt.Errorf("write player info gamemode: %w", err)
-	}
-
-	// Ping: VarInt = 0
-	if _, err := mcnet.WriteVarInt(&buf, 0); err != nil {
-		return fmt.Errorf("write player info ping: %w", err)
-	}
-
-	// Has display name: bool = false
-	if err := binary.Write(&buf, binary.BigEndian, uint8(0)); err != nil {
-		return fmt.Errorf("write player info display name: %w", err)
-	}
-
-	return c.writePacket(&packet.PlayerInfo{
-		Data: buf.Bytes(),
-	})
 }
 
 func (c *Connection) keepAliveLoop() {
@@ -148,7 +105,7 @@ func (c *Connection) keepAliveLoop() {
 			if !c.keepAliveAcked && id > 0 {
 				if time.Since(c.lastKeepAliveSent) > 30*time.Second {
 					c.mu.Unlock()
-					_ = c.writePacket(&packet.PlayDisconnect{
+					_ = c.writePacket(&pkt.KickDisconnect{
 						Reason: `{"text":"Timed out"}`,
 					})
 					c.disconnect("keepalive timeout")
@@ -161,7 +118,7 @@ func (c *Connection) keepAliveLoop() {
 			c.keepAliveAcked = false
 			c.mu.Unlock()
 
-			if err := c.writePacket(&packet.KeepAliveClientbound{
+			if err := c.writePacket(&pkt.KeepAliveCB{
 				KeepAliveID: id,
 			}); err != nil {
 				c.log.Error("keep alive write failed", "error", err)
@@ -175,34 +132,54 @@ func (c *Connection) keepAliveLoop() {
 func (c *Connection) handlePlay(packetID int32, data []byte) error {
 	switch packetID {
 	case 0x00: // KeepAlive
-		var pkt packet.KeepAliveServerbound
-		if err := mcnet.Unmarshal(data, &pkt); err != nil {
+		var p pkt.KeepAliveSB
+		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal keep alive: %w", err)
 		}
 		c.mu.Lock()
-		if pkt.KeepAliveID == c.lastKeepAliveID {
+		if p.KeepAliveID == c.lastKeepAliveID {
 			c.keepAliveAcked = true
 		}
 		c.mu.Unlock()
 
 	case 0x01: // Chat Message
-		var pkt packet.ChatMessageServerbound
-		if err := mcnet.Unmarshal(data, &pkt); err != nil {
+		var p pkt.ChatSB
+		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal chat: %w", err)
 		}
-		c.log.Info("chat", "message", pkt.Message)
+		c.log.Info("chat", "message", p.Message)
+		chatJSON := fmt.Sprintf(
+			`{"translate":"chat.type.text","with":[%s,%s]}`,
+			escapeJSON(c.self.Username), escapeJSON(p.Message),
+		)
+		c.players.Broadcast(&pkt.ChatCB{
+			Message:  chatJSON,
+			Position: 0,
+		})
 
 	case 0x03: // Player (ground state)
 		// heartbeat, ignore
 
 	case 0x04: // Player Position
-		// track position silently
+		var p pkt.PositionSB
+		if err := mcnet.Unmarshal(data, &p); err != nil {
+			return fmt.Errorf("unmarshal player position: %w", err)
+		}
+		c.handlePositionUpdate(p.X, p.Y, p.Z, 0, 0, p.OnGround, true, false)
 
 	case 0x05: // Player Look
-		// track look silently
+		var p pkt.Look
+		if err := mcnet.Unmarshal(data, &p); err != nil {
+			return fmt.Errorf("unmarshal player look: %w", err)
+		}
+		c.handleLookUpdate(p.Yaw, p.Pitch, p.OnGround)
 
 	case 0x06: // Player Position And Look
-		// track position+look silently
+		var p pkt.PositionLook
+		if err := mcnet.Unmarshal(data, &p); err != nil {
+			return fmt.Errorf("unmarshal player position and look: %w", err)
+		}
+		c.handlePositionUpdate(p.X, p.Y, p.Z, p.Yaw, p.Pitch, p.OnGround, true, true)
 
 	case 0x07: // Block Dig
 		return c.handleBlockDig(data)
@@ -211,17 +188,103 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		return c.handleBlockPlace(data)
 
 	case 0x15: // Client Settings
-		var pkt packet.ClientSettings
-		if err := mcnet.Unmarshal(data, &pkt); err != nil {
+		var p pkt.Settings
+		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal client settings: %w", err)
 		}
-		c.log.Info("client settings", "locale", pkt.Locale, "viewDistance", pkt.ViewDistance)
+		c.log.Info("client settings", "locale", p.Locale, "viewDistance", p.ViewDistance)
 
 	default:
 		// ignore unknown packets silently
 	}
 
 	return nil
+}
+
+func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, onGround bool, posChanged, lookChanged bool) {
+	if c.self == nil {
+		return
+	}
+
+	// Preserve current look if only position changed.
+	if !lookChanged {
+		pos := c.self.GetPosition()
+		yaw = pos.Yaw
+		pitch = pos.Pitch
+	}
+
+	oldFX, oldFY, oldFZ, newFX, newFY, newFZ := c.self.SetPosition(x, y, z, yaw, pitch, onGround)
+
+	dx := newFX - oldFX
+	dy := newFY - oldFY
+	dz := newFZ - oldFZ
+
+	yawAngle := player.DegreesToAngle(yaw)
+	pitchAngle := player.DegreesToAngle(pitch)
+	eid := c.self.EntityID
+
+	if posChanged && lookChanged && player.DeltaFitsInByte(dx, dy, dz) {
+		c.players.BroadcastToTrackers(&pkt.EntityMoveLook{
+			EntityID: eid,
+			DX:       int8(dx),
+			DY:       int8(dy),
+			DZ:       int8(dz),
+			Yaw:      yawAngle,
+			Pitch:    pitchAngle,
+			OnGround: onGround,
+		}, eid)
+	} else if posChanged && !lookChanged && player.DeltaFitsInByte(dx, dy, dz) {
+		c.players.BroadcastToTrackers(&pkt.RelEntityMove{
+			EntityID: eid,
+			DX:       int8(dx),
+			DY:       int8(dy),
+			DZ:       int8(dz),
+			OnGround: onGround,
+		}, eid)
+	} else if posChanged {
+		c.players.BroadcastToTrackers(&pkt.EntityTeleport{
+			EntityID: eid,
+			X:        newFX,
+			Y:        newFY,
+			Z:        newFZ,
+			Yaw:      yawAngle,
+			Pitch:    pitchAngle,
+			OnGround: onGround,
+		}, eid)
+	}
+
+	if lookChanged {
+		c.players.BroadcastToTrackers(&pkt.EntityHeadRotation{
+			EntityID: eid,
+			HeadYaw:  yawAngle,
+		}, eid)
+	}
+
+	c.players.UpdateTracking(c.self)
+}
+
+func (c *Connection) handleLookUpdate(yaw, pitch float32, onGround bool) {
+	if c.self == nil {
+		return
+	}
+
+	c.self.UpdateLook(yaw, pitch, onGround)
+
+	yawAngle := player.DegreesToAngle(yaw)
+	pitchAngle := player.DegreesToAngle(pitch)
+	eid := c.self.EntityID
+
+	c.players.BroadcastToTrackers(&pkt.EntityLook{
+		EntityID: eid,
+		Yaw:      yawAngle,
+		Pitch:    pitchAngle,
+		OnGround: onGround,
+	}, eid)
+
+	c.players.BroadcastToTrackers(&pkt.EntityHeadRotation{
+		EntityID: eid,
+		HeadYaw:  yawAngle,
+	}, eid)
 }
 
 func (c *Connection) handleBlockDig(data []byte) error {
@@ -242,10 +305,12 @@ func (c *Connection) handleBlockDig(data []byte) error {
 	// In Creative mode, the client sends status=0 for instant break.
 	if status == 0 || status == 2 {
 		c.world.SetBlock(x, y, z, 0) // air
-		return c.writePacket(&packet.BlockChange{
+		blockChange := &pkt.BlockChange{
 			Location: posVal,
-			BlockID:  0,
-		})
+			Type:     0,
+		}
+		c.players.BroadcastExcept(blockChange, c.self.EntityID)
+		return c.writePacket(blockChange)
 	}
 
 	return nil
@@ -313,10 +378,12 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 	stateID := int32(slot.BlockID) << 4
 	c.world.SetBlock(x, y, z, stateID)
 
-	return c.writePacket(&packet.BlockChange{
+	blockChange := &pkt.BlockChange{
 		Location: mcnet.EncodePosition(x, y, z),
-		BlockID:  stateID,
-	})
+		Type:     stateID,
+	}
+	c.players.BroadcastExcept(blockChange, c.self.EntityID)
+	return c.writePacket(blockChange)
 }
 
 // sendBlockOverrides sends BlockChange packets for all world overrides
@@ -334,9 +401,9 @@ func (c *Connection) sendBlockOverrides() error {
 		if pos.X < minBlock || pos.X > maxBlock || pos.Z < minBlock || pos.Z > maxBlock {
 			return
 		}
-		sendErr = c.writePacket(&packet.BlockChange{
+		sendErr = c.writePacket(&pkt.BlockChange{
 			Location: mcnet.EncodePosition(pos.X, pos.Y, pos.Z),
-			BlockID:  stateID,
+			Type:     stateID,
 		})
 	})
 	return sendErr
@@ -349,4 +416,10 @@ func parseUUID(s string) [16]byte {
 	b, _ := hex.DecodeString(hexStr)
 	copy(uuid[:], b)
 	return uuid
+}
+
+// escapeJSON marshals a string to a JSON string literal (with quotes).
+func escapeJSON(s string) string {
+	b, _ := json.Marshal(s)
+	return string(b)
 }

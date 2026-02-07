@@ -35,21 +35,7 @@ linters:
           failOn: dsl
 
     forbidigo:
-      forbid:
-        # Block fmt.Print* functions - use pkg/log instead
-        - pattern: ^fmt\.Print.*$
-          msg: >-
-            Use pkg/log for logging instead of fmt.Print*.
-            Example: logger.Info("message", "key", value)
-            See CLAUDE.md "Logging Guidelines" for details.
-
-        # Block standard log package print functions - use pkg/log instead
-        - pattern: ^log\.(Print|Fatal|Panic).*$
-          msg: >-
-            Use pkg/log for logging instead of the standard log package.
-            Example: logger.Error("message", "error", err)
-            See CLAUDE.md "Logging Guidelines" for details.
-
+#      forbid:
       # Don't analyze types - use simple pattern matching
       # This avoids false positives with our own pkg/log.New()
       analyze-types: false

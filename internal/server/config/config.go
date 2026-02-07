@@ -4,10 +4,11 @@ import "crypto/rsa"
 
 // Config holds the server configuration.
 type Config struct {
-	Port       int
-	OnlineMode bool
-	MOTD       string
-	MaxPlayers int
+	Port         int
+	OnlineMode   bool
+	MOTD         string
+	MaxPlayers   int
+	ViewDistance int
 
 	// RSA keypair for online-mode encryption handshake.
 	PrivateKey   *rsa.PrivateKey
@@ -17,9 +18,10 @@ type Config struct {
 // DefaultConfig returns a Config with sensible defaults.
 func DefaultConfig() *Config {
 	return &Config{
-		Port:       25565,
-		OnlineMode: false,
-		MOTD:       "A Minecraft Server",
-		MaxPlayers: 20,
+		Port:         25565,
+		OnlineMode:   false,
+		MOTD:         "A Minecraft Server",
+		MaxPlayers:   20,
+		ViewDistance: 8,
 	}
 }

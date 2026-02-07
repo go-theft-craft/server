@@ -45,7 +45,7 @@ func main() {
 		log.Fatalf("codegen failed: %v", err)
 	}
 
-	fmt.Printf("codegen: done — output in %s/%s/\n", *outDir, pkgName)
+	fmt.Printf("codegen: done — output in %s/%s/\n", cfg.OutDir, cfg.Package)
 }
 
 func sanitizePackageName(name string) string {

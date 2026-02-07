@@ -3,8 +3,8 @@ package conn
 import (
 	"fmt"
 
+	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/packet"
 )
 
 func (c *Connection) handleHandshake(packetID int32, data []byte) error {
@@ -12,14 +12,14 @@ func (c *Connection) handleHandshake(packetID int32, data []byte) error {
 		return fmt.Errorf("expected handshake packet 0x00, got 0x%02X", packetID)
 	}
 
-	var hs packet.Handshake
+	var hs pkt.SetProtocol
 	if err := mcnet.Unmarshal(data, &hs); err != nil {
 		return fmt.Errorf("unmarshal handshake: %w", err)
 	}
 
 	c.log.Info("handshake received",
 		"protocol", hs.ProtocolVersion,
-		"server", hs.ServerAddress,
+		"server", hs.ServerHost,
 		"port", hs.ServerPort,
 		"nextState", hs.NextState,
 	)
@@ -28,7 +28,7 @@ func (c *Connection) handleHandshake(packetID int32, data []byte) error {
 	case 1:
 		c.state = StateStatus
 	case 2:
-		if hs.ProtocolVersion != 47 {
+		if hs.ProtocolVersion != pkt.ProtocolVersion {
 			c.log.Warn("unsupported protocol version", "version", hs.ProtocolVersion)
 		}
 		c.state = StateLogin

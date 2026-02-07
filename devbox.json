@@ -12,6 +12,9 @@
     "delve": "latest", // debug package for vscode
     "ginkgo": "latest",
     "git": "latest",
+    "python315": "latest",
+    "gh": "latest",
+    "nodejs_23": "latest",
     "glibcLocales": {
       "version": "latest",
       "platforms": [

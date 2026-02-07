@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/OCharnyshevich/minecraft-server/cmd/codegen/internal/schema"
@@ -32,6 +33,11 @@ type templateData struct {
 
 func Run(cfg Config) error {
 	outPath := filepath.Join(cfg.OutDir, cfg.Package)
+
+	if err := os.RemoveAll(outPath); err != nil {
+		return fmt.Errorf("failed to remove output directory: %w", err)
+	}
+
 	if err := os.MkdirAll(outPath, 0o755); err != nil {
 		return fmt.Errorf("create output directory: %w", err)
 	}
@@ -139,6 +145,13 @@ func Run(cfg Config) error {
 		}},
 		{"protocol.json", "protocol.go.tmpl", "protocol.go", func(raw []byte) (templateData, error) {
 			data, err := loadProtocol(raw)
+			if err != nil {
+				return templateData{}, err
+			}
+			return templateData{Package: cfg.Package, Version: cfg.Version, Data: data}, nil
+		}},
+		{"protocol.json", "packets.go.tmpl", "packets.go", func(raw []byte) (templateData, error) {
+			data, err := loadPacketStructs(raw)
 			if err != nil {
 				return templateData{}, err
 			}
@@ -282,6 +295,7 @@ type versionTmpl struct {
 	Protocol         int
 	MinecraftVersion string
 	MajorVersion     string
+	MetadataEnd      byte // entity metadata terminator: 0x7F for <1.9, 0xFF for >=1.9
 }
 
 func loadVersion(raw []byte) (*versionTmpl, error) {
@@ -289,10 +303,17 @@ func loadVersion(raw []byte) (*versionTmpl, error) {
 	if err := json.Unmarshal(raw, &v); err != nil {
 		return nil, fmt.Errorf("unmarshal version: %w", err)
 	}
+	// Entity metadata terminator changed in 1.9 (protocol 110).
+	var metadataEnd byte = 0x7F
+	if v.Version >= 110 {
+		metadataEnd = 0xFF
+	}
+
 	return &versionTmpl{
 		Protocol:         v.Version,
 		MinecraftVersion: v.MinecraftVersion,
 		MajorVersion:     v.MajorVersion,
+		MetadataEnd:      metadataEnd,
 	}, nil
 }
 
@@ -617,6 +638,24 @@ func extractPackets(types map[string]json.RawMessage) []packetTmpl {
 	return packets
 }
 
+func isBufferVarInt(raw json.RawMessage) bool {
+	var arr []json.RawMessage
+	if err := json.Unmarshal(raw, &arr); err != nil || len(arr) != 2 {
+		return false
+	}
+	var typeName string
+	if err := json.Unmarshal(arr[0], &typeName); err != nil || typeName != "buffer" {
+		return false
+	}
+	var opts struct {
+		CountType string `json:"countType"`
+	}
+	if err := json.Unmarshal(arr[1], &opts); err != nil || opts.CountType != "varint" {
+		return false
+	}
+	return true
+}
+
 func extractPacketFields(raw json.RawMessage) []packetFieldTmpl {
 	var def []json.RawMessage
 	if err := json.Unmarshal(raw, &def); err != nil {
@@ -643,9 +682,167 @@ func extractPacketFields(raw json.RawMessage) []packetFieldTmpl {
 		var simpleType string
 		if err := json.Unmarshal(f.Type, &simpleType); err == nil {
 			typeName = simpleType
+		} else if isBufferVarInt(f.Type) {
+			typeName = "ByteArray"
 		}
 		result = append(result, packetFieldTmpl{Name: f.Name, Type: typeName})
 	}
 
 	return result
+}
+
+// Packet Structs — generates Go struct definitions with mc tags.
+
+type packetStructsTmpl struct {
+	Packets []packetStructDef
+}
+
+type packetStructDef struct {
+	StructName string
+	PacketID   int
+	Fields     []packetStructFieldDef
+}
+
+type packetStructFieldDef struct {
+	GoName string
+	GoType string
+	McTag  string
+}
+
+type typeMapping struct {
+	goType string
+	mcTag  string
+}
+
+var marshalableTypes = map[string]typeMapping{
+	"varint":     {"int32", "varint"},
+	"varlong":    {"int64", "varlong"},
+	"i8":         {"int8", "i8"},
+	"u8":         {"uint8", "u8"},
+	"i16":        {"int16", "i16"},
+	"u16":        {"uint16", "u16"},
+	"i32":        {"int32", "i32"},
+	"i64":        {"int64", "i64"},
+	"f32":        {"float32", "f32"},
+	"f64":        {"float64", "f64"},
+	"bool":       {"bool", "bool"},
+	"string":     {"string", "string"},
+	"UUID":       {"[16]byte", "uuid"},
+	"position":   {"int64", "position"},
+	"ByteArray":  {"[]byte", "bytearray"},
+	"restBuffer": {"[]byte", "rest"},
+}
+
+func loadPacketStructs(raw []byte) (*packetStructsTmpl, error) {
+	proto, err := loadProtocol(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	var allPackets []packetStructDef
+
+	for _, phase := range proto.Phases {
+		clientNames := make(map[string]bool)
+		for _, p := range phase.ToClient {
+			clientNames[p.Name] = true
+		}
+		serverNames := make(map[string]bool)
+		for _, p := range phase.ToServer {
+			serverNames[p.Name] = true
+		}
+
+		for _, p := range phase.ToClient {
+			suffix := ""
+			if serverNames[p.Name] {
+				suffix = "CB"
+			}
+			allPackets = append(allPackets, buildPacketStructDef(p, suffix))
+		}
+
+		for _, p := range phase.ToServer {
+			suffix := ""
+			if clientNames[p.Name] {
+				suffix = "SB"
+			}
+			allPackets = append(allPackets, buildPacketStructDef(p, suffix))
+		}
+	}
+
+	sort.Slice(allPackets, func(i, j int) bool {
+		return allPackets[i].StructName < allPackets[j].StructName
+	})
+
+	return &packetStructsTmpl{Packets: allPackets}, nil
+}
+
+func buildPacketStructDef(p packetTmpl, suffix string) packetStructDef {
+	structName := snakeToPascal(p.Name) + suffix
+
+	var fields []packetStructFieldDef
+	allMarshalable := true
+
+	for _, f := range p.Fields {
+		tm, ok := marshalableTypes[f.Type]
+		if !ok {
+			allMarshalable = false
+			break
+		}
+		fields = append(fields, packetStructFieldDef{
+			GoName: camelToPascal(f.Name),
+			GoType: tm.goType,
+			McTag:  tm.mcTag,
+		})
+	}
+
+	if !allMarshalable {
+		fields = []packetStructFieldDef{
+			{GoName: "Data", GoType: "[]byte", McTag: "rest"},
+		}
+	}
+
+	return packetStructDef{
+		StructName: structName,
+		PacketID:   p.ID,
+		Fields:     fields,
+	}
+}
+
+func snakeToPascal(s string) string {
+	parts := strings.Split(s, "_")
+	for i, p := range parts {
+		if p == "" {
+			continue
+		}
+		parts[i] = strings.ToUpper(p[:1]) + p[1:]
+	}
+	return fixAbbreviations(strings.Join(parts, ""))
+}
+
+func camelToPascal(s string) string {
+	if s == "" {
+		return s
+	}
+	return fixAbbreviations(strings.ToUpper(s[:1]) + s[1:])
+}
+
+func fixAbbreviations(s string) string {
+	s = strings.ReplaceAll(s, "Uuid", "UUID")
+	s = strings.ReplaceAll(s, "Nbt", "NBT")
+	s = strings.ReplaceAll(s, "Url", "URL")
+
+	// Fix "Id" at word boundaries (end of string or before uppercase letter).
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if i+1 < len(s) && s[i] == 'I' && s[i+1] == 'd' {
+			atEnd := i+2 >= len(s)
+			beforeUpper := !atEnd && s[i+2] >= 'A' && s[i+2] <= 'Z'
+			if atEnd || beforeUpper {
+				b.WriteString("ID")
+				i++ // skip 'd'
+				continue
+			}
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String()
 }

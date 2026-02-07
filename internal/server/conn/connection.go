@@ -11,6 +11,7 @@ import (
 
 	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
 )
 
@@ -37,6 +38,10 @@ type Connection struct {
 	mu    sync.Mutex
 	state State
 
+	// Player management
+	players *player.Manager
+	self    *player.Player
+
 	// Login state (online mode)
 	loginUsername    string
 	loginVerifyToken []byte
@@ -48,7 +53,7 @@ type Connection struct {
 }
 
 // NewConnection creates a new Connection from a raw TCP connection.
-func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World) *Connection {
+func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World, players *player.Manager) *Connection {
 	ctx, cancel := context.WithCancel(ctx)
 	return &Connection{
 		conn:           conn,
@@ -59,6 +64,7 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		cancel:         cancel,
 		state:          StateHandshake,
 		world:          w,
+		players:        players,
 		keepAliveAcked: true,
 	}
 }
@@ -67,6 +73,9 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 // them to the appropriate state handler until the connection closes.
 func (c *Connection) Handle() {
 	defer func() {
+		if c.self != nil {
+			c.players.Remove(c.self)
+		}
 		c.cancel()
 		c.conn.Close()
 		c.log.Info("connection closed")

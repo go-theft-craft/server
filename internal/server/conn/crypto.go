@@ -31,9 +31,16 @@ func minecraftSHA1HexDigest(serverID string, sharedSecret, publicKeyDER []byte) 
 	return n.Text(16)
 }
 
+type mojangProperty struct {
+	Name      string `json:"name"`
+	Value     string `json:"value"`
+	Signature string `json:"signature"`
+}
+
 type mojangProfile struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID         string           `json:"id"`
+	Name       string           `json:"name"`
+	Properties []mojangProperty `json:"properties"`
 }
 
 // verifyWithMojang checks the player's session with the Mojang session server.

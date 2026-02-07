@@ -3,8 +3,8 @@ package world
 import (
 	"encoding/binary"
 
+	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/net"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/packet"
 )
 
 const (
@@ -16,9 +16,9 @@ const (
 	biomePlain = 1
 )
 
-// FlatStoneChunk generates a ChunkData packet for a flat stone world.
+// FlatStoneChunk generates a MapChunk packet for a flat stone world.
 // The chunk has stone at y=0 and air everywhere else.
-func FlatStoneChunk(chunkX, chunkZ int32) packet.ChunkData {
+func FlatStoneChunk(chunkX, chunkZ int32) pkt.MapChunk {
 	// Section 0 only (y=0..15)
 	// Block data: 4096 blocks × 2 bytes = 8192 bytes (LE u16: blockId<<4 | meta)
 	blocks := make([]byte, sectionBlockBytes)
@@ -57,12 +57,12 @@ func FlatStoneChunk(chunkX, chunkZ int32) packet.ChunkData {
 	data = append(data, skyLight...)
 	data = append(data, biomes...)
 
-	return packet.ChunkData{
-		ChunkX:         chunkX,
-		ChunkZ:         chunkZ,
-		GroundUp:       true,
-		PrimaryBitMask: 0x0001, // only section 0
-		Data:           data,
+	return pkt.MapChunk{
+		X:         chunkX,
+		Z:         chunkZ,
+		GroundUp:  true,
+		BitMap:    0x0001, // only section 0
+		ChunkData: data,
 	}
 }
 

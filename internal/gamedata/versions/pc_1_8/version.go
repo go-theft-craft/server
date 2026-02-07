@@ -3,6 +3,12 @@ package pc_1_8
 
 import "github.com/OCharnyshevich/minecraft-server/internal/gamedata"
 
+const (
+	ProtocolVersion int32  = 47
+	VersionName     string = "1.8.8"
+	MetadataEnd     byte   = 0x7F
+)
+
 func newVersion() *gamedata.Version {
 	return &gamedata.Version{
 		Protocol:         47,

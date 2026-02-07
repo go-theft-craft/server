@@ -6,8 +6,9 @@ import (
 	"crypto/rsa"
 	"fmt"
 
+	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/packet"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
 )
 
 func (c *Connection) handleLogin(packetID int32, data []byte) error {
@@ -22,18 +23,18 @@ func (c *Connection) handleLogin(packetID int32, data []byte) error {
 }
 
 func (c *Connection) handleLoginStart(data []byte) error {
-	var login packet.LoginStart
+	var login pkt.LoginStart
 	if err := mcnet.Unmarshal(data, &login); err != nil {
 		return fmt.Errorf("unmarshal login start: %w", err)
 	}
 
-	c.log.Info("login start", "username", login.Name)
+	c.log.Info("login start", "username", login.Username)
 
 	if c.cfg.OnlineMode {
-		return c.startOnlineLogin(login.Name)
+		return c.startOnlineLogin(login.Username)
 	}
 
-	return c.handleOfflineLogin(login.Name)
+	return c.handleOfflineLogin(login.Username)
 }
 
 func (c *Connection) handleOfflineLogin(username string) error {
@@ -42,7 +43,7 @@ func (c *Connection) handleOfflineLogin(username string) error {
 
 	c.log.Info("offline login success", "username", username, "uuid", uuidStr)
 
-	if err := c.writePacket(&packet.LoginSuccess{
+	if err := c.writePacket(&pkt.Success{
 		UUID:     uuidStr,
 		Username: username,
 	}); err != nil {
@@ -50,7 +51,7 @@ func (c *Connection) handleOfflineLogin(username string) error {
 	}
 
 	c.state = StatePlay
-	return c.startPlay(username, uuidStr)
+	return c.startPlay(username, uuidStr, nil)
 }
 
 func (c *Connection) startOnlineLogin(username string) error {
@@ -64,7 +65,7 @@ func (c *Connection) startOnlineLogin(username string) error {
 	c.loginVerifyToken = verifyToken
 
 	// Send EncryptionRequest. ServerID is empty string per Minecraft 1.8.
-	if err := c.writePacket(&packet.EncryptionRequest{
+	if err := c.writePacket(&pkt.EncryptionBeginCB{
 		ServerID:    "",
 		PublicKey:   c.cfg.PublicKeyDER,
 		VerifyToken: verifyToken,
@@ -77,7 +78,7 @@ func (c *Connection) startOnlineLogin(username string) error {
 }
 
 func (c *Connection) handleEncryptionResponse(data []byte) error {
-	var resp packet.EncryptionResponse
+	var resp pkt.EncryptionBeginSB
 	if err := mcnet.Unmarshal(data, &resp); err != nil {
 		return fmt.Errorf("unmarshal encryption response: %w", err)
 	}
@@ -114,7 +115,7 @@ func (c *Connection) handleEncryptionResponse(data []byte) error {
 	profile, err := verifyWithMojang(c.ctx, c.loginUsername, serverHash)
 	if err != nil {
 		reason := `{"text":"Failed to verify with Mojang."}`
-		_ = c.writePacket(&packet.LoginDisconnect{Reason: reason})
+		_ = c.writePacket(&pkt.Disconnect{Reason: reason})
 		c.disconnect("mojang auth failed")
 		return fmt.Errorf("mojang verify: %w", err)
 	}
@@ -123,15 +124,24 @@ func (c *Connection) handleEncryptionResponse(data []byte) error {
 
 	c.log.Info("online login success", "username", profile.Name, "uuid", uuidStr)
 
-	if err := c.writePacket(&packet.LoginSuccess{
+	if err := c.writePacket(&pkt.Success{
 		UUID:     uuidStr,
 		Username: profile.Name,
 	}); err != nil {
 		return fmt.Errorf("write login success: %w", err)
 	}
 
+	skinProps := make([]player.SkinProperty, len(profile.Properties))
+	for i, p := range profile.Properties {
+		skinProps[i] = player.SkinProperty{
+			Name:      p.Name,
+			Value:     p.Value,
+			Signature: p.Signature,
+		}
+	}
+
 	c.state = StatePlay
-	return c.startPlay(profile.Name, uuidStr)
+	return c.startPlay(profile.Name, uuidStr, skinProps)
 }
 
 // offlineUUID generates UUID v3 from "OfflinePlayer:<username>" using the MD5 namespace.

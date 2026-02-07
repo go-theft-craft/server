@@ -6,49 +6,48 @@ import "github.com/OCharnyshevich/minecraft-server/internal/gamedata"
 func newProtocol() *gamedata.Protocol {
 	return &gamedata.Protocol{
 		Types: map[string]string{
-			"ByteArray": "complex",
-			"UUID": "native",
-			"array": "native",
-			"bitfield": "native",
-			"bitflags": "native",
-			"bool": "native",
-			"buffer": "native",
-			"container": "native",
-			"entityMetadata": "complex",
+			"ByteArray":          "complex",
+			"UUID":               "native",
+			"array":              "native",
+			"bitfield":           "native",
+			"bitflags":           "native",
+			"bool":               "native",
+			"buffer":             "native",
+			"container":          "native",
+			"entityMetadata":     "complex",
 			"entityMetadataItem": "complex",
 			"entityMetadataLoop": "native",
-			"f32": "native",
-			"f64": "native",
-			"i16": "native",
-			"i32": "native",
-			"i64": "native",
-			"i8": "native",
-			"nbt": "native",
-			"option": "native",
-			"optionalNbt": "native",
-			"position": "complex",
-			"pstring": "native",
-			"restBuffer": "native",
-			"slot": "complex",
-			"string": "complex",
-			"switch": "native",
-			"u16": "native",
-			"u8": "native",
-			"varint": "native",
-			"varlong": "native",
-			"void": "native",
+			"f32":                "native",
+			"f64":                "native",
+			"i16":                "native",
+			"i32":                "native",
+			"i64":                "native",
+			"i8":                 "native",
+			"nbt":                "native",
+			"option":             "native",
+			"optionalNbt":        "native",
+			"position":           "complex",
+			"pstring":            "native",
+			"restBuffer":         "native",
+			"slot":               "complex",
+			"string":             "complex",
+			"switch":             "native",
+			"u16":                "native",
+			"u8":                 "native",
+			"varint":             "native",
+			"varlong":            "native",
+			"void":               "native",
 		},
 		Phases: map[string]gamedata.ProtocolPhase{
 			"handshaking": {
 				ToClient: gamedata.ProtocolDirection{
-					Packets: []gamedata.Packet{
-					},
+					Packets: []gamedata.Packet{},
 				},
 				ToServer: gamedata.ProtocolDirection{
 					Packets: []gamedata.Packet{
 						{
 							Name: "set_protocol",
-							ID: 0,
+							ID:   0,
 							Fields: []gamedata.PacketField{
 								{Name: "protocolVersion", Type: "varint"},
 								{Name: "serverHost", Type: "string"},
@@ -58,7 +57,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "legacy_server_list_ping",
-							ID: 254,
+							ID:   254,
 							Fields: []gamedata.PacketField{
 								{Name: "payload", Type: "u8"},
 							},
@@ -71,14 +70,14 @@ func newProtocol() *gamedata.Protocol {
 					Packets: []gamedata.Packet{
 						{
 							Name: "server_info",
-							ID: 0,
+							ID:   0,
 							Fields: []gamedata.PacketField{
 								{Name: "response", Type: "string"},
 							},
 						},
 						{
 							Name: "ping",
-							ID: 1,
+							ID:   1,
 							Fields: []gamedata.PacketField{
 								{Name: "time", Type: "i64"},
 							},
@@ -88,14 +87,13 @@ func newProtocol() *gamedata.Protocol {
 				ToServer: gamedata.ProtocolDirection{
 					Packets: []gamedata.Packet{
 						{
-							Name: "ping_start",
-							ID: 0,
-							Fields: []gamedata.PacketField{
-							},
+							Name:   "ping_start",
+							ID:     0,
+							Fields: []gamedata.PacketField{},
 						},
 						{
 							Name: "ping",
-							ID: 1,
+							ID:   1,
 							Fields: []gamedata.PacketField{
 								{Name: "time", Type: "i64"},
 							},
@@ -108,14 +106,14 @@ func newProtocol() *gamedata.Protocol {
 					Packets: []gamedata.Packet{
 						{
 							Name: "disconnect",
-							ID: 0,
+							ID:   0,
 							Fields: []gamedata.PacketField{
 								{Name: "reason", Type: "string"},
 							},
 						},
 						{
 							Name: "encryption_begin",
-							ID: 1,
+							ID:   1,
 							Fields: []gamedata.PacketField{
 								{Name: "serverId", Type: "string"},
 								{Name: "publicKey", Type: "ByteArray"},
@@ -124,7 +122,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "success",
-							ID: 2,
+							ID:   2,
 							Fields: []gamedata.PacketField{
 								{Name: "uuid", Type: "string"},
 								{Name: "username", Type: "string"},
@@ -132,7 +130,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "compress",
-							ID: 3,
+							ID:   3,
 							Fields: []gamedata.PacketField{
 								{Name: "threshold", Type: "varint"},
 							},
@@ -143,14 +141,14 @@ func newProtocol() *gamedata.Protocol {
 					Packets: []gamedata.Packet{
 						{
 							Name: "login_start",
-							ID: 0,
+							ID:   0,
 							Fields: []gamedata.PacketField{
 								{Name: "username", Type: "string"},
 							},
 						},
 						{
 							Name: "encryption_begin",
-							ID: 1,
+							ID:   1,
 							Fields: []gamedata.PacketField{
 								{Name: "sharedSecret", Type: "ByteArray"},
 								{Name: "verifyToken", Type: "ByteArray"},
@@ -164,14 +162,14 @@ func newProtocol() *gamedata.Protocol {
 					Packets: []gamedata.Packet{
 						{
 							Name: "keep_alive",
-							ID: 0,
+							ID:   0,
 							Fields: []gamedata.PacketField{
 								{Name: "keepAliveId", Type: "varint"},
 							},
 						},
 						{
 							Name: "login",
-							ID: 1,
+							ID:   1,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "i32"},
 								{Name: "gameMode", Type: "u8"},
@@ -184,7 +182,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "chat",
-							ID: 2,
+							ID:   2,
 							Fields: []gamedata.PacketField{
 								{Name: "message", Type: "string"},
 								{Name: "position", Type: "i8"},
@@ -192,7 +190,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "update_time",
-							ID: 3,
+							ID:   3,
 							Fields: []gamedata.PacketField{
 								{Name: "age", Type: "i64"},
 								{Name: "time", Type: "i64"},
@@ -200,7 +198,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_equipment",
-							ID: 4,
+							ID:   4,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "slot", Type: "i16"},
@@ -209,14 +207,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "spawn_position",
-							ID: 5,
+							ID:   5,
 							Fields: []gamedata.PacketField{
 								{Name: "location", Type: "position"},
 							},
 						},
 						{
 							Name: "update_health",
-							ID: 6,
+							ID:   6,
 							Fields: []gamedata.PacketField{
 								{Name: "health", Type: "f32"},
 								{Name: "food", Type: "varint"},
@@ -225,7 +223,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "respawn",
-							ID: 7,
+							ID:   7,
 							Fields: []gamedata.PacketField{
 								{Name: "dimension", Type: "i32"},
 								{Name: "difficulty", Type: "u8"},
@@ -235,7 +233,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "position",
-							ID: 8,
+							ID:   8,
 							Fields: []gamedata.PacketField{
 								{Name: "x", Type: "f64"},
 								{Name: "y", Type: "f64"},
@@ -247,14 +245,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "held_item_slot",
-							ID: 9,
+							ID:   9,
 							Fields: []gamedata.PacketField{
 								{Name: "slot", Type: "i8"},
 							},
 						},
 						{
 							Name: "bed",
-							ID: 10,
+							ID:   10,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "location", Type: "position"},
@@ -262,7 +260,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "animation",
-							ID: 11,
+							ID:   11,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "animation", Type: "u8"},
@@ -270,7 +268,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "named_entity_spawn",
-							ID: 12,
+							ID:   12,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "playerUUID", Type: "UUID"},
@@ -285,7 +283,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "collect",
-							ID: 13,
+							ID:   13,
 							Fields: []gamedata.PacketField{
 								{Name: "collectedEntityId", Type: "varint"},
 								{Name: "collectorEntityId", Type: "varint"},
@@ -293,7 +291,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "spawn_entity",
-							ID: 14,
+							ID:   14,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "type", Type: "i8"},
@@ -308,7 +306,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "spawn_entity_living",
-							ID: 15,
+							ID:   15,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "type", Type: "u8"},
@@ -326,7 +324,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "spawn_entity_painting",
-							ID: 16,
+							ID:   16,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "title", Type: "string"},
@@ -336,7 +334,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "spawn_entity_experience_orb",
-							ID: 17,
+							ID:   17,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "x", Type: "i32"},
@@ -347,7 +345,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_velocity",
-							ID: 18,
+							ID:   18,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "velocityX", Type: "i16"},
@@ -357,21 +355,21 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_destroy",
-							ID: 19,
+							ID:   19,
 							Fields: []gamedata.PacketField{
 								{Name: "entityIds", Type: "complex"},
 							},
 						},
 						{
 							Name: "entity",
-							ID: 20,
+							ID:   20,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 							},
 						},
 						{
 							Name: "rel_entity_move",
-							ID: 21,
+							ID:   21,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "dX", Type: "i8"},
@@ -382,7 +380,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_look",
-							ID: 22,
+							ID:   22,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "yaw", Type: "i8"},
@@ -392,7 +390,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_move_look",
-							ID: 23,
+							ID:   23,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "dX", Type: "i8"},
@@ -405,7 +403,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_teleport",
-							ID: 24,
+							ID:   24,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "x", Type: "i32"},
@@ -418,7 +416,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_head_rotation",
-							ID: 25,
+							ID:   25,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "headYaw", Type: "i8"},
@@ -426,7 +424,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_status",
-							ID: 26,
+							ID:   26,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "i32"},
 								{Name: "entityStatus", Type: "i8"},
@@ -434,7 +432,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "attach_entity",
-							ID: 27,
+							ID:   27,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "i32"},
 								{Name: "vehicleId", Type: "i32"},
@@ -443,7 +441,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_metadata",
-							ID: 28,
+							ID:   28,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "metadata", Type: "entityMetadata"},
@@ -451,7 +449,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "entity_effect",
-							ID: 29,
+							ID:   29,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "effectId", Type: "i8"},
@@ -462,7 +460,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "remove_entity_effect",
-							ID: 30,
+							ID:   30,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "effectId", Type: "i8"},
@@ -470,7 +468,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "experience",
-							ID: 31,
+							ID:   31,
 							Fields: []gamedata.PacketField{
 								{Name: "experienceBar", Type: "f32"},
 								{Name: "level", Type: "varint"},
@@ -479,7 +477,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "update_attributes",
-							ID: 32,
+							ID:   32,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "properties", Type: "complex"},
@@ -487,7 +485,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "map_chunk",
-							ID: 33,
+							ID:   33,
 							Fields: []gamedata.PacketField{
 								{Name: "x", Type: "i32"},
 								{Name: "z", Type: "i32"},
@@ -498,7 +496,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "multi_block_change",
-							ID: 34,
+							ID:   34,
 							Fields: []gamedata.PacketField{
 								{Name: "chunkX", Type: "i32"},
 								{Name: "chunkZ", Type: "i32"},
@@ -507,7 +505,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "block_change",
-							ID: 35,
+							ID:   35,
 							Fields: []gamedata.PacketField{
 								{Name: "location", Type: "position"},
 								{Name: "type", Type: "varint"},
@@ -515,7 +513,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "block_action",
-							ID: 36,
+							ID:   36,
 							Fields: []gamedata.PacketField{
 								{Name: "location", Type: "position"},
 								{Name: "byte1", Type: "u8"},
@@ -525,7 +523,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "block_break_animation",
-							ID: 37,
+							ID:   37,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "location", Type: "position"},
@@ -534,7 +532,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "map_chunk_bulk",
-							ID: 38,
+							ID:   38,
 							Fields: []gamedata.PacketField{
 								{Name: "skyLightSent", Type: "bool"},
 								{Name: "meta", Type: "complex"},
@@ -543,7 +541,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "explosion",
-							ID: 39,
+							ID:   39,
 							Fields: []gamedata.PacketField{
 								{Name: "x", Type: "f32"},
 								{Name: "y", Type: "f32"},
@@ -557,7 +555,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "world_event",
-							ID: 40,
+							ID:   40,
 							Fields: []gamedata.PacketField{
 								{Name: "effectId", Type: "i32"},
 								{Name: "location", Type: "position"},
@@ -567,7 +565,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "named_sound_effect",
-							ID: 41,
+							ID:   41,
 							Fields: []gamedata.PacketField{
 								{Name: "soundName", Type: "string"},
 								{Name: "x", Type: "i32"},
@@ -579,7 +577,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "world_particles",
-							ID: 42,
+							ID:   42,
 							Fields: []gamedata.PacketField{
 								{Name: "particleId", Type: "i32"},
 								{Name: "longDistance", Type: "bool"},
@@ -596,7 +594,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "game_state_change",
-							ID: 43,
+							ID:   43,
 							Fields: []gamedata.PacketField{
 								{Name: "reason", Type: "u8"},
 								{Name: "gameMode", Type: "f32"},
@@ -604,7 +602,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "spawn_entity_weather",
-							ID: 44,
+							ID:   44,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "type", Type: "i8"},
@@ -615,7 +613,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "open_window",
-							ID: 45,
+							ID:   45,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "u8"},
 								{Name: "inventoryType", Type: "string"},
@@ -626,14 +624,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "close_window",
-							ID: 46,
+							ID:   46,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "u8"},
 							},
 						},
 						{
 							Name: "set_slot",
-							ID: 47,
+							ID:   47,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "i8"},
 								{Name: "slot", Type: "i16"},
@@ -642,7 +640,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "window_items",
-							ID: 48,
+							ID:   48,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "u8"},
 								{Name: "items", Type: "complex"},
@@ -650,7 +648,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "craft_progress_bar",
-							ID: 49,
+							ID:   49,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "u8"},
 								{Name: "property", Type: "i16"},
@@ -659,7 +657,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "transaction",
-							ID: 50,
+							ID:   50,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "i8"},
 								{Name: "action", Type: "i16"},
@@ -668,7 +666,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "update_sign",
-							ID: 51,
+							ID:   51,
 							Fields: []gamedata.PacketField{
 								{Name: "location", Type: "position"},
 								{Name: "text1", Type: "string"},
@@ -679,7 +677,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "map",
-							ID: 52,
+							ID:   52,
 							Fields: []gamedata.PacketField{
 								{Name: "itemDamage", Type: "varint"},
 								{Name: "scale", Type: "i8"},
@@ -693,7 +691,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "tile_entity_data",
-							ID: 53,
+							ID:   53,
 							Fields: []gamedata.PacketField{
 								{Name: "location", Type: "position"},
 								{Name: "action", Type: "u8"},
@@ -702,21 +700,21 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "open_sign_entity",
-							ID: 54,
+							ID:   54,
 							Fields: []gamedata.PacketField{
 								{Name: "location", Type: "position"},
 							},
 						},
 						{
 							Name: "statistics",
-							ID: 55,
+							ID:   55,
 							Fields: []gamedata.PacketField{
 								{Name: "entries", Type: "complex"},
 							},
 						},
 						{
 							Name: "player_info",
-							ID: 56,
+							ID:   56,
 							Fields: []gamedata.PacketField{
 								{Name: "action", Type: "complex"},
 								{Name: "data", Type: "complex"},
@@ -724,7 +722,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "abilities",
-							ID: 57,
+							ID:   57,
 							Fields: []gamedata.PacketField{
 								{Name: "flags", Type: "i8"},
 								{Name: "flyingSpeed", Type: "f32"},
@@ -733,14 +731,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "tab_complete",
-							ID: 58,
+							ID:   58,
 							Fields: []gamedata.PacketField{
 								{Name: "matches", Type: "complex"},
 							},
 						},
 						{
 							Name: "scoreboard_objective",
-							ID: 59,
+							ID:   59,
 							Fields: []gamedata.PacketField{
 								{Name: "name", Type: "string"},
 								{Name: "action", Type: "i8"},
@@ -750,7 +748,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "scoreboard_score",
-							ID: 60,
+							ID:   60,
 							Fields: []gamedata.PacketField{
 								{Name: "itemName", Type: "string"},
 								{Name: "action", Type: "varint"},
@@ -760,7 +758,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "scoreboard_display_objective",
-							ID: 61,
+							ID:   61,
 							Fields: []gamedata.PacketField{
 								{Name: "position", Type: "i8"},
 								{Name: "name", Type: "string"},
@@ -768,7 +766,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "scoreboard_team",
-							ID: 62,
+							ID:   62,
 							Fields: []gamedata.PacketField{
 								{Name: "team", Type: "string"},
 								{Name: "mode", Type: "i8"},
@@ -783,7 +781,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "custom_payload",
-							ID: 63,
+							ID:   63,
 							Fields: []gamedata.PacketField{
 								{Name: "channel", Type: "string"},
 								{Name: "data", Type: "restBuffer"},
@@ -791,21 +789,21 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "kick_disconnect",
-							ID: 64,
+							ID:   64,
 							Fields: []gamedata.PacketField{
 								{Name: "reason", Type: "string"},
 							},
 						},
 						{
 							Name: "difficulty",
-							ID: 65,
+							ID:   65,
 							Fields: []gamedata.PacketField{
 								{Name: "difficulty", Type: "u8"},
 							},
 						},
 						{
 							Name: "combat_event",
-							ID: 66,
+							ID:   66,
 							Fields: []gamedata.PacketField{
 								{Name: "event", Type: "varint"},
 								{Name: "duration", Type: "complex"},
@@ -816,14 +814,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "camera",
-							ID: 67,
+							ID:   67,
 							Fields: []gamedata.PacketField{
 								{Name: "cameraId", Type: "varint"},
 							},
 						},
 						{
 							Name: "world_border",
-							ID: 68,
+							ID:   68,
 							Fields: []gamedata.PacketField{
 								{Name: "action", Type: "varint"},
 								{Name: "radius", Type: "complex"},
@@ -839,7 +837,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "title",
-							ID: 69,
+							ID:   69,
 							Fields: []gamedata.PacketField{
 								{Name: "action", Type: "varint"},
 								{Name: "text", Type: "complex"},
@@ -850,14 +848,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "set_compression",
-							ID: 70,
+							ID:   70,
 							Fields: []gamedata.PacketField{
 								{Name: "threshold", Type: "varint"},
 							},
 						},
 						{
 							Name: "playerlist_header",
-							ID: 71,
+							ID:   71,
 							Fields: []gamedata.PacketField{
 								{Name: "header", Type: "string"},
 								{Name: "footer", Type: "string"},
@@ -865,7 +863,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "resource_pack_send",
-							ID: 72,
+							ID:   72,
 							Fields: []gamedata.PacketField{
 								{Name: "url", Type: "string"},
 								{Name: "hash", Type: "string"},
@@ -873,7 +871,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "update_entity_nbt",
-							ID: 73,
+							ID:   73,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "tag", Type: "nbt"},
@@ -885,21 +883,21 @@ func newProtocol() *gamedata.Protocol {
 					Packets: []gamedata.Packet{
 						{
 							Name: "keep_alive",
-							ID: 0,
+							ID:   0,
 							Fields: []gamedata.PacketField{
 								{Name: "keepAliveId", Type: "varint"},
 							},
 						},
 						{
 							Name: "chat",
-							ID: 1,
+							ID:   1,
 							Fields: []gamedata.PacketField{
 								{Name: "message", Type: "string"},
 							},
 						},
 						{
 							Name: "use_entity",
-							ID: 2,
+							ID:   2,
 							Fields: []gamedata.PacketField{
 								{Name: "target", Type: "varint"},
 								{Name: "mouse", Type: "varint"},
@@ -910,14 +908,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "flying",
-							ID: 3,
+							ID:   3,
 							Fields: []gamedata.PacketField{
 								{Name: "onGround", Type: "bool"},
 							},
 						},
 						{
 							Name: "position",
-							ID: 4,
+							ID:   4,
 							Fields: []gamedata.PacketField{
 								{Name: "x", Type: "f64"},
 								{Name: "y", Type: "f64"},
@@ -927,7 +925,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "look",
-							ID: 5,
+							ID:   5,
 							Fields: []gamedata.PacketField{
 								{Name: "yaw", Type: "f32"},
 								{Name: "pitch", Type: "f32"},
@@ -936,7 +934,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "position_look",
-							ID: 6,
+							ID:   6,
 							Fields: []gamedata.PacketField{
 								{Name: "x", Type: "f64"},
 								{Name: "y", Type: "f64"},
@@ -948,7 +946,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "block_dig",
-							ID: 7,
+							ID:   7,
 							Fields: []gamedata.PacketField{
 								{Name: "status", Type: "varint"},
 								{Name: "location", Type: "position"},
@@ -957,7 +955,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "block_place",
-							ID: 8,
+							ID:   8,
 							Fields: []gamedata.PacketField{
 								{Name: "location", Type: "position"},
 								{Name: "direction", Type: "i8"},
@@ -969,20 +967,19 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "held_item_slot",
-							ID: 9,
+							ID:   9,
 							Fields: []gamedata.PacketField{
 								{Name: "slotId", Type: "i16"},
 							},
 						},
 						{
-							Name: "arm_animation",
-							ID: 10,
-							Fields: []gamedata.PacketField{
-							},
+							Name:   "arm_animation",
+							ID:     10,
+							Fields: []gamedata.PacketField{},
 						},
 						{
 							Name: "entity_action",
-							ID: 11,
+							ID:   11,
 							Fields: []gamedata.PacketField{
 								{Name: "entityId", Type: "varint"},
 								{Name: "actionId", Type: "varint"},
@@ -991,7 +988,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "steer_vehicle",
-							ID: 12,
+							ID:   12,
 							Fields: []gamedata.PacketField{
 								{Name: "sideways", Type: "f32"},
 								{Name: "forward", Type: "f32"},
@@ -1000,14 +997,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "close_window",
-							ID: 13,
+							ID:   13,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "u8"},
 							},
 						},
 						{
 							Name: "window_click",
-							ID: 14,
+							ID:   14,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "u8"},
 								{Name: "slot", Type: "i16"},
@@ -1019,7 +1016,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "transaction",
-							ID: 15,
+							ID:   15,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "i8"},
 								{Name: "action", Type: "i16"},
@@ -1028,7 +1025,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "set_creative_slot",
-							ID: 16,
+							ID:   16,
 							Fields: []gamedata.PacketField{
 								{Name: "slot", Type: "i16"},
 								{Name: "item", Type: "slot"},
@@ -1036,7 +1033,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "enchant_item",
-							ID: 17,
+							ID:   17,
 							Fields: []gamedata.PacketField{
 								{Name: "windowId", Type: "i8"},
 								{Name: "enchantment", Type: "i8"},
@@ -1044,7 +1041,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "update_sign",
-							ID: 18,
+							ID:   18,
 							Fields: []gamedata.PacketField{
 								{Name: "location", Type: "position"},
 								{Name: "text1", Type: "string"},
@@ -1055,7 +1052,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "abilities",
-							ID: 19,
+							ID:   19,
 							Fields: []gamedata.PacketField{
 								{Name: "flags", Type: "i8"},
 								{Name: "flyingSpeed", Type: "f32"},
@@ -1064,7 +1061,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "tab_complete",
-							ID: 20,
+							ID:   20,
 							Fields: []gamedata.PacketField{
 								{Name: "text", Type: "string"},
 								{Name: "block", Type: "complex"},
@@ -1072,7 +1069,7 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "settings",
-							ID: 21,
+							ID:   21,
 							Fields: []gamedata.PacketField{
 								{Name: "locale", Type: "string"},
 								{Name: "viewDistance", Type: "i8"},
@@ -1083,14 +1080,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "client_command",
-							ID: 22,
+							ID:   22,
 							Fields: []gamedata.PacketField{
 								{Name: "payload", Type: "varint"},
 							},
 						},
 						{
 							Name: "custom_payload",
-							ID: 23,
+							ID:   23,
 							Fields: []gamedata.PacketField{
 								{Name: "channel", Type: "string"},
 								{Name: "data", Type: "restBuffer"},
@@ -1098,14 +1095,14 @@ func newProtocol() *gamedata.Protocol {
 						},
 						{
 							Name: "spectate",
-							ID: 24,
+							ID:   24,
 							Fields: []gamedata.PacketField{
 								{Name: "target", Type: "UUID"},
 							},
 						},
 						{
 							Name: "resource_pack_receive",
-							ID: 25,
+							ID:   25,
 							Fields: []gamedata.PacketField{
 								{Name: "hash", Type: "string"},
 								{Name: "result", Type: "varint"},

@@ -12,171 +12,171 @@ type particleRegistry struct {
 func newParticleRegistry() gamedata.ParticleRegistry {
 	all := []gamedata.Particle{
 		{
-			ID: 0,
+			ID:   0,
 			Name: "explode",
 		},
 		{
-			ID: 1,
+			ID:   1,
 			Name: "largeexplode",
 		},
 		{
-			ID: 2,
+			ID:   2,
 			Name: "hugeexplosion",
 		},
 		{
-			ID: 3,
+			ID:   3,
 			Name: "fireworksSpark",
 		},
 		{
-			ID: 4,
+			ID:   4,
 			Name: "bubble",
 		},
 		{
-			ID: 5,
+			ID:   5,
 			Name: "splash",
 		},
 		{
-			ID: 6,
+			ID:   6,
 			Name: "wake",
 		},
 		{
-			ID: 7,
+			ID:   7,
 			Name: "suspended",
 		},
 		{
-			ID: 8,
+			ID:   8,
 			Name: "depthsuspend",
 		},
 		{
-			ID: 9,
+			ID:   9,
 			Name: "crit",
 		},
 		{
-			ID: 10,
+			ID:   10,
 			Name: "magicCrit",
 		},
 		{
-			ID: 11,
+			ID:   11,
 			Name: "smoke",
 		},
 		{
-			ID: 12,
+			ID:   12,
 			Name: "largesmoke",
 		},
 		{
-			ID: 13,
+			ID:   13,
 			Name: "spell",
 		},
 		{
-			ID: 14,
+			ID:   14,
 			Name: "instantSpell",
 		},
 		{
-			ID: 15,
+			ID:   15,
 			Name: "mobSpell",
 		},
 		{
-			ID: 16,
+			ID:   16,
 			Name: "mobSpellAmbient",
 		},
 		{
-			ID: 17,
+			ID:   17,
 			Name: "witchMagic",
 		},
 		{
-			ID: 18,
+			ID:   18,
 			Name: "dripWater",
 		},
 		{
-			ID: 19,
+			ID:   19,
 			Name: "dripLava",
 		},
 		{
-			ID: 20,
+			ID:   20,
 			Name: "angryVillager",
 		},
 		{
-			ID: 21,
+			ID:   21,
 			Name: "happyVillager",
 		},
 		{
-			ID: 22,
+			ID:   22,
 			Name: "townaura",
 		},
 		{
-			ID: 23,
+			ID:   23,
 			Name: "note",
 		},
 		{
-			ID: 24,
+			ID:   24,
 			Name: "portal",
 		},
 		{
-			ID: 25,
+			ID:   25,
 			Name: "enchantmenttable",
 		},
 		{
-			ID: 26,
+			ID:   26,
 			Name: "flame",
 		},
 		{
-			ID: 27,
+			ID:   27,
 			Name: "lava",
 		},
 		{
-			ID: 28,
+			ID:   28,
 			Name: "footstep",
 		},
 		{
-			ID: 29,
+			ID:   29,
 			Name: "cloud",
 		},
 		{
-			ID: 30,
+			ID:   30,
 			Name: "reddust",
 		},
 		{
-			ID: 31,
+			ID:   31,
 			Name: "snowballpoof",
 		},
 		{
-			ID: 32,
+			ID:   32,
 			Name: "snowshovel",
 		},
 		{
-			ID: 33,
+			ID:   33,
 			Name: "slime",
 		},
 		{
-			ID: 34,
+			ID:   34,
 			Name: "heart",
 		},
 		{
-			ID: 35,
+			ID:   35,
 			Name: "barrier",
 		},
 		{
-			ID: 36,
+			ID:   36,
 			Name: "iconcrack_",
 		},
 		{
-			ID: 37,
+			ID:   37,
 			Name: "blockcrack_",
 		},
 		{
-			ID: 38,
+			ID:   38,
 			Name: "blockdust_",
 		},
 		{
-			ID: 39,
+			ID:   39,
 			Name: "droplet",
 		},
 		{
-			ID: 40,
+			ID:   40,
 			Name: "take",
 		},
 		{
-			ID: 41,
+			ID:   41,
 			Name: "mobappearance",
 		},
 	}
@@ -191,6 +191,9 @@ func newParticleRegistry() gamedata.ParticleRegistry {
 	return &particleRegistry{byID: byID, byName: byName, all: all}
 }
 
-func (r *particleRegistry) ByID(id int) (gamedata.Particle, bool)       { v, ok := r.byID[id]; return v, ok }
-func (r *particleRegistry) ByName(name string) (gamedata.Particle, bool) { v, ok := r.byName[name]; return v, ok }
-func (r *particleRegistry) All() []gamedata.Particle                     { return r.all }
+func (r *particleRegistry) ByID(id int) (gamedata.Particle, bool) { v, ok := r.byID[id]; return v, ok }
+func (r *particleRegistry) ByName(name string) (gamedata.Particle, bool) {
+	v, ok := r.byName[name]
+	return v, ok
+}
+func (r *particleRegistry) All() []gamedata.Particle { return r.all }

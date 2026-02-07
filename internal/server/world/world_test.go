@@ -96,6 +96,62 @@ func TestPreGenerateRadius(t *testing.T) {
 	}
 }
 
+func TestWorldTick(t *testing.T) {
+	w := NewWorld(gen.NewFlatGenerator(0))
+
+	// Initial time should be 0, 0.
+	age, tod := w.GetTime()
+	if age != 0 || tod != 0 {
+		t.Errorf("initial time = (%d, %d), want (0, 0)", age, tod)
+	}
+
+	// Tick once.
+	age, tod = w.Tick()
+	if age != 1 || tod != 1 {
+		t.Errorf("after 1 tick = (%d, %d), want (1, 1)", age, tod)
+	}
+
+	// Tick to 23999 and verify wraparound.
+	w.SetTime(100, 23999)
+	age, tod = w.Tick()
+	if age != 101 || tod != 0 {
+		t.Errorf("after wrap = (%d, %d), want (101, 0)", age, tod)
+	}
+}
+
+func TestWorldTickFrozenTime(t *testing.T) {
+	w := NewWorld(gen.NewFlatGenerator(0))
+
+	// Set negative timeOfDay to freeze.
+	w.SetTimeOfDay(-6000)
+	_, tod := w.GetTime()
+	if tod != -6000 {
+		t.Errorf("frozen time = %d, want -6000", tod)
+	}
+
+	// Tick should advance age but not timeOfDay.
+	age, tod := w.Tick()
+	if age != 1 || tod != -6000 {
+		t.Errorf("after tick with frozen time = (%d, %d), want (1, -6000)", age, tod)
+	}
+}
+
+func TestWorldGetSetTime(t *testing.T) {
+	w := NewWorld(gen.NewFlatGenerator(0))
+
+	w.SetTime(5000, 12000)
+	age, tod := w.GetTime()
+	if age != 5000 || tod != 12000 {
+		t.Errorf("GetTime() = (%d, %d), want (5000, 12000)", age, tod)
+	}
+
+	w.SetTimeOfDay(18000)
+	age, tod = w.GetTime()
+	if age != 5000 || tod != 18000 {
+		t.Errorf("after SetTimeOfDay = (%d, %d), want (5000, 18000)", age, tod)
+	}
+}
+
 func TestWorldDefaultGenerator(t *testing.T) {
 	w := NewWorld(gen.NewDefaultGenerator(12345))
 

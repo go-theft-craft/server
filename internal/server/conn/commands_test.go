@@ -265,6 +265,12 @@ func TestCmdTime(t *testing.T) {
 	if !found {
 		t.Error("Bob did not receive UpdateTime packet")
 	}
+
+	// Verify the world time was actually updated.
+	_, tod := c.world.GetTime()
+	if tod != 13000 {
+		t.Errorf("world timeOfDay = %d, want 13000 (night)", tod)
+	}
 }
 
 func TestCmdKill(t *testing.T) {

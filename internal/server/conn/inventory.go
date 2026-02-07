@@ -79,6 +79,11 @@ func (c *Connection) handleWindowClick(data []byte) error {
 
 	c.dispatchClick(slotIndex, button, int(mode))
 
+	// Full inventory sync so client matches server state.
+	_ = c.sendWindowItems()
+	// Sync cursor slot (window -1, slot -1).
+	_ = c.sendSetSlot(-1, -1, c.cursorSlot)
+
 	// Always accept the transaction.
 	return c.sendTransaction(0, actionID, true)
 }

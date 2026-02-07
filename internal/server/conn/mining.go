@@ -79,9 +79,15 @@ func blockDrops(block gamedata.Block, heldItemID int16) []player.Slot {
 		if d.ID <= 0 {
 			continue
 		}
-		count := d.MinCount
-		if d.MaxCount > d.MinCount {
-			count = d.MinCount + rand.Intn(d.MaxCount-d.MinCount+1)
+		minC, maxC := d.MinCount, d.MaxCount
+		// Most blocks don't specify minCount/maxCount in the data; default to 1.
+		if minC == 0 && maxC == 0 {
+			minC = 1
+			maxC = 1
+		}
+		count := minC
+		if maxC > minC {
+			count = minC + rand.Intn(maxC-minC+1)
 		}
 		if count <= 0 {
 			continue

@@ -222,8 +222,10 @@ func cmdTime(c *Connection, args []string) {
 		ticks = v
 	}
 
+	c.world.SetTimeOfDay(ticks)
+	age, _ := c.world.GetTime()
 	c.players.Broadcast(&pkt.UpdateTime{
-		Age:  0,
+		Age:  age,
 		Time: ticks,
 	})
 	c.sendSuccessMsg(fmt.Sprintf("Time set to %d.", ticks))

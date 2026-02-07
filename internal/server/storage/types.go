@@ -36,8 +36,10 @@ type SlotData struct {
 	ItemDamage int16 `json:"item_damage"`
 }
 
-// WorldData holds block overrides for persistence.
+// WorldData holds block overrides and world time for persistence.
 type WorldData struct {
+	Age       int64           `json:"age"`
+	TimeOfDay int64           `json:"time_of_day"`
 	Overrides []BlockOverride `json:"overrides"`
 }
 

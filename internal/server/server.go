@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/OCharnyshevich/minecraft-server/internal/gamedata"
-	pc18 "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
+	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/conn"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
@@ -37,7 +37,7 @@ func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) *Server {
 		generator = gen.NewDefaultGenerator(cfg.Seed)
 	}
 
-	gd := pc18.New()
+	gd := pkt.New()
 
 	return &Server{
 		cfg:      cfg,
@@ -82,8 +82,11 @@ func (s *Server) Start(ctx context.Context) error {
 		"seed", s.cfg.Seed,
 	)
 
+	// Start tick loop (20 TPS).
+	go s.tickLoop(ctx)
+
 	// Start auto-save goroutine.
-	if s.storage != nil {
+	if s.storage != nil && s.cfg.AutoSaveMinutes > 0 {
 		go s.autoSave(ctx)
 	}
 
@@ -111,9 +114,41 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 }
 
+// tickLoop runs the server tick at 20 TPS (50ms interval).
+func (s *Server) tickLoop(ctx context.Context) {
+	ticker := time.NewTicker(50 * time.Millisecond)
+	defer ticker.Stop()
+
+	var tickCount int
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			tickCount++
+			s.tick(tickCount)
+		}
+	}
+}
+
+// tick advances the world by one tick and broadcasts time every 20 ticks (~1 second).
+func (s *Server) tick(tickCount int) {
+	s.players.Tick()
+	age, timeOfDay := s.world.Tick()
+
+	// Broadcast time update every 20 ticks (once per second).
+	if tickCount%20 == 0 {
+		s.players.Broadcast(&pkt.UpdateTime{
+			Age:  age,
+			Time: timeOfDay,
+		})
+	}
+}
+
 // autoSave periodically saves world and player data.
 func (s *Server) autoSave(ctx context.Context) {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(time.Duration(s.cfg.AutoSaveMinutes) * time.Minute)
 	defer ticker.Stop()
 
 	for {
@@ -136,6 +171,12 @@ func (s *Server) saveAll() {
 		s.log.Error("auto-save world failed", "error", err)
 	} else {
 		s.log.Info("world saved", "overrides", s.world.OverrideCount())
+	}
+
+	if err := s.storage.SaveWorldAnvil(s.world); err != nil {
+		s.log.Error("auto-save anvil failed", "error", err)
+	} else {
+		s.log.Info("anvil region files saved")
 	}
 
 	var saved int

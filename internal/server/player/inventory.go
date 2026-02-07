@@ -233,6 +233,74 @@ func (inv *Inventory) GetArmor(index int) Slot {
 	return inv.Armor[index]
 }
 
+// AddItem tries to insert an item into the inventory by merging into existing
+// stacks first, then placing in empty slots. Scans hotbar (0-8) then main (9-35).
+// Returns the leftover that didn't fit (or EmptySlot if fully absorbed).
+func (inv *Inventory) AddItem(item Slot) Slot {
+	if item.IsEmpty() {
+		return EmptySlot
+	}
+
+	inv.mu.Lock()
+	defer inv.mu.Unlock()
+
+	remaining := int(item.ItemCount)
+
+	// First pass: merge into existing stacks in hotbar, then main.
+	for _, i := range inv.addItemOrder() {
+		s := inv.Slots[i]
+		if s.IsEmpty() || s.BlockID != item.BlockID || s.ItemDamage != item.ItemDamage {
+			continue
+		}
+		space := 64 - int(s.ItemCount)
+		if space <= 0 {
+			continue
+		}
+		transfer := remaining
+		if transfer > space {
+			transfer = space
+		}
+		inv.Slots[i].ItemCount += int8(transfer)
+		remaining -= transfer
+		if remaining == 0 {
+			return EmptySlot
+		}
+	}
+
+	// Second pass: place in empty slots.
+	for _, i := range inv.addItemOrder() {
+		if !inv.Slots[i].IsEmpty() {
+			continue
+		}
+		place := remaining
+		if place > 64 {
+			place = 64
+		}
+		inv.Slots[i] = Slot{BlockID: item.BlockID, ItemCount: int8(place), ItemDamage: item.ItemDamage}
+		remaining -= place
+		if remaining == 0 {
+			return EmptySlot
+		}
+	}
+
+	if remaining <= 0 {
+		return EmptySlot
+	}
+	return Slot{BlockID: item.BlockID, ItemCount: int8(remaining), ItemDamage: item.ItemDamage}
+}
+
+// addItemOrder returns slot indices in the order: hotbar 0-8, then main 9-35.
+func (inv *Inventory) addItemOrder() []int {
+	order := make([]int, 36)
+	for i := 0; i < 9; i++ {
+		order[i] = i
+	}
+	for i := 9; i < 36; i++ {
+		order[i] = i
+	}
+	return order
+}
+
 // WriteSlot writes a slot in the Minecraft protocol format.
 func WriteSlot(w io.Writer, s Slot) error {
 	if err := binary.Write(w, binary.BigEndian, s.BlockID); err != nil {

@@ -4,14 +4,15 @@ import "crypto/rsa"
 
 // Config holds the server configuration.
 type Config struct {
-	Port          int    `json:"port"`
-	OnlineMode    bool   `json:"online_mode"`
-	MOTD          string `json:"motd"`
-	MaxPlayers    int    `json:"max_players"`
-	ViewDistance  int    `json:"view_distance"`
-	Seed          int64  `json:"seed"`
-	GeneratorType string `json:"generator_type"` // "default" or "flat"
-	WorldRadius   int    `json:"world_radius"`   // world boundary in chunks (0 = infinite)
+	Port            int    `json:"port"`
+	OnlineMode      bool   `json:"online_mode"`
+	MOTD            string `json:"motd"`
+	MaxPlayers      int    `json:"max_players"`
+	ViewDistance    int    `json:"view_distance"`
+	Seed            int64  `json:"seed"`
+	GeneratorType   string `json:"generator_type"`    // "default" or "flat"
+	WorldRadius     int    `json:"world_radius"`      // world boundary in chunks (0 = infinite)
+	AutoSaveMinutes int    `json:"auto_save_minutes"` // auto-save interval in minutes (0 = disabled)
 
 	// RSA keypair for online-mode encryption handshake.
 	PrivateKey   *rsa.PrivateKey `json:"-"`
@@ -21,12 +22,13 @@ type Config struct {
 // DefaultConfig returns a Config with sensible defaults.
 func DefaultConfig() *Config {
 	return &Config{
-		Port:          25565,
-		OnlineMode:    false,
-		MOTD:          "A Minecraft Server",
-		MaxPlayers:    20,
-		ViewDistance:  8,
-		GeneratorType: "default",
+		Port:            25565,
+		OnlineMode:      false,
+		MOTD:            "A Minecraft Server",
+		MaxPlayers:      20,
+		ViewDistance:    8,
+		GeneratorType:   "default",
+		AutoSaveMinutes: 5,
 	}
 }
 
@@ -57,5 +59,8 @@ func Merge(cfg *Config, fromFile *Config, explicitFlags map[string]bool) {
 	}
 	if !explicitFlags["world-radius"] {
 		cfg.WorldRadius = fromFile.WorldRadius
+	}
+	if !explicitFlags["auto-save"] {
+		cfg.AutoSaveMinutes = fromFile.AutoSaveMinutes
 	}
 }

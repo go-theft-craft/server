@@ -18,6 +18,7 @@ type Manager struct {
 	players      map[int32]*Player // entityID → Player
 	byUUID       map[string]int32  // UUID → entityID
 	nextEntityID atomic.Int32
+	currentTick  atomic.Int64
 	viewDistance int
 
 	itemMu       sync.Mutex
@@ -32,13 +33,22 @@ func NewManager(viewDistance int) *Manager {
 		viewDistance: viewDistance,
 		itemEntities: make(map[int32]*ItemEntity),
 	}
-	go mgr.cleanupItemEntities()
 	return mgr
 }
 
 // AllocateEntityID returns the next unique entity ID.
 func (m *Manager) AllocateEntityID() int32 {
 	return m.nextEntityID.Add(1)
+}
+
+// Tick advances the manager by one tick and runs periodic cleanup.
+func (m *Manager) Tick() {
+	tick := m.currentTick.Add(1)
+
+	// Run item expiry cleanup every 600 ticks (~30 seconds).
+	if tick%600 == 0 {
+		m.cleanupExpiredItems(tick)
+	}
 }
 
 // Add registers a player and sends cross-wise PlayerInfo + spawn packets.

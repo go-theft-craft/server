@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"time"
 
@@ -68,6 +69,11 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		c.log.Info("restored saved player data")
 	}
 
+	// Set player position so chunk loading uses the correct coordinates.
+	// For returning players ApplyData already did this, but for new players
+	// the NewPlayer default (0.5, 4.0, 0.5) would be stale.
+	c.self.SetPosition(posX, posY, posZ, posYaw, posPitch, true)
+
 	// 1. Join Game
 	if err := c.writePacket(&pkt.Login{
 		EntityID:         entityID,
@@ -115,12 +121,21 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		return fmt.Errorf("send initial chunks: %w", err)
 	}
 
-	// 6. Window Items (inventory sync)
+	// 6. Update Time (send current world time)
+	worldAge, worldTime := c.world.GetTime()
+	if err := c.writePacket(&pkt.UpdateTime{
+		Age:  worldAge,
+		Time: worldTime,
+	}); err != nil {
+		return fmt.Errorf("write update time: %w", err)
+	}
+
+	// 7. Window Items (inventory sync)
 	if err := c.sendWindowItems(); err != nil {
 		return fmt.Errorf("send window items: %w", err)
 	}
 
-	// 7. Chat Message — "Hello, world!"
+	// 8. Chat Message — "Hello, world!"
 	if err := c.writePacket(&pkt.ChatCB{
 		Message:  `{"text":"Hello, world!","color":"gold"}`,
 		Position: 0,
@@ -128,10 +143,10 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		return fmt.Errorf("write chat message: %w", err)
 	}
 
-	// 8. Register with player manager (sends cross-wise PlayerInfo + spawns).
+	// 9. Register with player manager (sends cross-wise PlayerInfo + spawns).
 	c.players.Add(c.self)
 
-	// 9. Start KeepAlive goroutine
+	// 10. Start KeepAlive goroutine
 	go c.keepAliveLoop()
 
 	c.log.Info("join sequence complete", "entityID", entityID)
@@ -394,6 +409,11 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 	}
 
 	c.players.UpdateTracking(c.self)
+
+	// Try to pick up nearby item entities.
+	if c.players.TryPickupItems(c.self) > 0 {
+		_ = c.sendWindowItems()
+	}
 }
 
 func (c *Connection) handleLookUpdate(yaw, pitch float32, onGround bool) {
@@ -518,6 +538,10 @@ func (c *Connection) handleBlockDig(data []byte) error {
 			pos := c.self.GetPosition()
 			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
 		}
+
+		// Sync the held slot back to the client so the UI updates.
+		protoSlot := int16(36) + heldSlot
+		_ = c.sendSetSlot(0, protoSlot, c.self.Inventory.GetSlot(int(heldSlot)))
 
 		// Update held item for trackers.
 		newHeld := c.self.Inventory.HeldItem()
@@ -662,21 +686,35 @@ func (c *Connection) setPositionAndUpdateChunks(x, y, z float64, yaw, pitch floa
 }
 
 // sendInitialChunks sends chunks around the player's current position and tracks them.
+// Chunks are sorted closest-first so the player sees their surroundings immediately.
 func (c *Connection) sendInitialChunks() error {
 	centerCX, centerCZ := c.self.ChunkX(), c.self.ChunkZ()
 	viewDist := c.cfg.ViewDistance
 
+	// Collect all chunk positions in range.
+	var chunks []gen.ChunkPos
 	for cx := centerCX - viewDist; cx <= centerCX+viewDist; cx++ {
 		for cz := centerCZ - viewDist; cz <= centerCZ+viewDist; cz++ {
 			if !c.isChunkInBounds(cx, cz) {
 				continue
 			}
-			chunk := c.world.EncodeChunk(cx, cz)
-			if err := c.writePacket(&chunk); err != nil {
-				return err
-			}
-			c.loadedChunks[gen.ChunkPos{X: cx, Z: cz}] = struct{}{}
+			chunks = append(chunks, gen.ChunkPos{X: cx, Z: cz})
 		}
+	}
+
+	// Sort by squared distance from center (closest first).
+	sort.Slice(chunks, func(i, j int) bool {
+		di := (chunks[i].X-centerCX)*(chunks[i].X-centerCX) + (chunks[i].Z-centerCZ)*(chunks[i].Z-centerCZ)
+		dj := (chunks[j].X-centerCX)*(chunks[j].X-centerCX) + (chunks[j].Z-centerCZ)*(chunks[j].Z-centerCZ)
+		return di < dj
+	})
+
+	for _, pos := range chunks {
+		chunk := c.world.EncodeChunk(pos.X, pos.Z)
+		if err := c.writePacket(&chunk); err != nil {
+			return err
+		}
+		c.loadedChunks[pos] = struct{}{}
 	}
 	return nil
 }

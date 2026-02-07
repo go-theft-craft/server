@@ -17,6 +17,10 @@ type World struct {
 	blocks    map[BlockPos]int32
 	generator gen.Generator
 	chunks    map[gen.ChunkPos]*gen.ChunkData
+
+	// Time tracking (protected by mu).
+	age       int64 // total ticks since world creation
+	timeOfDay int64 // 0-23999 cycle; negative = frozen
 }
 
 // NewWorld creates a new World with the given generator.
@@ -129,6 +133,30 @@ func (w *World) OverrideCount() int {
 	return len(w.blocks)
 }
 
+// ForEachChunk calls fn for each generated chunk under a read lock.
+func (w *World) ForEachChunk(fn func(pos gen.ChunkPos, chunk *gen.ChunkData)) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+
+	for pos, chunk := range w.chunks {
+		fn(pos, chunk)
+	}
+}
+
+// OverridesForChunk returns block overrides that belong to the given chunk.
+func (w *World) OverridesForChunk(cx, cz int) map[BlockPos]int32 {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+
+	result := make(map[BlockPos]int32)
+	for pos, stateID := range w.blocks {
+		if pos.X>>4 == cx && pos.Z>>4 == cz {
+			result[pos] = stateID
+		}
+	}
+	return result
+}
+
 // PreGenerateRadius generates all chunks within the given radius centered on (0,0).
 func (w *World) PreGenerateRadius(radius int) int {
 	count := 0
@@ -144,4 +172,39 @@ func (w *World) PreGenerateRadius(radius int) int {
 // SpawnHeight returns the terrain height at spawn (0, 0) + 1 for the player to stand on.
 func (w *World) SpawnHeight() int {
 	return w.generator.HeightAt(0, 0) + 1
+}
+
+// Tick advances the world age by one tick and, if timeOfDay is non-negative,
+// advances it within the 0-23999 range. Returns the new age and timeOfDay.
+func (w *World) Tick() (age, timeOfDay int64) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	w.age++
+	if w.timeOfDay >= 0 {
+		w.timeOfDay = (w.timeOfDay + 1) % 24000
+	}
+	return w.age, w.timeOfDay
+}
+
+// GetTime returns the current world age and time of day.
+func (w *World) GetTime() (age, timeOfDay int64) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.age, w.timeOfDay
+}
+
+// SetTimeOfDay sets the time of day (0-23999, or negative to freeze).
+func (w *World) SetTimeOfDay(t int64) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.timeOfDay = t
+}
+
+// SetTime sets both the world age and time of day (used when loading from storage).
+func (w *World) SetTime(age, timeOfDay int64) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.age = age
+	w.timeOfDay = timeOfDay
 }

@@ -1,7 +1,12 @@
 version: '3'
 
 tasks:
-  start:
-    desc: Generate code
+  dmd:
+    desc: download minecraft data
     cmds:
-      - echo "Nothing to do"
+      - go run ./cmd/dmd/main.go
+
+  codegen:
+    desc: Generate Go code from Minecraft schemas
+    cmds:
+      - go run ./cmd/codegen -scheme ./scheme/pc-1.8 -out ./internal/gamedata/versions

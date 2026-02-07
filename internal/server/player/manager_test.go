@@ -158,6 +158,40 @@ func TestPlayerInfoOnAdd(t *testing.T) {
 	}
 }
 
+func TestSpawnSendsEquipmentPackets(t *testing.T) {
+	m := NewManager(8)
+	p1, pc1 := newTestPlayer(m, 0, 0)
+	p2, _ := newTestPlayer(m, 0, 0)
+
+	m.Add(p1)
+	pc1.reset()
+
+	m.Add(p2)
+
+	// p1 should receive 5 EntityEquipment packets for p2 (held item + 4 armor slots).
+	eqCount := pc1.countByType(pkt.EntityEquipment{}.PacketID())
+	if eqCount != 5 {
+		t.Errorf("expected 5 EntityEquipment packets, got %d", eqCount)
+	}
+}
+
+func TestSpawnSendsEntityMetadata(t *testing.T) {
+	m := NewManager(8)
+	p1, pc1 := newTestPlayer(m, 0, 0)
+	p2, _ := newTestPlayer(m, 0, 0)
+
+	m.Add(p1)
+	pc1.reset()
+
+	m.Add(p2)
+
+	// p1 should receive at least 1 EntityMetadata packet for p2.
+	metaCount := pc1.countByType(pkt.EntityMetadata{}.PacketID())
+	if metaCount < 1 {
+		t.Errorf("expected at least 1 EntityMetadata packet, got %d", metaCount)
+	}
+}
+
 func TestPlayerInfoOnRemove(t *testing.T) {
 	m := NewManager(8)
 	p1, pc1 := newTestPlayer(m, 0, 0)

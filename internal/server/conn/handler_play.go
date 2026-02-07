@@ -2,9 +2,11 @@ package conn
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -187,12 +189,53 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 	case 0x08: // Block Place
 		return c.handleBlockPlace(data)
 
+	case 0x09: // Held Item Change
+		var p pkt.HeldItemSlotSB
+		if err := mcnet.Unmarshal(data, &p); err != nil {
+			return fmt.Errorf("unmarshal held item slot: %w", err)
+		}
+		if p.SlotID < 0 || p.SlotID > 8 {
+			return nil
+		}
+		c.self.Inventory.SetHeldSlot(p.SlotID)
+		heldItem := c.self.Inventory.HeldItem()
+		eqData := player.BuildSingleEquipment(c.self.EntityID, 0, heldItem)
+		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: eqData}, c.self.EntityID)
+
+	case 0x0A: // Animation (arm swing)
+		c.players.BroadcastToTrackers(&pkt.Animation{
+			EntityID:  c.self.EntityID,
+			Animation: 0, // swing arm
+		}, c.self.EntityID)
+
+	case 0x0B: // Entity Action
+		var p pkt.EntityAction
+		if err := mcnet.Unmarshal(data, &p); err != nil {
+			return fmt.Errorf("unmarshal entity action: %w", err)
+		}
+		switch p.ActionID {
+		case 0: // start sneak
+			c.self.SetSneaking(true)
+			c.players.BroadcastEntityMetadata(c.self)
+		case 1: // stop sneak
+			c.self.SetSneaking(false)
+			c.players.BroadcastEntityMetadata(c.self)
+		case 3: // start sprint
+			c.self.SetSprinting(true)
+			c.players.BroadcastEntityMetadata(c.self)
+		case 4: // stop sprint
+			c.self.SetSprinting(false)
+			c.players.BroadcastEntityMetadata(c.self)
+		}
+
 	case 0x15: // Client Settings
 		var p pkt.Settings
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal client settings: %w", err)
 		}
 		c.log.Info("client settings", "locale", p.Locale, "viewDistance", p.ViewDistance)
+		c.self.SetSkinParts(p.SkinParts)
+		c.players.BroadcastEntityMetadata(c.self)
 
 	default:
 		// ignore unknown packets silently
@@ -260,6 +303,16 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 		}, eid)
 	}
 
+	// Sprint particles: send block crack particles at player's feet.
+	if posChanged && c.self.IsSprinting() {
+		blockBelow := c.world.GetBlock(int(math.Floor(x)), int(math.Floor(y))-1, int(math.Floor(z)))
+		if blockBelow != 0 {
+			c.players.BroadcastToTrackers(&pkt.WorldParticles{
+				Data: buildSprintParticles(x, y, z, blockBelow),
+			}, eid)
+		}
+	}
+
 	c.players.UpdateTracking(c.self)
 }
 
@@ -304,13 +357,52 @@ func (c *Connection) handleBlockDig(data []byte) error {
 	// status 0 = Started digging, 2 = Finished digging
 	// In Creative mode, the client sends status=0 for instant break.
 	if status == 0 || status == 2 {
+		oldBlockState := c.world.GetBlock(x, y, z)
 		c.world.SetBlock(x, y, z, 0) // air
 		blockChange := &pkt.BlockChange{
 			Location: posVal,
 			Type:     0,
 		}
 		c.players.BroadcastExcept(blockChange, c.self.EntityID)
+
+		// Broadcast block break effect (particles + sound).
+		if oldBlockState != 0 {
+			c.players.BroadcastToTrackers(&pkt.WorldEvent{
+				EffectID: 2001,
+				Location: posVal,
+				Data:     oldBlockState,
+				Global:   false,
+			}, c.self.EntityID)
+		}
+
 		return c.writePacket(blockChange)
+	}
+
+	// status 3 = drop stack, status 4 = drop single item
+	if status == 3 || status == 4 {
+		heldSlot := c.self.Inventory.GetHeldSlot()
+		heldItem := c.self.Inventory.HeldItem()
+		if heldItem.IsEmpty() {
+			return nil
+		}
+
+		var dropped player.Slot
+		if status == 4 {
+			dropped = c.self.Inventory.RemoveOne(int(heldSlot))
+		} else {
+			dropped = heldItem
+			c.self.Inventory.SetSlot(int(heldSlot), player.EmptySlot)
+		}
+
+		if !dropped.IsEmpty() {
+			pos := c.self.GetPosition()
+			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
+		}
+
+		// Update held item for trackers.
+		newHeld := c.self.Inventory.HeldItem()
+		eqData := player.BuildSingleEquipment(c.self.EntityID, 0, newHeld)
+		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: eqData}, c.self.EntityID)
 	}
 
 	return nil
@@ -422,4 +514,24 @@ func parseUUID(s string) [16]byte {
 func escapeJSON(s string) string {
 	b, _ := json.Marshal(s)
 	return string(b)
+}
+
+// buildSprintParticles builds WorldParticles raw data for sprint block-crack particles.
+// Particle ID 37 = block crack, with block state as additional data.
+func buildSprintParticles(x, y, z float64, blockState int32) []byte {
+	var buf bytes.Buffer
+
+	_ = binary.Write(&buf, binary.BigEndian, int32(37))    // particle ID: block crack
+	_ = binary.Write(&buf, binary.BigEndian, false)        // long distance
+	_ = binary.Write(&buf, binary.BigEndian, float32(x))   // x
+	_ = binary.Write(&buf, binary.BigEndian, float32(y))   // y
+	_ = binary.Write(&buf, binary.BigEndian, float32(z))   // z
+	_ = binary.Write(&buf, binary.BigEndian, float32(0.5)) // offset X
+	_ = binary.Write(&buf, binary.BigEndian, float32(0.1)) // offset Y
+	_ = binary.Write(&buf, binary.BigEndian, float32(0.5)) // offset Z
+	_ = binary.Write(&buf, binary.BigEndian, float32(0.0)) // speed
+	_ = binary.Write(&buf, binary.BigEndian, int32(5))     // count
+	_, _ = mcnet.WriteVarInt(&buf, blockState)             // block state data
+
+	return buf.Bytes()
 }

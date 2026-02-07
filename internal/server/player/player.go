@@ -35,6 +35,11 @@ type Player struct {
 	lastFixedY int32
 	lastFixedZ int32
 
+	Inventory   *Inventory
+	entityFlags byte    // bit 1 = sneaking, bit 3 = sprinting
+	skinParts   byte    // from ClientSettings
+	Height      float64 // 1.8 normal, 1.65 sneaking
+
 	WritePacket    func(mcnet.Packet) error
 	trackedPlayers map[int32]struct{}
 }
@@ -42,6 +47,9 @@ type Player struct {
 // NewPlayer creates a new Player with its initial spawn position.
 func NewPlayer(entityID int32, uuid string, uuidBytes [16]byte, username string, props []SkinProperty, writePacket func(mcnet.Packet) error) *Player {
 	spawnPos := Position{X: 0.5, Y: 4.0, Z: 0.5}
+	inv := NewInventory()
+	inv.DefaultLoadout()
+
 	return &Player{
 		EntityID:       entityID,
 		UUID:           uuid,
@@ -52,6 +60,8 @@ func NewPlayer(entityID int32, uuid string, uuidBytes [16]byte, username string,
 		lastFixedX:     FixedPoint(spawnPos.X),
 		lastFixedY:     FixedPoint(spawnPos.Y),
 		lastFixedZ:     FixedPoint(spawnPos.Z),
+		Inventory:      inv,
+		Height:         1.8,
 		WritePacket:    writePacket,
 		trackedPlayers: make(map[int32]struct{}),
 	}
@@ -145,4 +155,63 @@ func (p *Player) TrackedEntities() map[int32]struct{} {
 		result[id] = struct{}{}
 	}
 	return result
+}
+
+// SetSneaking sets or clears the sneaking flag (bit 1 of entityFlags).
+func (p *Player) SetSneaking(sneaking bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if sneaking {
+		p.entityFlags |= 0x02
+		p.Height = 1.65
+	} else {
+		p.entityFlags &^= 0x02
+		p.Height = 1.8
+	}
+}
+
+// IsSneaking returns whether the player is sneaking.
+func (p *Player) IsSneaking() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.entityFlags&0x02 != 0
+}
+
+// SetSprinting sets or clears the sprinting flag (bit 3 of entityFlags).
+func (p *Player) SetSprinting(sprinting bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if sprinting {
+		p.entityFlags |= 0x08
+	} else {
+		p.entityFlags &^= 0x08
+	}
+}
+
+// IsSprinting returns whether the player is sprinting.
+func (p *Player) IsSprinting() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.entityFlags&0x08 != 0
+}
+
+// SetSkinParts sets the skin parts bitmask from ClientSettings.
+func (p *Player) SetSkinParts(parts byte) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.skinParts = parts
+}
+
+// GetSkinParts returns the current skin parts bitmask.
+func (p *Player) GetSkinParts() byte {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.skinParts
+}
+
+// GetEntityFlags returns the current entity flags byte.
+func (p *Player) GetEntityFlags() byte {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.entityFlags
 }

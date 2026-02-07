@@ -18,15 +18,21 @@ type Manager struct {
 	byUUID       map[string]int32  // UUID → entityID
 	nextEntityID atomic.Int32
 	viewDistance int
+
+	itemMu       sync.Mutex
+	itemEntities map[int32]*ItemEntity
 }
 
 // NewManager creates a new player manager with the given view distance (in chunks).
 func NewManager(viewDistance int) *Manager {
-	return &Manager{
+	mgr := &Manager{
 		players:      make(map[int32]*Player),
 		byUUID:       make(map[string]int32),
 		viewDistance: viewDistance,
+		itemEntities: make(map[int32]*ItemEntity),
 	}
+	go mgr.cleanupItemEntities()
+	return mgr
 }
 
 // AllocateEntityID returns the next unique entity ID.
@@ -157,6 +163,14 @@ func (m *Manager) UpdateTracking(moved *Player) {
 	}
 }
 
+// BroadcastEntityMetadata sends an EntityMetadata packet to all trackers of the given player.
+func (m *Manager) BroadcastEntityMetadata(p *Player) {
+	metaData := BuildEntityMetadata(p)
+	m.BroadcastToTrackers(&pkt.EntityMetadata{
+		Data: buildEntityMetadataData(p.EntityID, metaData),
+	}, p.EntityID)
+}
+
 // PlayerCount returns the number of connected players.
 func (m *Manager) PlayerCount() int {
 	m.mu.RLock()
@@ -165,7 +179,7 @@ func (m *Manager) PlayerCount() int {
 }
 
 // spawnPlayerFor sends the SpawnNamedEntity + EntityHeadLook + EntityTeleport
-// packets so that viewer can see target.
+// + EntityMetadata + EntityEquipment packets so that viewer can see target.
 func (m *Manager) spawnPlayerFor(viewer, target *Player) {
 	pos := target.GetPosition()
 
@@ -187,7 +201,24 @@ func (m *Manager) spawnPlayerFor(viewer, target *Player) {
 		OnGround: pos.OnGround,
 	})
 
+	// Send entity metadata (flags + skin parts).
+	metaData := BuildEntityMetadata(target)
+	_ = viewer.WritePacket(&pkt.EntityMetadata{Data: buildEntityMetadataData(target.EntityID, metaData)})
+
+	// Send 5 equipment packets (held item + 4 armor slots).
+	for _, eqData := range BuildEquipmentPackets(target.EntityID, target.Inventory) {
+		_ = viewer.WritePacket(&pkt.EntityEquipment{Data: eqData})
+	}
+
 	viewer.Track(target.EntityID)
+}
+
+// buildEntityMetadataData prepends the entity ID (varint) to raw metadata bytes.
+func buildEntityMetadataData(entityID int32, metadata []byte) []byte {
+	var buf bytes.Buffer
+	_, _ = mcnet.WriteVarInt(&buf, entityID)
+	buf.Write(metadata)
+	return buf.Bytes()
 }
 
 // buildSpawnNamedEntity encodes the SpawnNamedEntity data fields.
@@ -201,8 +232,17 @@ func buildSpawnNamedEntity(p *Player, pos Position) []byte {
 	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(pos.Z))
 	buf.WriteByte(byte(DegreesToAngle(pos.Yaw)))
 	buf.WriteByte(byte(DegreesToAngle(pos.Pitch)))
-	_ = binary.Write(&buf, binary.BigEndian, int16(0)) // current item = empty hand
-	buf.WriteByte(pkt.MetadataEnd)
+
+	// Current item in hand.
+	heldItem := p.Inventory.HeldItem()
+	if heldItem.IsEmpty() {
+		_ = binary.Write(&buf, binary.BigEndian, int16(0))
+	} else {
+		_ = binary.Write(&buf, binary.BigEndian, heldItem.BlockID)
+	}
+
+	// Entity metadata (flags + skin parts + terminator).
+	buf.Write(BuildSpawnMetadata(p))
 
 	return buf.Bytes()
 }

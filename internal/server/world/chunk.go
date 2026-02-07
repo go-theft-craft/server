@@ -4,74 +4,120 @@ import (
 	"encoding/binary"
 
 	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/net"
+	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
 )
 
 const (
 	sectionBlockBytes = 16 * 16 * 16 * 2 // 8192 bytes: 4096 blocks × 2 bytes each
 	sectionLightBytes = 16 * 16 * 16 / 2 // 2048 bytes: 4096 nibbles
 	biomeBytes        = 256              // 16×16 biome IDs
-
-	blockStone = 1
-	biomePlain = 1
 )
 
-// FlatStoneChunk generates a MapChunk packet for a flat stone world.
-// The chunk has stone at y=0 and air everywhere else.
-func FlatStoneChunk(chunkX, chunkZ int32) pkt.MapChunk {
-	// Section 0 only (y=0..15)
-	// Block data: 4096 blocks × 2 bytes = 8192 bytes (LE u16: blockId<<4 | meta)
-	blocks := make([]byte, sectionBlockBytes)
-	for x := 0; x < 16; x++ {
-		for z := 0; z < 16; z++ {
-			// y=0: stone (id=1, meta=0) → (1<<4)|0 = 0x10
-			idx := (0*256 + z*16 + x) * 2
-			binary.LittleEndian.PutUint16(blocks[idx:], blockStone<<4)
-			// y>0: air (0x0000) — already zero
+// EncodeChunk encodes a ChunkData into a MapChunk packet, applying any block overrides.
+func (w *World) EncodeChunk(cx, cz int) pkt.MapChunk {
+	chunk := w.GetOrGenerateChunk(cx, cz)
+
+	// Determine which sections are non-nil.
+	var bitMap uint16
+	for i, sec := range chunk.Sections {
+		if sec != nil {
+			bitMap |= 1 << uint(i)
 		}
 	}
 
-	// Block light: all 0xFF (full light)
-	blockLight := make([]byte, sectionLightBytes)
-	for i := range blockLight {
-		blockLight[i] = 0xFF
+	// If no sections exist at all, send at least section 0 so the client has something.
+	if bitMap == 0 {
+		bitMap = 0x0001
 	}
 
-	// Sky light: all 0xFF
-	skyLight := make([]byte, sectionLightBytes)
-	for i := range skyLight {
-		skyLight[i] = 0xFF
+	sectionCount := 0
+	for i := 0; i < 16; i++ {
+		if bitMap&(1<<uint(i)) != 0 {
+			sectionCount++
+		}
 	}
 
-	// Biome data: all plains
-	biomes := make([]byte, biomeBytes)
-	for i := range biomes {
-		biomes[i] = biomePlain
-	}
-
-	// Combine: blocks + blockLight + skyLight + biomes
-	dataLen := len(blocks) + len(blockLight) + len(skyLight) + len(biomes)
+	// Allocate data: per section (blocks + blockLight + skyLight) + biomes.
+	dataLen := sectionCount*(sectionBlockBytes+sectionLightBytes+sectionLightBytes) + biomeBytes
 	data := make([]byte, 0, dataLen)
-	data = append(data, blocks...)
-	data = append(data, blockLight...)
-	data = append(data, skyLight...)
-	data = append(data, biomes...)
+
+	// Block data for each active section.
+	for i := 0; i < 16; i++ {
+		if bitMap&(1<<uint(i)) == 0 {
+			continue
+		}
+		blocks := make([]byte, sectionBlockBytes)
+		sec := chunk.Sections[i]
+		if sec != nil {
+			for idx := 0; idx < 4096; idx++ {
+				binary.LittleEndian.PutUint16(blocks[idx*2:], sec.Blocks[idx])
+			}
+		}
+		// Apply overrides for this section.
+		w.applyOverrides(blocks, cx, cz, i)
+		data = append(data, blocks...)
+	}
+
+	// Block light: all 0xFF (full light) for each section.
+	fullLight := make([]byte, sectionLightBytes)
+	for i := range fullLight {
+		fullLight[i] = 0xFF
+	}
+	for i := 0; i < 16; i++ {
+		if bitMap&(1<<uint(i)) == 0 {
+			continue
+		}
+		data = append(data, fullLight...)
+	}
+
+	// Sky light: all 0xFF for each section.
+	for i := 0; i < 16; i++ {
+		if bitMap&(1<<uint(i)) == 0 {
+			continue
+		}
+		data = append(data, fullLight...)
+	}
+
+	// Biome data.
+	data = append(data, chunk.Biomes[:]...)
 
 	return pkt.MapChunk{
-		X:         chunkX,
-		Z:         chunkZ,
+		X:         int32(cx),
+		Z:         int32(cz),
 		GroundUp:  true,
-		BitMap:    0x0001, // only section 0
+		BitMap:    bitMap,
 		ChunkData: data,
 	}
 }
 
-// WriteChunkGrid writes a 7×7 grid of flat stone chunks centered on (0,0).
-func WriteChunkGrid(w interface{ Write([]byte) (int, error) }) error {
-	for cx := int32(-3); cx <= 3; cx++ {
-		for cz := int32(-3); cz <= 3; cz++ {
-			chunk := FlatStoneChunk(cx, cz)
-			if err := net.WritePacket(w, &chunk); err != nil {
+// applyOverrides writes block overrides into the section's block data.
+func (w *World) applyOverrides(blocks []byte, cx, cz, sectionIdx int) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+
+	baseY := sectionIdx * 16
+	for pos, stateID := range w.blocks {
+		pcx, pcz := pos.X>>4, pos.Z>>4
+		if pcx != cx || pcz != cz {
+			continue
+		}
+		if pos.Y < baseY || pos.Y >= baseY+16 {
+			continue
+		}
+		lx := pos.X & 0xF
+		ly := pos.Y & 0xF
+		lz := pos.Z & 0xF
+		idx := (ly*256 + lz*16 + lx) * 2
+		binary.LittleEndian.PutUint16(blocks[idx:], uint16(stateID))
+	}
+}
+
+// WriteChunkGrid writes a radius-based grid of chunks centered on (0,0).
+func (w *World) WriteChunkGrid(writer interface{ Write([]byte) (int, error) }, radius int) error {
+	for cx := -radius; cx <= radius; cx++ {
+		for cz := -radius; cz <= radius; cz++ {
+			chunk := w.EncodeChunk(cx, cz)
+			if err := mcnet.WritePacket(writer, &chunk); err != nil {
 				return err
 			}
 		}

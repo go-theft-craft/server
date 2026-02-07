@@ -1,56 +1,89 @@
 package world
 
-import "testing"
+import (
+	"testing"
 
-func TestWorldBaseState(t *testing.T) {
-	w := NewWorld()
+	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
+)
 
-	// y=0 should be stone (blockID=1, state=1<<4=16).
-	if got := w.GetBlock(0, 0, 0); got != 16 {
-		t.Errorf("GetBlock(0,0,0) = %d, want 16 (stone)", got)
+func TestWorldBaseStateFlatGenerator(t *testing.T) {
+	w := NewWorld(gen.NewFlatGenerator(0))
+
+	// Flat generator: bedrock at y=0, stone at y=1-2, dirt at y=3, grass at y=4.
+	if got := w.GetBlock(0, 0, 0); got != 7<<4 { // bedrock
+		t.Errorf("GetBlock(0,0,0) = %d, want %d (bedrock)", got, 7<<4)
+	}
+	if got := w.GetBlock(0, 1, 0); got != 1<<4 { // stone
+		t.Errorf("GetBlock(0,1,0) = %d, want %d (stone)", got, 1<<4)
+	}
+	if got := w.GetBlock(0, 4, 0); got != 2<<4 { // grass
+		t.Errorf("GetBlock(0,4,0) = %d, want %d (grass)", got, 2<<4)
 	}
 
-	// y>0 should be air (0).
-	if got := w.GetBlock(0, 1, 0); got != 0 {
-		t.Errorf("GetBlock(0,1,0) = %d, want 0 (air)", got)
-	}
+	// y>4 should be air (0).
 	if got := w.GetBlock(5, 64, 10); got != 0 {
 		t.Errorf("GetBlock(5,64,10) = %d, want 0 (air)", got)
 	}
 }
 
 func TestWorldSetBlock(t *testing.T) {
-	w := NewWorld()
+	w := NewWorld(gen.NewFlatGenerator(0))
 
-	// Place a block at y=1.
-	w.SetBlock(3, 1, 5, 4<<4) // cobblestone state
-	if got := w.GetBlock(3, 1, 5); got != 4<<4 {
-		t.Errorf("GetBlock(3,1,5) = %d, want %d", got, 4<<4)
+	// Place a block at y=10 (air location).
+	w.SetBlock(3, 10, 5, 4<<4) // cobblestone state
+	if got := w.GetBlock(3, 10, 5); got != 4<<4 {
+		t.Errorf("GetBlock(3,10,5) = %d, want %d", got, 4<<4)
 	}
 
-	// Break the stone at y=0 (set to air).
-	w.SetBlock(0, 0, 0, 0)
-	if got := w.GetBlock(0, 0, 0); got != 0 {
-		t.Errorf("GetBlock(0,0,0) after break = %d, want 0", got)
+	// Break grass at y=4 (set to air).
+	w.SetBlock(0, 4, 0, 0)
+	if got := w.GetBlock(0, 4, 0); got != 0 {
+		t.Errorf("GetBlock(0,4,0) after break = %d, want 0", got)
 	}
 
-	// Restore stone at y=0 (should remove override).
-	w.SetBlock(0, 0, 0, 16)
-	if got := w.GetBlock(0, 0, 0); got != 16 {
-		t.Errorf("GetBlock(0,0,0) after restore = %d, want 16", got)
+	// Restore grass at y=4 (should remove override).
+	w.SetBlock(0, 4, 0, 2<<4)
+	if got := w.GetBlock(0, 4, 0); got != 2<<4 {
+		t.Errorf("GetBlock(0,4,0) after restore = %d, want %d", got, 2<<4)
 	}
 }
 
 func TestWorldSetBlockRemovesRedundantOverride(t *testing.T) {
-	w := NewWorld()
+	w := NewWorld(gen.NewFlatGenerator(0))
 
-	// Set air at y=1 (which is already air) — should not store an override.
-	w.SetBlock(0, 1, 0, 0)
+	// Trigger chunk generation so base state is known.
+	_ = w.GetBlock(0, 10, 0)
+
+	// Set air at y=10 (which is already air) — should not store an override.
+	w.SetBlock(0, 10, 0, 0)
 
 	w.mu.RLock()
-	_, exists := w.blocks[BlockPos{0, 1, 0}]
+	_, exists := w.blocks[BlockPos{0, 10, 0}]
 	w.mu.RUnlock()
 	if exists {
-		t.Error("setting air at y=1 should not create an override")
+		t.Error("setting air at y=10 should not create an override")
+	}
+}
+
+func TestWorldSpawnHeight(t *testing.T) {
+	w := NewWorld(gen.NewFlatGenerator(0))
+	// Flat: grass at y=4, HeightAt=4, SpawnHeight = 4+1 = 5
+	if got := w.SpawnHeight(); got != 5 {
+		t.Errorf("SpawnHeight() = %d, want 5", got)
+	}
+}
+
+func TestWorldDefaultGenerator(t *testing.T) {
+	w := NewWorld(gen.NewDefaultGenerator(12345))
+
+	// Bedrock should always be at y=0.
+	if got := w.GetBlock(0, 0, 0); got != 7<<4 { // bedrock
+		t.Errorf("GetBlock(0,0,0) = %d, want %d (bedrock)", got, 7<<4)
+	}
+
+	// Should have some terrain above y=0.
+	height := w.SpawnHeight()
+	if height < 5 || height > 255 {
+		t.Errorf("SpawnHeight() = %d, want between 5 and 255", height)
 	}
 }

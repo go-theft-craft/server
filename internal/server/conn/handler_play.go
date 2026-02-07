@@ -14,7 +14,6 @@ import (
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/packet"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
 )
 
 func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinProperty) error {
@@ -31,15 +30,17 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		Dimension:        packet.DimensionOverworld,
 		Difficulty:       packet.DifficultyEasy,
 		MaxPlayers:       uint8(c.cfg.MaxPlayers),
-		LevelType:        "flat",
+		LevelType:        c.cfg.GeneratorType,
 		ReducedDebugInfo: false,
 	}); err != nil {
 		return fmt.Errorf("write join game: %w", err)
 	}
 
+	spawnY := c.world.SpawnHeight()
+
 	// 2. Spawn Position
 	if err := c.writePacket(&pkt.SpawnPosition{
-		Location: mcnet.EncodePosition(0, 4, 0),
+		Location: mcnet.EncodePosition(0, spawnY, 0),
 	}); err != nil {
 		return fmt.Errorf("write spawn position: %w", err)
 	}
@@ -56,7 +57,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	// 4. Player Position And Look
 	if err := c.writePacket(&pkt.PositionCB{
 		X:     0.5,
-		Y:     4.0,
+		Y:     float64(spawnY),
 		Z:     0.5,
 		Yaw:   0,
 		Pitch: 0,
@@ -65,14 +66,9 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		return fmt.Errorf("write position and look: %w", err)
 	}
 
-	// 5. Chunk Data (7x7 grid)
-	if err := world.WriteChunkGrid(c.rw); err != nil {
+	// 5. Chunk Data (view distance radius grid)
+	if err := c.world.WriteChunkGrid(c.rw, c.cfg.ViewDistance); err != nil {
 		return fmt.Errorf("write chunk grid: %w", err)
-	}
-
-	// 5b. Replay block overrides so dig/place changes survive relogin.
-	if err := c.sendBlockOverrides(); err != nil {
-		return fmt.Errorf("send block overrides: %w", err)
 	}
 
 	// 6. Chat Message — "Hello, world!"
@@ -476,29 +472,6 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 	}
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
 	return c.writePacket(blockChange)
-}
-
-// sendBlockOverrides sends BlockChange packets for all world overrides
-// within the visible chunk grid so changes persist across relogins.
-func (c *Connection) sendBlockOverrides() error {
-	const chunkRange = 3 // chunks -3..3 → blocks -48..63
-	minBlock := -chunkRange * 16
-	maxBlock := (chunkRange+1)*16 - 1
-
-	var sendErr error
-	c.world.ForEachOverride(func(pos world.BlockPos, stateID int32) {
-		if sendErr != nil {
-			return
-		}
-		if pos.X < minBlock || pos.X > maxBlock || pos.Z < minBlock || pos.Z > maxBlock {
-			return
-		}
-		sendErr = c.writePacket(&pkt.BlockChange{
-			Location: mcnet.EncodePosition(pos.X, pos.Y, pos.Z),
-			Type:     stateID,
-		})
-	})
-	return sendErr
 }
 
 // parseUUID parses a hyphenated UUID string into 16 bytes.

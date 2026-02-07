@@ -23,6 +23,8 @@ func main() {
 	flag.StringVar(&cfg.MOTD, "motd", cfg.MOTD, "server description")
 	flag.IntVar(&cfg.MaxPlayers, "max-players", cfg.MaxPlayers, "maximum players shown in server list")
 	flag.IntVar(&cfg.ViewDistance, "view-distance", cfg.ViewDistance, "entity view distance in chunks")
+	flag.Int64Var(&cfg.Seed, "seed", cfg.Seed, "world generation seed")
+	flag.StringVar(&cfg.GeneratorType, "generator", cfg.GeneratorType, "world generator type (default, flat)")
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))

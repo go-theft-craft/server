@@ -10,6 +10,7 @@ import (
 	"github.com/OCharnyshevich/minecraft-server/internal/server/conn"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
 	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
 )
 
 // Server is the main Minecraft server that accepts TCP connections.
@@ -22,10 +23,18 @@ type Server struct {
 
 // New creates a new Server with the given config and logger.
 func New(cfg *config.Config, log *slog.Logger) *Server {
+	var generator gen.Generator
+	switch cfg.GeneratorType {
+	case "flat":
+		generator = gen.NewFlatGenerator(cfg.Seed)
+	default:
+		generator = gen.NewDefaultGenerator(cfg.Seed)
+	}
+
 	return &Server{
 		cfg:     cfg,
 		log:     log,
-		world:   world.NewWorld(),
+		world:   world.NewWorld(generator),
 		players: player.NewManager(cfg.ViewDistance),
 	}
 }
@@ -45,6 +54,8 @@ func (s *Server) Start(ctx context.Context) error {
 		"port", s.cfg.Port,
 		"onlineMode", s.cfg.OnlineMode,
 		"motd", s.cfg.MOTD,
+		"generator", s.cfg.GeneratorType,
+		"seed", s.cfg.Seed,
 	)
 
 	// Close listener when context is cancelled.

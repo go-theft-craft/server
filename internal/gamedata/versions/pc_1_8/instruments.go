@@ -28,12 +28,6 @@ func newInstrumentRegistry() gamedata.InstrumentRegistry {
 	return &instrumentRegistry{byID: byID, byName: byName, all: all}
 }
 
-func (r *instrumentRegistry) ByID(id int) (gamedata.Instrument, bool) {
-	v, ok := r.byID[id]
-	return v, ok
-}
-func (r *instrumentRegistry) ByName(name string) (gamedata.Instrument, bool) {
-	v, ok := r.byName[name]
-	return v, ok
-}
-func (r *instrumentRegistry) All() []gamedata.Instrument { return r.all }
+func (r *instrumentRegistry) ByID(id int) (gamedata.Instrument, bool)       { v, ok := r.byID[id]; return v, ok }
+func (r *instrumentRegistry) ByName(name string) (gamedata.Instrument, bool) { v, ok := r.byName[name]; return v, ok }
+func (r *instrumentRegistry) All() []gamedata.Instrument                     { return r.all }

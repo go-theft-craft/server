@@ -12,88 +12,88 @@ type attributeRegistry struct {
 func newAttributeRegistry() gamedata.AttributeRegistry {
 	all := []gamedata.Attribute{
 		{
-			Name:     "maxHealth",
+			Name: "maxHealth",
 			Resource: "generic.maxHealth",
-			Default:  20,
-			Min:      1,
-			Max:      1024,
+			Default: 20,
+			Min: 1,
+			Max: 1024,
 		},
 		{
-			Name:     "followRange",
+			Name: "followRange",
 			Resource: "generic.followRange",
-			Default:  32,
-			Min:      0,
-			Max:      2048,
+			Default: 32,
+			Min: 0,
+			Max: 2048,
 		},
 		{
-			Name:     "knockbackResistance",
+			Name: "knockbackResistance",
 			Resource: "generic.knockbackResistance",
-			Default:  0,
-			Min:      0,
-			Max:      1,
+			Default: 0,
+			Min: 0,
+			Max: 1,
 		},
 		{
-			Name:     "movementSpeed",
+			Name: "movementSpeed",
 			Resource: "generic.movementSpeed",
-			Default:  0.7,
-			Min:      0,
-			Max:      1024,
+			Default: 0.7,
+			Min: 0,
+			Max: 1024,
 		},
 		{
-			Name:     "attackDamage",
+			Name: "attackDamage",
 			Resource: "generic.attackDamage",
-			Default:  2,
-			Min:      0,
-			Max:      2048,
+			Default: 2,
+			Min: 0,
+			Max: 2048,
 		},
 		{
-			Name:     "horseJumpStrength",
+			Name: "horseJumpStrength",
 			Resource: "horse.jumpStrength",
-			Default:  0.7,
-			Min:      0,
-			Max:      2,
+			Default: 0.7,
+			Min: 0,
+			Max: 2,
 		},
 		{
-			Name:     "zombieSpawnReinforcements",
+			Name: "zombieSpawnReinforcements",
 			Resource: "zombie.spawnReinforcements",
-			Default:  0,
-			Min:      0,
-			Max:      1,
+			Default: 0,
+			Min: 0,
+			Max: 1,
 		},
 		{
-			Name:     "attackSpeed",
+			Name: "attackSpeed",
 			Resource: "generic.attackSpeed",
-			Default:  4,
-			Min:      0,
-			Max:      1024,
+			Default: 4,
+			Min: 0,
+			Max: 1024,
 		},
 		{
-			Name:     "flyingSpeed",
+			Name: "flyingSpeed",
 			Resource: "generic.flyingSpeed",
-			Default:  0.4,
-			Min:      0,
-			Max:      1024,
+			Default: 0.4,
+			Min: 0,
+			Max: 1024,
 		},
 		{
-			Name:     "attackKnockback",
+			Name: "attackKnockback",
 			Resource: "generic.attackKnockback",
-			Default:  0,
-			Min:      0,
-			Max:      5,
+			Default: 0,
+			Min: 0,
+			Max: 5,
 		},
 		{
-			Name:     "armorHealth",
+			Name: "armorHealth",
 			Resource: "generic.armor",
-			Default:  0,
-			Min:      0,
-			Max:      30,
+			Default: 0,
+			Min: 0,
+			Max: 30,
 		},
 		{
-			Name:     "armorToughness",
+			Name: "armorToughness",
 			Resource: "generic.armorToughness",
-			Default:  0,
-			Min:      0,
-			Max:      20,
+			Default: 0,
+			Min: 0,
+			Max: 20,
 		},
 	}
 
@@ -107,12 +107,6 @@ func newAttributeRegistry() gamedata.AttributeRegistry {
 	return &attributeRegistry{byName: byName, byResource: byResource, all: all}
 }
 
-func (r *attributeRegistry) ByName(name string) (gamedata.Attribute, bool) {
-	v, ok := r.byName[name]
-	return v, ok
-}
-func (r *attributeRegistry) ByResource(resource string) (gamedata.Attribute, bool) {
-	v, ok := r.byResource[resource]
-	return v, ok
-}
-func (r *attributeRegistry) All() []gamedata.Attribute { return r.all }
+func (r *attributeRegistry) ByName(name string) (gamedata.Attribute, bool)         { v, ok := r.byName[name]; return v, ok }
+func (r *attributeRegistry) ByResource(resource string) (gamedata.Attribute, bool) { v, ok := r.byResource[resource]; return v, ok }
+func (r *attributeRegistry) All() []gamedata.Attribute                             { return r.all }

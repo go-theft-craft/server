@@ -599,7 +599,7 @@ func extractPackets(types map[string]json.RawMessage) []packetTmpl {
 		}
 
 		packetName := typeName[7:] // strip "packet_" prefix
-		packetID, _ := mappings[packetName]
+		packetID := mappings[packetName]
 
 		packetFields := extractPacketFields(typeRaw)
 

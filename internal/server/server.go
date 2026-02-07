@@ -1,0 +1,61 @@
+package server
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net"
+
+	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
+	"github.com/OCharnyshevich/minecraft-server/internal/server/conn"
+)
+
+// Server is the main Minecraft server that accepts TCP connections.
+type Server struct {
+	cfg *config.Config
+	log *slog.Logger
+}
+
+// New creates a new Server with the given config and logger.
+func New(cfg *config.Config, log *slog.Logger) *Server {
+	return &Server{cfg: cfg, log: log}
+}
+
+// Start begins listening for connections and blocks until the context is cancelled.
+func (s *Server) Start(ctx context.Context) error {
+	addr := fmt.Sprintf(":%d", s.cfg.Port)
+	lc := net.ListenConfig{}
+
+	listener, err := lc.Listen(ctx, "tcp", addr)
+	if err != nil {
+		return fmt.Errorf("listen on %s: %w", addr, err)
+	}
+	defer listener.Close()
+
+	s.log.Info("server started",
+		"port", s.cfg.Port,
+		"onlineMode", s.cfg.OnlineMode,
+		"motd", s.cfg.MOTD,
+	)
+
+	// Close listener when context is cancelled.
+	go func() {
+		<-ctx.Done()
+		listener.Close()
+	}()
+
+	for {
+		c, err := listener.Accept()
+		if err != nil {
+			if ctx.Err() != nil {
+				s.log.Info("server shutting down")
+				return nil
+			}
+			s.log.Error("accept connection", "error", err)
+			continue
+		}
+
+		connection := conn.NewConnection(ctx, c, s.cfg, s.log)
+		go connection.Handle()
+	}
+}

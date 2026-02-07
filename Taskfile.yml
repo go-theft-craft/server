@@ -15,8 +15,6 @@ vars:
 
 env:
   PACKAGE_NAME: '{{.PACKAGE_NAME}}'
-  GOOS: linux
-  GOARCH: amd64
   CGO_ENABLED: 0
 
 includes:
@@ -56,7 +54,7 @@ tasks:
     desc: Format go code
     deps: [ deps ]
     cmds:
-      - gci write -s standard -s default -s "prefix(github.com/openserbia)" -s "prefix({{.PACKAGE_NAME}})" --skip-generated internal
+      - gci write -s standard -s default -s "prefix(github.com/openserbia)" -s "prefix({{.PACKAGE_NAME}})" --skip-generated internal cmd
       - gofumpt -l -w .
 
   lint:
@@ -70,6 +68,12 @@ tasks:
     deps: [ deps ]
     cmds:
       - go test -mod vendor -covermode=count -coverprofile=../service-unit.cov -coverpkg ./... ./...
+
+  server:
+    desc: Run the Minecraft server
+    deps: [ deps ]
+    cmds:
+      - go run -mod vendor ./cmd/server {{.CLI_ARGS}}
 
   default:
     cmds:

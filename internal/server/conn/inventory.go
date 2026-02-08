@@ -677,12 +677,12 @@ func (c *Connection) handleTransaction(data []byte) error {
 // otherwise drops one.
 func (c *Connection) dropItem(item player.Slot, fullStack bool) {
 	pos := c.self.GetPosition()
-	groundY := c.playerGroundY(pos)
+	groundAt := c.groundAtFunc()
 	if fullStack {
-		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundY)
+		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
 	} else {
 		dropped := player.Slot{BlockID: item.BlockID, ItemCount: 1, ItemDamage: item.ItemDamage}
-		c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundY)
+		c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
 	}
 }
 

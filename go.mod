@@ -1,4 +1,4 @@
-module github.com/OCharnyshevich/minecraft-server
+module github.com/go-theft-craft/server
 
 go 1.24.10
 

@@ -593,7 +593,7 @@ func (c *Connection) handleBlockDig(data []byte) error {
 		}
 
 		// Sync the held slot back to the client so the UI updates.
-		protoSlot := int16(36) + heldSlot
+		protoSlot := int16(slotHotbarStart) + heldSlot
 		_ = c.sendSetSlot(0, protoSlot, c.self.Inventory.GetSlot(int(heldSlot)))
 
 		// Update held item for trackers.
@@ -702,7 +702,7 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 	if posVal == -1 {
 		// Try to equip armor from hotbar via right-click.
 		if armorProtoSlot := armorSlotForItem(slot.BlockID); armorProtoSlot >= 0 {
-			heldIdx := int16(36) + int16(c.self.Inventory.GetHeldSlot())
+			heldIdx := int16(slotHotbarStart) + int16(c.self.Inventory.GetHeldSlot())
 			heldItem := c.getWindowSlot(heldIdx)
 			armorItem := c.getWindowSlot(armorProtoSlot)
 			c.setWindowSlot(armorProtoSlot, heldItem)

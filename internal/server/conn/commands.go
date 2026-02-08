@@ -264,11 +264,16 @@ func cmdMe(c *Connection, args []string) {
 }
 
 func cmdKill(c *Connection, _ []string) {
+	c.dead = true
 	_ = c.writePacket(&pkt.UpdateHealth{
 		Health:         0,
 		Food:           0,
 		FoodSaturation: 0,
 	})
+	c.players.BroadcastToTrackers(&pkt.EntityStatus{
+		EntityID:     c.self.EntityID,
+		EntityStatus: 3, // death animation
+	}, c.self.EntityID)
 	c.sendSuccessMsg("You killed yourself.")
 }
 

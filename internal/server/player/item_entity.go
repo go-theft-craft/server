@@ -19,19 +19,21 @@ type ItemEntity struct {
 }
 
 // SpawnItemEntity creates and broadcasts a dropped item entity.
-func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, yaw float32) {
+// groundAt returns the ground-level Y at a given block (x, z) coordinate,
+// used to estimate where the item will land for pickup distance checks.
+func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, yaw float32, groundAt func(x, z int) float64) {
 	entityID := m.AllocateEntityID()
 
-	// Calculate throw velocity based on player's yaw.
+	// Calculate throw velocity based on player's yaw (vanilla: 0.3 blocks/tick horizontal, 0.1 up).
 	yawRad := float64(yaw) * math.Pi / 180.0
-	speed := 4000.0 // ~0.5 blocks/tick in protocol units (8000 = 1 block/tick)
+	speed := 2400.0 // 0.3 blocks/tick in protocol units (8000 = 1 block/tick)
 	velX := int16(-math.Sin(yawRad) * speed)
-	velY := int16(2000) // slight upward toss
+	velY := int16(800) // 0.1 blocks/tick upward toss
 	velZ := int16(math.Cos(yawRad) * speed)
 
 	// Estimate where the item will land so the server-side position
 	// (used for pickup distance) matches the client visual after the arc.
-	landX, landY, landZ := estimateLanding(x, y, z, velX, velY, velZ)
+	landX, landY, landZ := estimateLanding(x, y, z, velX, velY, velZ, groundAt)
 
 	ie := &ItemEntity{
 		EntityID:  entityID,
@@ -180,6 +182,59 @@ type collectInfo struct {
 	collectorEID int32
 }
 
+// SpawnBlockDrop creates and broadcasts a dropped item from a broken block.
+// spawnY is the visual spawn height (block center), while (x, y, z) is the
+// ground-level resting position stored for pickup distance checks.
+func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64) {
+	entityID := m.AllocateEntityID()
+
+	ie := &ItemEntity{
+		EntityID:  entityID,
+		Item:      item,
+		X:         x,
+		Y:         y,
+		Z:         z,
+		VelX:      0,
+		VelY:      800, // small upward pop for visual effect
+		VelZ:      0,
+		SpawnTick: m.currentTick.Load(),
+	}
+
+	m.itemMu.Lock()
+	m.itemEntities[entityID] = ie
+	m.itemMu.Unlock()
+
+	// Visual spawn at block height; stored X/Y/Z at ground level for pickup.
+	spawnData := buildSpawnEntityDataAt(ie, x, spawnY, z)
+	metaData := buildItemMetadata(ie)
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, pl := range m.players {
+		_ = pl.WritePacket(&pkt.SpawnEntity{Data: spawnData})
+		_ = pl.WritePacket(&pkt.EntityMetadata{Data: buildEntityMetadataData(entityID, metaData)})
+	}
+}
+
+// buildSpawnEntityDataAtRest encodes a SpawnEntity packet for an item entity
+// at its stored resting position with data field = 0 (no velocity follows).
+// Used for sending existing items to late-joining players.
+func buildSpawnEntityDataAtRest(ie *ItemEntity) []byte {
+	var buf bytes.Buffer
+
+	_, _ = mcnet.WriteVarInt(&buf, ie.EntityID)
+	_ = binary.Write(&buf, binary.BigEndian, int8(2)) // type: item stack
+	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(ie.X))
+	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(ie.Y))
+	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(ie.Z))
+	_ = binary.Write(&buf, binary.BigEndian, int8(0))  // pitch
+	_ = binary.Write(&buf, binary.BigEndian, int8(0))  // yaw
+	_ = binary.Write(&buf, binary.BigEndian, int32(0)) // data field 0 → no velocity follows
+
+	return buf.Bytes()
+}
+
 // buildSpawnEntityDataAt encodes the SpawnEntity (0x0E) data for an item entity
 // at the given visual spawn position. Object type 2 = item stack.
 func buildSpawnEntityDataAt(ie *ItemEntity, spawnX, spawnY, spawnZ float64) []byte {
@@ -201,12 +256,14 @@ func buildSpawnEntityDataAt(ie *ItemEntity, spawnX, spawnY, spawnZ float64) []by
 }
 
 // estimateLanding approximates where an item entity will land by simulating
-// simple projectile physics (gravity + drag) for up to 2 seconds.
-func estimateLanding(x, y, z float64, velX, velY, velZ int16) (float64, float64, float64) {
+// vanilla entity physics (gravity before move, drag after) for up to 4 seconds.
+// groundAt returns the ground-level Y at a given block (x, z) coordinate so
+// the simulation accounts for terrain height changes along the trajectory.
+func estimateLanding(x, y, z float64, velX, velY, velZ int16, groundAt func(x, z int) float64) (float64, float64, float64) {
 	const (
-		gravity  = 0.04 // blocks/tick downward
+		gravity  = 0.04 // blocks/tick² downward
 		drag     = 0.98 // velocity multiplier per tick
-		maxTicks = 40   // 2 seconds at 20 tps
+		maxTicks = 80   // 4 seconds at 20 tps
 	)
 
 	vx := float64(velX) / 8000.0
@@ -215,16 +272,18 @@ func estimateLanding(x, y, z float64, velX, velY, velZ int16) (float64, float64,
 
 	px, py, pz := x, y, z
 	for range maxTicks {
+		// Vanilla order: gravity → move → drag.
+		vy -= gravity
 		px += vx
 		py += vy
 		pz += vz
-		vy -= gravity
 		vx *= drag
 		vy *= drag
 		vz *= drag
-		// Stop once the item has fallen back to near ground level.
-		if vy < 0 && py <= y {
-			py = y
+		// Check ground level at the current XZ position.
+		groundY := groundAt(int(math.Floor(px)), int(math.Floor(pz)))
+		if vy < 0 && py <= groundY {
+			py = groundY
 			break
 		}
 	}

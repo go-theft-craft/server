@@ -39,6 +39,7 @@ type Player struct {
 	gameMode    uint8   // 0=survival, 1=creative, 2=adventure, 3=spectator
 	entityFlags byte    // bit 1 = sneaking, bit 3 = sprinting
 	skinParts   byte    // from ClientSettings
+	flying      bool    // currently flying (set by AbilitiesSB)
 	Height      float64 // 1.8 normal, 1.65 sneaking
 
 	WritePacket    func(mcnet.Packet) error
@@ -194,6 +195,20 @@ func (p *Player) IsSprinting() bool {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.entityFlags&0x08 != 0
+}
+
+// SetFlying sets or clears the flying state.
+func (p *Player) SetFlying(flying bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.flying = flying
+}
+
+// IsFlying returns whether the player is currently flying.
+func (p *Player) IsFlying() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.flying
 }
 
 // SetSkinParts sets the skin parts bitmask from ClientSettings.

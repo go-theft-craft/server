@@ -447,12 +447,12 @@ func (c *Connection) handleDropClick(slot int16, button int8) {
 			c.setWindowSlot(slot, item)
 		}
 		pos := c.self.GetPosition()
-		c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
+		c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
 	} else {
 		// Ctrl+Q: drop entire stack.
 		c.setWindowSlot(slot, player.EmptySlot)
 		pos := c.self.GetPosition()
-		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
+		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
 	}
 
 	if slot >= 1 && slot <= 4 {
@@ -617,7 +617,7 @@ func (c *Connection) handleCreativeSlot(data []byte) error {
 		if item.BlockID > 0 {
 			pos := c.self.GetPosition()
 			dropped := player.Slot{BlockID: item.BlockID, ItemCount: item.ItemCount, ItemDamage: item.ItemDamage}
-			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
+			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
 		}
 		return nil
 	}
@@ -643,14 +643,15 @@ func (c *Connection) handleCloseWindow(data []byte) error {
 	}
 
 	// Return crafting grid items to inventory or drop them.
+	pos := c.self.GetPosition()
+	groundAt := c.groundAtFunc()
 	for i := 0; i < 4; i++ {
 		if c.craftingGrid[i].IsEmpty() {
 			continue
 		}
 		if !c.tryAddToSection(c.craftingGrid[i], 9, 44) {
 			// Inventory full, drop the item.
-			pos := c.self.GetPosition()
-			c.players.SpawnItemEntity(c.self.EntityID, c.craftingGrid[i], pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
+			c.players.SpawnItemEntity(c.self.EntityID, c.craftingGrid[i], pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
 		}
 		c.craftingGrid[i] = player.EmptySlot
 	}
@@ -658,8 +659,7 @@ func (c *Connection) handleCloseWindow(data []byte) error {
 
 	// Drop cursor item.
 	if !c.cursorSlot.IsEmpty() {
-		pos := c.self.GetPosition()
-		c.players.SpawnItemEntity(c.self.EntityID, c.cursorSlot, pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
+		c.players.SpawnItemEntity(c.self.EntityID, c.cursorSlot, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
 		c.cursorSlot = player.EmptySlot
 	}
 
@@ -677,11 +677,12 @@ func (c *Connection) handleTransaction(data []byte) error {
 // otherwise drops one.
 func (c *Connection) dropItem(item player.Slot, fullStack bool) {
 	pos := c.self.GetPosition()
+	groundY := c.playerGroundY(pos)
 	if fullStack {
-		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
+		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundY)
 	} else {
 		dropped := player.Slot{BlockID: item.BlockID, ItemCount: 1, ItemDamage: item.ItemDamage}
-		c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
+		c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundY)
 	}
 }
 

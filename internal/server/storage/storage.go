@@ -58,47 +58,36 @@ func (s *Storage) SaveConfig(cfg *config.Config) error {
 	return s.atomicWriteJSON(path, cfg)
 }
 
-// LoadWorld reads overrides.json and bulk-loads block overrides into the world.
+// LoadWorld reads world.json and restores world-level state (time).
 func (s *Storage) LoadWorld(w *world.World) error {
-	path := filepath.Join(s.dir, "world", "overrides.json")
+	path := filepath.Join(s.dir, "world", "world.json")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
-		return fmt.Errorf("read world overrides: %w", err)
+		return fmt.Errorf("read world data: %w", err)
 	}
 
 	var wd WorldData
 	if err := json.Unmarshal(data, &wd); err != nil {
-		return fmt.Errorf("parse world overrides: %w", err)
+		return fmt.Errorf("parse world data: %w", err)
 	}
 
-	overrides := make(map[world.BlockPos]int32, len(wd.Overrides))
-	for _, o := range wd.Overrides {
-		overrides[world.BlockPos{X: o.X, Y: o.Y, Z: o.Z}] = o.StateID
-	}
-
-	w.LoadOverrides(overrides)
 	w.SetTime(wd.Age, wd.TimeOfDay)
-	s.log.Info("loaded world overrides", "count", len(overrides))
+	s.log.Info("loaded world data", "age", wd.Age, "timeOfDay", wd.TimeOfDay)
 	return nil
 }
 
-// SaveWorld writes all block overrides and world time to overrides.json atomically.
+// SaveWorld writes world-level state (time) to world.json atomically.
 func (s *Storage) SaveWorld(w *world.World) error {
 	age, timeOfDay := w.GetTime()
 	wd := WorldData{
 		Age:       age,
 		TimeOfDay: timeOfDay,
 	}
-	w.ForEachOverride(func(pos world.BlockPos, stateID int32) {
-		wd.Overrides = append(wd.Overrides, BlockOverride{
-			X: pos.X, Y: pos.Y, Z: pos.Z, StateID: stateID,
-		})
-	})
 
-	path := filepath.Join(s.dir, "world", "overrides.json")
+	path := filepath.Join(s.dir, "world", "world.json")
 	return s.atomicWriteJSON(path, &wd)
 }
 
@@ -109,25 +98,38 @@ func (s *Storage) SaveWorldAnvil(w *world.World) error {
 		return fmt.Errorf("create region dir: %w", err)
 	}
 
-	// Collect compressed NBT data grouped by region.
+	// First pass: collect chunk positions under a single read lock.
+	// We must NOT call OverridesForChunk inside ForEachChunk — both acquire
+	// w.mu.RLock, and a pending w.mu.Lock (from the tick loop) would cause
+	// the second RLock to deadlock.
+	type chunkEntry struct {
+		pos   gen.ChunkPos
+		chunk *gen.ChunkData
+	}
+	var chunks []chunkEntry
+	w.ForEachChunk(func(pos gen.ChunkPos, chunk *gen.ChunkData) {
+		chunks = append(chunks, chunkEntry{pos, chunk})
+	})
+
+	// Second pass: encode each chunk with its overrides (locks acquired sequentially).
 	type regionKey struct{ rx, rz int }
 	regions := make(map[regionKey]map[gen.ChunkPos][]byte)
 
-	w.ForEachChunk(func(pos gen.ChunkPos, chunk *gen.ChunkData) {
-		overrides := w.OverridesForChunk(pos.X, pos.Z)
+	for _, ce := range chunks {
+		overrides := w.OverridesForChunk(ce.pos.X, ce.pos.Z)
 
-		nbtData, err := anvil.EncodeChunkNBT(pos.X, pos.Z, chunk, overrides)
+		nbtData, err := anvil.EncodeChunkNBT(ce.pos.X, ce.pos.Z, ce.chunk, overrides)
 		if err != nil {
-			s.log.Error("encode chunk NBT", "cx", pos.X, "cz", pos.Z, "error", err)
-			return
+			s.log.Error("encode chunk NBT", "cx", ce.pos.X, "cz", ce.pos.Z, "error", err)
+			continue
 		}
 
-		rk := regionKey{rx: pos.X >> 5, rz: pos.Z >> 5}
+		rk := regionKey{rx: ce.pos.X >> 5, rz: ce.pos.Z >> 5}
 		if regions[rk] == nil {
 			regions[rk] = make(map[gen.ChunkPos][]byte)
 		}
-		regions[rk][pos] = nbtData
-	})
+		regions[rk][ce.pos] = nbtData
+	}
 
 	for rk, chunks := range regions {
 		if err := anvil.SaveRegion(regionDir, rk.rx, rk.rz, chunks); err != nil {

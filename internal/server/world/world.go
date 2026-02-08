@@ -107,32 +107,6 @@ func (w *World) SetBlock(x, y, z int, stateID int32) {
 	}
 }
 
-// ForEachOverride calls fn for every block override under a read lock.
-func (w *World) ForEachOverride(fn func(pos BlockPos, stateID int32)) {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-
-	for pos, state := range w.blocks {
-		fn(pos, state)
-	}
-}
-
-// LoadOverrides bulk-loads saved block overrides at startup.
-func (w *World) LoadOverrides(overrides map[BlockPos]int32) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	for pos, stateID := range overrides {
-		w.blocks[pos] = stateID
-	}
-}
-
-// OverrideCount returns the number of block overrides currently stored.
-func (w *World) OverrideCount() int {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-	return len(w.blocks)
-}
-
 // ForEachChunk calls fn for each generated chunk under a read lock.
 func (w *World) ForEachChunk(fn func(pos gen.ChunkPos, chunk *gen.ChunkData)) {
 	w.mu.RLock()

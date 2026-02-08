@@ -2,6 +2,12 @@ package config
 
 import "crypto/rsa"
 
+// Supported world generator types.
+const (
+	GeneratorDefault = "default"
+	GeneratorFlat    = "flat"
+)
+
 // Config holds the server configuration.
 type Config struct {
 	Port            int    `json:"port"`
@@ -24,11 +30,12 @@ func DefaultConfig() *Config {
 	return &Config{
 		Port:            25565,
 		OnlineMode:      false,
-		MOTD:            "A Minecraft Server",
+		MOTD:            "A go-theft-craft server",
 		MaxPlayers:      20,
-		ViewDistance:    8,
-		GeneratorType:   "default",
+		ViewDistance:    12,
+		GeneratorType:   GeneratorDefault,
 		AutoSaveMinutes: 5,
+		WorldRadius:     500,
 	}
 }
 

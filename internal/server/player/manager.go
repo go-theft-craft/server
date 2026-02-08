@@ -49,12 +49,43 @@ func (m *Manager) Tick() {
 	if tick%600 == 0 {
 		m.cleanupExpiredItems(tick)
 	}
+
+	// Resync absolute entity positions every 400 ticks (~20 seconds)
+	// to prevent client-side hitbox drift from accumulated relative moves.
+	if tick%400 == 0 {
+		m.resyncPositions()
+	}
+}
+
+// resyncPositions broadcasts absolute EntityTeleport packets for all players
+// to correct any client-side position drift from relative movement packets.
+func (m *Manager) resyncPositions() {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, p := range m.players {
+		pos := p.GetPosition()
+		tp := &pkt.EntityTeleport{
+			EntityID: p.EntityID,
+			X:        FixedPoint(pos.X),
+			Y:        FixedPoint(pos.Y),
+			Z:        FixedPoint(pos.Z),
+			Yaw:      DegreesToAngle(pos.Yaw),
+			Pitch:    DegreesToAngle(pos.Pitch),
+			OnGround: pos.OnGround,
+		}
+		for _, other := range m.players {
+			if other.EntityID != p.EntityID && other.IsTracking(p.EntityID) {
+				_ = other.WritePacket(tp)
+			}
+		}
+	}
 }
 
 // Add registers a player and sends cross-wise PlayerInfo + spawn packets.
+// It also sends existing item entities to the new player.
 func (m *Manager) Add(p *Player) {
 	m.mu.Lock()
-	defer m.mu.Unlock()
 
 	m.players[p.EntityID] = p
 	m.byUUID[p.UUID] = p.EntityID
@@ -82,6 +113,33 @@ func (m *Manager) Add(p *Player) {
 			m.spawnPlayerFor(other, p) // existing sees new
 			m.spawnPlayerFor(p, other) // new sees existing
 		}
+	}
+
+	// Release mu before acquiring itemMu to avoid deadlock
+	// (SpawnItemEntity acquires itemMu then mu).
+	m.mu.Unlock()
+
+	// Send existing item entities to the new player.
+	type itemSnapshot struct {
+		spawnData []byte
+		metaData  []byte
+		entityID  int32
+	}
+
+	m.itemMu.Lock()
+	items := make([]itemSnapshot, 0, len(m.itemEntities))
+	for _, ie := range m.itemEntities {
+		items = append(items, itemSnapshot{
+			spawnData: buildSpawnEntityDataAtRest(ie),
+			metaData:  buildItemMetadata(ie),
+			entityID:  ie.EntityID,
+		})
+	}
+	m.itemMu.Unlock()
+
+	for _, it := range items {
+		_ = p.WritePacket(&pkt.SpawnEntity{Data: it.spawnData})
+		_ = p.WritePacket(&pkt.EntityMetadata{Data: buildEntityMetadataData(it.entityID, it.metaData)})
 	}
 }
 
@@ -190,6 +248,24 @@ func (m *Manager) PlayerCount() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return len(m.players)
+}
+
+// GetByEntityID returns the player with the given entity ID, or nil.
+func (m *Manager) GetByEntityID(entityID int32) *Player {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.players[entityID]
+}
+
+// GetByUUID returns the player with the given UUID string, or nil.
+func (m *Manager) GetByUUID(uuid string) *Player {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	eid, ok := m.byUUID[uuid]
+	if !ok {
+		return nil
+	}
+	return m.players[eid]
 }
 
 // GetByName returns the player with the given username (case-insensitive), or nil.

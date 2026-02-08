@@ -31,7 +31,7 @@ type Server struct {
 func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) *Server {
 	var generator gen.Generator
 	switch cfg.GeneratorType {
-	case "flat":
+	case config.GeneratorFlat:
 		generator = gen.NewFlatGenerator(cfg.Seed)
 	default:
 		generator = gen.NewDefaultGenerator(cfg.Seed)
@@ -51,7 +51,7 @@ func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) *Server {
 
 // Start begins listening for connections and blocks until the context is cancelled.
 func (s *Server) Start(ctx context.Context) error {
-	// Load saved world overrides before pre-generation.
+	// Load saved world data (time).
 	if s.storage != nil {
 		if err := s.storage.LoadWorld(s.world); err != nil {
 			s.log.Error("failed to load world data", "error", err)
@@ -170,7 +170,7 @@ func (s *Server) saveAll() {
 	if err := s.storage.SaveWorld(s.world); err != nil {
 		s.log.Error("auto-save world failed", "error", err)
 	} else {
-		s.log.Info("world saved", "overrides", s.world.OverrideCount())
+		s.log.Info("world saved")
 	}
 
 	if err := s.storage.SaveWorldAnvil(s.world); err != nil {

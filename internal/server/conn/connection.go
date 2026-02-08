@@ -68,6 +68,9 @@ type Connection struct {
 	dragSlots  []int16
 	dragActive bool
 
+	// Death state (only accessed from Handle goroutine)
+	dead bool
+
 	// Game data registries (blocks, materials, recipes, etc.)
 	gameData *gamedata.GameData
 

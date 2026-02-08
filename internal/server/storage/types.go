@@ -36,19 +36,10 @@ type SlotData struct {
 	ItemDamage int16 `json:"item_damage"`
 }
 
-// WorldData holds block overrides and world time for persistence.
+// WorldData holds world-level metadata for persistence.
 type WorldData struct {
-	Age       int64           `json:"age"`
-	TimeOfDay int64           `json:"time_of_day"`
-	Overrides []BlockOverride `json:"overrides"`
-}
-
-// BlockOverride represents a single block change made by a player.
-type BlockOverride struct {
-	X       int   `json:"x"`
-	Y       int   `json:"y"`
-	Z       int   `json:"z"`
-	StateID int32 `json:"state_id"`
+	Age       int64 `json:"age"`
+	TimeOfDay int64 `json:"time_of_day"`
 }
 
 // PlayerDataFromPlayer extracts serializable data from a runtime Player.

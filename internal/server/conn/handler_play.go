@@ -234,6 +234,9 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 			Position: 0,
 		})
 
+	case 0x02: // Use Entity
+		return c.handleUseEntity(data)
+
 	case 0x03: // Player (ground state)
 		// heartbeat, ignore
 
@@ -303,6 +306,9 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 			c.players.BroadcastEntityMetadata(c.self)
 		}
 
+	case 0x0C: // Steer Vehicle — no vehicle support, ignore
+		// consume and discard
+
 	case 0x0D: // Close Window
 		return c.handleCloseWindow(data)
 
@@ -315,6 +321,25 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 	case 0x10: // Set Creative Slot
 		return c.handleCreativeSlot(data)
 
+	case 0x11: // Enchant Item — no enchanting support, ignore
+		// consume and discard
+
+	case 0x12: // Update Sign
+		var p pkt.UpdateSignSB
+		if err := mcnet.Unmarshal(data, &p); err != nil {
+			return fmt.Errorf("unmarshal update sign: %w", err)
+		}
+		x, y, z := mcnet.DecodePosition(p.Location)
+		c.log.Info("update sign", "x", x, "y", y, "z", z,
+			"line1", p.Text1, "line2", p.Text2, "line3", p.Text3, "line4", p.Text4)
+
+	case 0x13: // Player Abilities (SB)
+		var p pkt.AbilitiesSB
+		if err := mcnet.Unmarshal(data, &p); err != nil {
+			return fmt.Errorf("unmarshal abilities sb: %w", err)
+		}
+		c.handleAbilitiesUpdate(p)
+
 	case 0x14: // Tab Complete
 		return c.handleTabComplete(data)
 
@@ -326,6 +351,34 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		c.log.Info("client settings", "locale", p.Locale, "viewDistance", p.ViewDistance)
 		c.self.SetSkinParts(p.SkinParts)
 		c.players.BroadcastEntityMetadata(c.self)
+
+	case 0x16: // Client Status (respawn / stats request)
+		return c.handleRespawn()
+
+	case 0x17: // Custom Payload (plugin channel)
+		return c.handleCustomPayload(data)
+
+	case 0x18: // Spectate
+		var p pkt.Spectate
+		if err := mcnet.Unmarshal(data, &p); err != nil {
+			return fmt.Errorf("unmarshal spectate: %w", err)
+		}
+		if c.self.GetGameMode() != packet.GameModeSpectator {
+			break
+		}
+		targetUUID := formatUUID(p.Target)
+		target := c.players.GetByUUID(targetUUID)
+		if target != nil {
+			pos := target.GetPosition()
+			c.teleportSelf(pos.X, pos.Y, pos.Z)
+		}
+
+	case 0x19: // Resource Pack Status
+		var p pkt.ResourcePackReceive
+		if err := mcnet.Unmarshal(data, &p); err != nil {
+			return fmt.Errorf("unmarshal resource pack status: %w", err)
+		}
+		c.log.Info("resource pack status", "hash", p.Hash, "result", p.Result)
 
 	default:
 		// ignore unknown packets silently
@@ -536,7 +589,7 @@ func (c *Connection) handleBlockDig(data []byte) error {
 
 		if !dropped.IsEmpty() {
 			pos := c.self.GetPosition()
-			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw)
+			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.playerGroundY(pos))
 		}
 
 		// Sync the held slot back to the client so the UI updates.
@@ -580,12 +633,36 @@ func (c *Connection) breakBlock(x, y, z int, posVal int64) {
 			heldItem := c.self.Inventory.HeldItem()
 			drops := blockDrops(block, heldItem.BlockID)
 			for _, drop := range drops {
-				cx := float64(x) + 0.5
-				cy := float64(y) + 0.5
-				cz := float64(z) + 0.5
-				c.players.SpawnItemEntity(c.self.EntityID, drop, cx, cy, cz, 0)
+				groundY := c.findGroundLevel(x, y, z)
+				c.players.SpawnBlockDrop(drop, float64(x)+0.5, float64(groundY)+0.1, float64(z)+0.5, float64(y)+0.5)
 			}
 		}
+	}
+}
+
+// findGroundLevel scans downward from startY to find the first non-air block,
+// returning the Y coordinate where an item would rest (top of that block).
+// Capped at 64 blocks scan depth.
+func (c *Connection) findGroundLevel(x, startY, z int) int {
+	for y := startY - 1; y >= startY-64 && y >= 0; y-- {
+		if c.world.GetBlock(x, y, z) != 0 {
+			return y + 1
+		}
+	}
+	return 0
+}
+
+// playerGroundY returns the ground level (as float64) below the player's current position.
+func (c *Connection) playerGroundY(pos player.Position) float64 {
+	return float64(c.findGroundLevel(int(math.Floor(pos.X)), int(pos.Y), int(math.Floor(pos.Z))))
+}
+
+// groundAtFunc returns a callback that finds the ground level at any (x, z) block position.
+// The scan starts from the player's current Y level.
+func (c *Connection) groundAtFunc() func(x, z int) float64 {
+	startY := int(c.self.GetPosition().Y)
+	return func(x, z int) float64 {
+		return float64(c.findGroundLevel(x, startY+10, z))
 	}
 }
 
@@ -821,4 +898,184 @@ func buildSprintParticles(x, y, z float64, blockState int32) []byte {
 	_, _ = mcnet.WriteVarInt(&buf, blockState)             // block state data
 
 	return buf.Bytes()
+}
+
+// handleUseEntity processes a UseEntity (0x02) packet.
+// Uses mc:"rest" encoding, so we parse manually.
+func (c *Connection) handleUseEntity(data []byte) error {
+	r := bytes.NewReader(data)
+
+	targetID, _, err := mcnet.ReadVarInt(r)
+	if err != nil {
+		return fmt.Errorf("read use entity target: %w", err)
+	}
+
+	mouse, _, err := mcnet.ReadVarInt(r)
+	if err != nil {
+		return fmt.Errorf("read use entity mouse: %w", err)
+	}
+
+	// mouse=2 (interact at) has 3 extra floats for the hit position.
+	if mouse == 2 {
+		if _, err := mcnet.ReadF32(r); err != nil {
+			return fmt.Errorf("read use entity target x: %w", err)
+		}
+		if _, err := mcnet.ReadF32(r); err != nil {
+			return fmt.Errorf("read use entity target y: %w", err)
+		}
+		if _, err := mcnet.ReadF32(r); err != nil {
+			return fmt.Errorf("read use entity target z: %w", err)
+		}
+	}
+
+	// mouse=1 is attack.
+	if mouse != 1 {
+		return nil
+	}
+
+	target := c.players.GetByEntityID(targetID)
+	if target == nil {
+		return nil
+	}
+
+	// Broadcast hurt animation to all trackers of the target.
+	c.players.BroadcastToTrackers(&pkt.EntityStatus{
+		EntityID:     targetID,
+		EntityStatus: 2, // hurt animation
+	}, targetID)
+	// Also send to the target itself.
+	_ = target.WritePacket(&pkt.EntityStatus{
+		EntityID:     targetID,
+		EntityStatus: 2,
+	})
+
+	// Compute knockback direction from attacker to target.
+	attackerPos := c.self.GetPosition()
+	targetPos := target.GetPosition()
+	dx := targetPos.X - attackerPos.X
+	dz := targetPos.Z - attackerPos.Z
+	dist := math.Sqrt(dx*dx + dz*dz)
+	if dist > 0 {
+		dx /= dist
+		dz /= dist
+	}
+
+	// Send velocity packet (protocol units: 1/8000 blocks/tick).
+	// Broadcast to all trackers so the attacker sees the knockback too.
+	vx := int16(dx * 0.4 * 8000)
+	vy := int16(0.36 * 8000)
+	vz := int16(dz * 0.4 * 8000)
+	velPkt := &pkt.EntityVelocity{
+		EntityID:  targetID,
+		VelocityX: vx,
+		VelocityY: vy,
+		VelocityZ: vz,
+	}
+	_ = target.WritePacket(velPkt)
+	c.players.BroadcastToTrackers(velPkt, targetID)
+
+	return nil
+}
+
+// handleAbilitiesUpdate processes a PlayerAbilities (0x13) server-bound packet.
+func (c *Connection) handleAbilitiesUpdate(p pkt.AbilitiesSB) {
+	wantsFlying := p.Flags&int8(packet.AbilityFlying) != 0
+	mode := c.self.GetGameMode()
+
+	// Only creative and spectator may fly.
+	if wantsFlying && mode != packet.GameModeCreative && mode != packet.GameModeSpectator {
+		// Send corrective abilities back.
+		_ = c.writePacket(&pkt.AbilitiesCB{
+			Flags:        abilitiesForGameMode(mode),
+			FlyingSpeed:  0.05,
+			WalkingSpeed: 0.1,
+		})
+		return
+	}
+
+	c.self.SetFlying(wantsFlying)
+}
+
+// handleRespawn processes a ClientStatus (0x16) packet.
+// ActionID 0 = perform respawn, ActionID 1 = request stats.
+func (c *Connection) handleRespawn() error {
+	if !c.dead {
+		return nil
+	}
+	c.dead = false
+
+	// Send Respawn packet.
+	if err := c.writePacket(&pkt.Respawn{
+		Dimension:  int32(packet.DimensionOverworld),
+		Difficulty: packet.DifficultyEasy,
+		Gamemode:   c.self.GetGameMode(),
+		LevelType:  c.cfg.GeneratorType,
+	}); err != nil {
+		return fmt.Errorf("write respawn: %w", err)
+	}
+
+	// Reset position to spawn.
+	spawnY := c.world.SpawnHeight()
+	c.self.SetPosition(0.5, float64(spawnY), 0.5, 0, 0, true)
+
+	// Clear and resend chunks.
+	c.loadedChunks = make(map[gen.ChunkPos]struct{})
+	if err := c.sendInitialChunks(); err != nil {
+		return fmt.Errorf("respawn send chunks: %w", err)
+	}
+
+	// Send position.
+	if err := c.writePacket(&pkt.PositionCB{
+		X:     0.5,
+		Y:     float64(spawnY),
+		Z:     0.5,
+		Yaw:   0,
+		Pitch: 0,
+		Flags: 0x00,
+	}); err != nil {
+		return fmt.Errorf("write respawn position: %w", err)
+	}
+
+	// Restore health.
+	_ = c.writePacket(&pkt.UpdateHealth{
+		Health:         20,
+		Food:           20,
+		FoodSaturation: 5,
+	})
+
+	// Send abilities.
+	_ = c.writePacket(&pkt.AbilitiesCB{
+		Flags:        abilitiesForGameMode(c.self.GetGameMode()),
+		FlyingSpeed:  0.05,
+		WalkingSpeed: 0.1,
+	})
+
+	// Resync inventory.
+	_ = c.sendWindowItems()
+
+	// Update tracking.
+	c.players.UpdateTracking(c.self)
+
+	return nil
+}
+
+// handleCustomPayload processes a CustomPayload (0x17) plugin channel packet.
+func (c *Connection) handleCustomPayload(data []byte) error {
+	var p pkt.CustomPayloadSB
+	if err := mcnet.Unmarshal(data, &p); err != nil {
+		return fmt.Errorf("unmarshal custom payload: %w", err)
+	}
+
+	switch p.Channel {
+	case "MC|Brand":
+		c.log.Info("client brand", "brand", string(p.Data))
+		_ = c.writePacket(&pkt.CustomPayloadCB{
+			Channel: "MC|Brand",
+			Data:    []byte("GoTheftCraft"),
+		})
+	default:
+		c.log.Debug("plugin channel", "channel", p.Channel, "size", len(p.Data))
+	}
+
+	return nil
 }

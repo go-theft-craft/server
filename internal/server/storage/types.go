@@ -42,6 +42,14 @@ type WorldData struct {
 	TimeOfDay int64 `json:"time_of_day"`
 }
 
+// BlockOverrideEntry is a single block override for JSON serialization.
+type BlockOverrideEntry struct {
+	X       int   `json:"x"`
+	Y       int   `json:"y"`
+	Z       int   `json:"z"`
+	StateID int32 `json:"state_id"`
+}
+
 // PlayerDataFromPlayer extracts serializable data from a runtime Player.
 func PlayerDataFromPlayer(p *player.Player) *PlayerData {
 	pos := p.GetPosition()

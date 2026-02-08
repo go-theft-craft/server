@@ -193,14 +193,24 @@ type RecipeIngredient struct {
 }
 
 func ParseIngredient(raw json.RawMessage) RecipeIngredient {
+	// Integer shorthand (e.g. 5) means any metadata of that item.
 	var plainID int
 	if err := json.Unmarshal(raw, &plainID); err == nil {
-		return RecipeIngredient{ID: plainID}
+		return RecipeIngredient{ID: plainID, Metadata: -1}
 	}
 
-	var obj RecipeIngredient
+	// Object form: {"id": X, "metadata": Y} or {"id": X, "metadata": null}.
+	// null metadata means any metadata (wildcard).
+	var obj struct {
+		ID       int  `json:"id"`
+		Metadata *int `json:"metadata"`
+	}
 	if err := json.Unmarshal(raw, &obj); err == nil {
-		return obj
+		meta := -1
+		if obj.Metadata != nil {
+			meta = *obj.Metadata
+		}
+		return RecipeIngredient{ID: obj.ID, Metadata: meta}
 	}
 
 	return RecipeIngredient{}

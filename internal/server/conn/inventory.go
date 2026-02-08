@@ -10,19 +10,45 @@ import (
 	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
 )
 
+// Player inventory window (window 0) slot layout.
+// These are protocol-level indices, not internal Inventory array indices.
+const (
+	slotCraftOutput = 0
+	slotCraftStart  = 1
+	slotCraftEnd    = 4
+	slotCraftCount  = slotCraftEnd - slotCraftStart + 1
+
+	slotHelmet     = 5
+	slotChestplate = 6
+	slotLeggings   = 7
+	slotBoots      = 8
+	slotArmorStart = slotHelmet
+	slotArmorEnd   = slotBoots
+
+	slotMainStart = 9
+	slotMainEnd   = 35
+
+	slotHotbarStart = 36
+	slotHotbarEnd   = 44
+
+	slotTotal = 45
+
+	slotOutside = -999 // click outside window
+)
+
 // sendWindowItems sends the full Window 0 (player inventory) to the client.
 func (c *Connection) sendWindowItems() error {
 	proto := c.self.Inventory.ToProtocolSlots()
 
 	// Overlay crafting slots from connection state.
-	proto[0] = c.craftingOutput
-	for i := 0; i < 4; i++ {
-		proto[1+i] = c.craftingGrid[i]
+	proto[slotCraftOutput] = c.craftingOutput
+	for i := 0; i < slotCraftCount; i++ {
+		proto[slotCraftStart+i] = c.craftingGrid[i]
 	}
 
 	var buf bytes.Buffer
 	buf.WriteByte(0) // window ID = 0
-	_ = binary.Write(&buf, binary.BigEndian, int16(45))
+	_ = binary.Write(&buf, binary.BigEndian, int16(slotTotal))
 	for _, s := range proto {
 		_ = player.WriteSlot(&buf, s)
 	}
@@ -118,11 +144,11 @@ func (c *Connection) dispatchClick(slot int16, button int8, mode int) {
 // getWindowSlot reads a slot from the player inventory window (0-44).
 func (c *Connection) getWindowSlot(slot int16) player.Slot {
 	switch {
-	case slot == 0:
+	case slot == slotCraftOutput:
 		return c.craftingOutput
-	case slot >= 1 && slot <= 4:
-		return c.craftingGrid[slot-1]
-	case slot >= 5 && slot <= 44:
+	case slot >= slotCraftStart && slot <= slotCraftEnd:
+		return c.craftingGrid[slot-slotCraftStart]
+	case slot >= slotArmorStart && slot <= slotHotbarEnd:
 		return c.self.Inventory.GetProtocolSlot(int(slot))
 	default:
 		return player.EmptySlot
@@ -133,11 +159,11 @@ func (c *Connection) getWindowSlot(slot int16) player.Slot {
 // and broadcasts equipment changes to trackers if needed.
 func (c *Connection) setWindowSlot(slot int16, item player.Slot) {
 	switch {
-	case slot == 0:
+	case slot == slotCraftOutput:
 		c.craftingOutput = item
-	case slot >= 1 && slot <= 4:
-		c.craftingGrid[slot-1] = item
-	case slot >= 5 && slot <= 44:
+	case slot >= slotCraftStart && slot <= slotCraftEnd:
+		c.craftingGrid[slot-slotCraftStart] = item
+	case slot >= slotArmorStart && slot <= slotHotbarEnd:
 		c.self.Inventory.SetProtocolSlot(int(slot), item)
 		c.broadcastEquipmentIfNeeded(slot)
 	}
@@ -148,21 +174,21 @@ func (c *Connection) setWindowSlot(slot int16, item player.Slot) {
 func (c *Connection) broadcastEquipmentIfNeeded(protoSlot int16) {
 	eid := c.self.EntityID
 	switch {
-	case protoSlot == 5: // helmet
+	case protoSlot == slotHelmet:
 		slot := c.self.Inventory.GetArmor(3)
 		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 4, slot)}, eid)
-	case protoSlot == 6: // chestplate
+	case protoSlot == slotChestplate:
 		slot := c.self.Inventory.GetArmor(2)
 		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 3, slot)}, eid)
-	case protoSlot == 7: // leggings
+	case protoSlot == slotLeggings:
 		slot := c.self.Inventory.GetArmor(1)
 		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 2, slot)}, eid)
-	case protoSlot == 8: // boots
+	case protoSlot == slotBoots:
 		slot := c.self.Inventory.GetArmor(0)
 		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 1, slot)}, eid)
-	case protoSlot >= 36 && protoSlot <= 44:
+	case protoSlot >= slotHotbarStart && protoSlot <= slotHotbarEnd:
 		// Check if this is the active hotbar slot.
-		hotbarIdx := protoSlot - 36
+		hotbarIdx := protoSlot - slotHotbarStart
 		if hotbarIdx == int16(c.self.Inventory.GetHeldSlot()) {
 			heldItem := c.self.Inventory.HeldItem()
 			c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 0, heldItem)}, eid)
@@ -172,7 +198,7 @@ func (c *Connection) broadcastEquipmentIfNeeded(protoSlot int16) {
 
 // handleNormalClick handles mode 0: left-click (pickup/place/swap) and right-click (half-pickup/place-one).
 func (c *Connection) handleNormalClick(slot int16, button int8) {
-	if slot == -999 {
+	if slot == slotOutside {
 		// Click outside window: drop cursor item.
 		if !c.cursorSlot.IsEmpty() {
 			c.dropItem(c.cursorSlot, button == 0)
@@ -188,12 +214,12 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 		return
 	}
 
-	if slot < 0 || slot > 44 {
+	if slot < 0 || slot > slotHotbarEnd {
 		return
 	}
 
-	// Clicking crafting output (slot 0).
-	if slot == 0 {
+	// Clicking crafting output.
+	if slot == slotCraftOutput {
 		if c.craftingOutput.IsEmpty() {
 			return
 		}
@@ -288,18 +314,18 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 	}
 
 	// Update crafting output if a crafting slot was modified.
-	if slot >= 1 && slot <= 4 {
+	if slot >= slotCraftStart && slot <= slotCraftEnd {
 		c.updateCraftingOutput()
 	}
 }
 
 // handleShiftClick handles mode 1: shift-click to move items between sections.
 func (c *Connection) handleShiftClick(slot int16, _ int8) {
-	if slot < 0 || slot > 44 || slot == 0 {
+	if slot < 0 || slot > slotHotbarEnd || slot == slotCraftOutput {
 		// Shift-click crafting output: take result and auto-move.
-		if slot == 0 && !c.craftingOutput.IsEmpty() {
+		if slot == slotCraftOutput && !c.craftingOutput.IsEmpty() {
 			result := c.craftingOutput
-			if c.tryAddToSection(result, 9, 44) {
+			if c.tryAddToSection(result, slotMainStart, slotHotbarEnd) {
 				c.consumeCraftingIngredients()
 				c.updateCraftingOutput()
 			}
@@ -314,10 +340,10 @@ func (c *Connection) handleShiftClick(slot int16, _ int8) {
 
 	moved := false
 	switch {
-	case slot >= 5 && slot <= 8:
+	case slot >= slotArmorStart && slot <= slotArmorEnd:
 		// Armor → main inventory or hotbar.
-		moved = c.tryAddToSection(item, 9, 44)
-	case slot >= 9 && slot <= 35:
+		moved = c.tryAddToSection(item, slotMainStart, slotHotbarEnd)
+	case slot >= slotMainStart && slot <= slotMainEnd:
 		// Main inventory → try armor first if applicable, then hotbar.
 		if armorSlot := armorSlotForItem(item.BlockID); armorSlot >= 0 {
 			existing := c.getWindowSlot(armorSlot)
@@ -327,9 +353,9 @@ func (c *Connection) handleShiftClick(slot int16, _ int8) {
 			}
 		}
 		if !moved {
-			moved = c.tryAddToSection(item, 36, 44) // hotbar
+			moved = c.tryAddToSection(item, slotHotbarStart, slotHotbarEnd)
 		}
-	case slot >= 36 && slot <= 44:
+	case slot >= slotHotbarStart && slot <= slotHotbarEnd:
 		// Hotbar → try armor first if applicable, then main inventory.
 		if armorSlot := armorSlotForItem(item.BlockID); armorSlot >= 0 {
 			existing := c.getWindowSlot(armorSlot)
@@ -339,16 +365,16 @@ func (c *Connection) handleShiftClick(slot int16, _ int8) {
 			}
 		}
 		if !moved {
-			moved = c.tryAddToSection(item, 9, 35) // main
+			moved = c.tryAddToSection(item, slotMainStart, slotMainEnd)
 		}
-	case slot >= 1 && slot <= 4:
+	case slot >= slotCraftStart && slot <= slotCraftEnd:
 		// Crafting grid → main or hotbar.
-		moved = c.tryAddToSection(item, 9, 44)
+		moved = c.tryAddToSection(item, slotMainStart, slotHotbarEnd)
 	}
 
 	if moved {
 		c.setWindowSlot(slot, player.EmptySlot)
-		if slot >= 1 && slot <= 4 {
+		if slot >= slotCraftStart && slot <= slotCraftEnd {
 			c.updateCraftingOutput()
 		}
 	}
@@ -391,11 +417,11 @@ func (c *Connection) tryAddToSection(item player.Slot, lo, hi int16) bool {
 
 // handleNumberKey handles mode 2: pressing number keys 1-9 to swap with hotbar.
 func (c *Connection) handleNumberKey(slot int16, button int8) {
-	if slot < 0 || slot > 44 {
+	if slot < 0 || slot > slotHotbarEnd {
 		return
 	}
-	hotbarSlot := int16(36) + int16(button)
-	if hotbarSlot < 36 || hotbarSlot > 44 {
+	hotbarSlot := int16(slotHotbarStart) + int16(button)
+	if hotbarSlot < slotHotbarStart || hotbarSlot > slotHotbarEnd {
 		return
 	}
 
@@ -404,14 +430,14 @@ func (c *Connection) handleNumberKey(slot int16, button int8) {
 	c.setWindowSlot(slot, hotbarItem)
 	c.setWindowSlot(hotbarSlot, slotItem)
 
-	if slot >= 1 && slot <= 4 {
+	if slot >= slotCraftStart && slot <= slotCraftEnd {
 		c.updateCraftingOutput()
 	}
 }
 
 // handleMiddleClick handles mode 3: middle-click in creative mode (clone to cursor).
 func (c *Connection) handleMiddleClick(slot int16) {
-	if slot < 0 || slot > 44 {
+	if slot < 0 || slot > slotHotbarEnd {
 		return
 	}
 	item := c.getWindowSlot(slot)
@@ -423,12 +449,12 @@ func (c *Connection) handleMiddleClick(slot int16) {
 
 // handleDropClick handles mode 4: Q key drop.
 func (c *Connection) handleDropClick(slot int16, button int8) {
-	if slot == -999 {
+	if slot == slotOutside {
 		// Drop cursor (already handled by normal click path when mode=4 slot=-999).
 		// In practice this shouldn't happen, but handle gracefully.
 		return
 	}
-	if slot < 0 || slot > 44 {
+	if slot < 0 || slot > slotHotbarEnd {
 		return
 	}
 
@@ -455,7 +481,7 @@ func (c *Connection) handleDropClick(slot int16, button int8) {
 		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
 	}
 
-	if slot >= 1 && slot <= 4 {
+	if slot >= slotCraftStart && slot <= slotCraftEnd {
 		c.updateCraftingOutput()
 	}
 }
@@ -475,7 +501,7 @@ func (c *Connection) handleDragClick(slot int16, button int8) {
 		c.dragMode = 1
 		c.dragSlots = nil
 	case 1, 5: // Add slot
-		if c.dragActive && slot >= 0 && slot <= 44 {
+		if c.dragActive && slot >= 0 && slot <= slotHotbarEnd {
 			c.dragSlots = append(c.dragSlots, slot)
 		}
 	case 2: // End left drag
@@ -578,7 +604,7 @@ func (c *Connection) handleDoubleClick(_ int16) {
 
 	needed := 64 - int(c.cursorSlot.ItemCount)
 	// Scan all inventory slots (skip crafting output).
-	for s := int16(1); s <= 44 && needed > 0; s++ {
+	for s := int16(slotCraftStart); s <= slotHotbarEnd && needed > 0; s++ {
 		item := c.getWindowSlot(s)
 		if item.IsEmpty() || !canStack(item, c.cursorSlot) {
 			continue
@@ -622,7 +648,7 @@ func (c *Connection) handleCreativeSlot(data []byte) error {
 		return nil
 	}
 
-	if slotIndex < 0 || slotIndex > 44 {
+	if slotIndex < 0 || slotIndex > slotHotbarEnd {
 		return nil
 	}
 

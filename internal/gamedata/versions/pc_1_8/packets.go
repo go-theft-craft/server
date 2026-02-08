@@ -2,23 +2,23 @@
 package pc_1_8
 
 type AbilitiesCB struct {
-	Flags        int8    `mc:"i8"`
-	FlyingSpeed  float32 `mc:"f32"`
+	Flags int8 `mc:"i8"`
+	FlyingSpeed float32 `mc:"f32"`
 	WalkingSpeed float32 `mc:"f32"`
 }
 
 func (AbilitiesCB) PacketID() int32 { return 0x39 }
 
 type AbilitiesSB struct {
-	Flags        int8    `mc:"i8"`
-	FlyingSpeed  float32 `mc:"f32"`
+	Flags int8 `mc:"i8"`
+	FlyingSpeed float32 `mc:"f32"`
 	WalkingSpeed float32 `mc:"f32"`
 }
 
 func (AbilitiesSB) PacketID() int32 { return 0x13 }
 
 type Animation struct {
-	EntityID  int32 `mc:"varint"`
+	EntityID int32 `mc:"varint"`
 	Animation uint8 `mc:"u8"`
 }
 
@@ -29,9 +29,9 @@ type ArmAnimation struct{}
 func (ArmAnimation) PacketID() int32 { return 0x0A }
 
 type AttachEntity struct {
-	EntityID  int32 `mc:"i32"`
+	EntityID int32 `mc:"i32"`
 	VehicleID int32 `mc:"i32"`
-	Leash     bool  `mc:"bool"`
+	Leash bool `mc:"bool"`
 }
 
 func (AttachEntity) PacketID() int32 { return 0x1B }
@@ -45,32 +45,32 @@ func (Bed) PacketID() int32 { return 0x0A }
 
 type BlockAction struct {
 	Location int64 `mc:"position"`
-	Byte1    uint8 `mc:"u8"`
-	Byte2    uint8 `mc:"u8"`
-	BlockID  int32 `mc:"varint"`
+	Byte1 uint8 `mc:"u8"`
+	Byte2 uint8 `mc:"u8"`
+	BlockID int32 `mc:"varint"`
 }
 
 func (BlockAction) PacketID() int32 { return 0x24 }
 
 type BlockBreakAnimation struct {
-	EntityID     int32 `mc:"varint"`
-	Location     int64 `mc:"position"`
-	DestroyStage int8  `mc:"i8"`
+	EntityID int32 `mc:"varint"`
+	Location int64 `mc:"position"`
+	DestroyStage int8 `mc:"i8"`
 }
 
 func (BlockBreakAnimation) PacketID() int32 { return 0x25 }
 
 type BlockChange struct {
 	Location int64 `mc:"position"`
-	Type     int32 `mc:"varint"`
+	Type int32 `mc:"varint"`
 }
 
 func (BlockChange) PacketID() int32 { return 0x23 }
 
 type BlockDig struct {
-	Status   int32 `mc:"varint"`
+	Status int32 `mc:"varint"`
 	Location int64 `mc:"position"`
-	Face     int8  `mc:"i8"`
+	Face int8 `mc:"i8"`
 }
 
 func (BlockDig) PacketID() int32 { return 0x07 }
@@ -88,8 +88,8 @@ type Camera struct {
 func (Camera) PacketID() int32 { return 0x43 }
 
 type ChatCB struct {
-	Message  string `mc:"string"`
-	Position int8   `mc:"i8"`
+	Message string `mc:"string"`
+	Position int8 `mc:"i8"`
 }
 
 func (ChatCB) PacketID() int32 { return 0x02 }
@@ -140,21 +140,21 @@ func (Compress) PacketID() int32 { return 0x03 }
 type CraftProgressBar struct {
 	WindowID uint8 `mc:"u8"`
 	Property int16 `mc:"i16"`
-	Value    int16 `mc:"i16"`
+	Value int16 `mc:"i16"`
 }
 
 func (CraftProgressBar) PacketID() int32 { return 0x31 }
 
 type CustomPayloadCB struct {
 	Channel string `mc:"string"`
-	Data    []byte `mc:"rest"`
+	Data []byte `mc:"rest"`
 }
 
 func (CustomPayloadCB) PacketID() int32 { return 0x3F }
 
 type CustomPayloadSB struct {
 	Channel string `mc:"string"`
-	Data    []byte `mc:"rest"`
+	Data []byte `mc:"rest"`
 }
 
 func (CustomPayloadSB) PacketID() int32 { return 0x17 }
@@ -172,15 +172,15 @@ type Disconnect struct {
 func (Disconnect) PacketID() int32 { return 0x00 }
 
 type EnchantItem struct {
-	WindowID    int8 `mc:"i8"`
+	WindowID int8 `mc:"i8"`
 	Enchantment int8 `mc:"i8"`
 }
 
 func (EnchantItem) PacketID() int32 { return 0x11 }
 
 type EncryptionBeginCB struct {
-	ServerID    string `mc:"string"`
-	PublicKey   []byte `mc:"bytearray"`
+	ServerID string `mc:"string"`
+	PublicKey []byte `mc:"bytearray"`
 	VerifyToken []byte `mc:"bytearray"`
 }
 
@@ -188,7 +188,7 @@ func (EncryptionBeginCB) PacketID() int32 { return 0x01 }
 
 type EncryptionBeginSB struct {
 	SharedSecret []byte `mc:"bytearray"`
-	VerifyToken  []byte `mc:"bytearray"`
+	VerifyToken []byte `mc:"bytearray"`
 }
 
 func (EncryptionBeginSB) PacketID() int32 { return 0x01 }
@@ -200,8 +200,8 @@ type Entity struct {
 func (Entity) PacketID() int32 { return 0x14 }
 
 type EntityAction struct {
-	EntityID  int32 `mc:"varint"`
-	ActionID  int32 `mc:"varint"`
+	EntityID int32 `mc:"varint"`
+	ActionID int32 `mc:"varint"`
 	JumpBoost int32 `mc:"varint"`
 }
 
@@ -214,11 +214,11 @@ type EntityDestroy struct {
 func (EntityDestroy) PacketID() int32 { return 0x13 }
 
 type EntityEffect struct {
-	EntityID      int32 `mc:"varint"`
-	EffectID      int8  `mc:"i8"`
-	Amplifier     int8  `mc:"i8"`
-	Duration      int32 `mc:"varint"`
-	HideParticles bool  `mc:"bool"`
+	EntityID int32 `mc:"varint"`
+	EffectID int8 `mc:"i8"`
+	Amplifier int8 `mc:"i8"`
+	Duration int32 `mc:"varint"`
+	HideParticles bool `mc:"bool"`
 }
 
 func (EntityEffect) PacketID() int32 { return 0x1D }
@@ -231,16 +231,16 @@ func (EntityEquipment) PacketID() int32 { return 0x04 }
 
 type EntityHeadRotation struct {
 	EntityID int32 `mc:"varint"`
-	HeadYaw  int8  `mc:"i8"`
+	HeadYaw int8 `mc:"i8"`
 }
 
 func (EntityHeadRotation) PacketID() int32 { return 0x19 }
 
 type EntityLook struct {
 	EntityID int32 `mc:"varint"`
-	Yaw      int8  `mc:"i8"`
-	Pitch    int8  `mc:"i8"`
-	OnGround bool  `mc:"bool"`
+	Yaw int8 `mc:"i8"`
+	Pitch int8 `mc:"i8"`
+	OnGround bool `mc:"bool"`
 }
 
 func (EntityLook) PacketID() int32 { return 0x16 }
@@ -253,37 +253,37 @@ func (EntityMetadata) PacketID() int32 { return 0x1C }
 
 type EntityMoveLook struct {
 	EntityID int32 `mc:"varint"`
-	DX       int8  `mc:"i8"`
-	DY       int8  `mc:"i8"`
-	DZ       int8  `mc:"i8"`
-	Yaw      int8  `mc:"i8"`
-	Pitch    int8  `mc:"i8"`
-	OnGround bool  `mc:"bool"`
+	DX int8 `mc:"i8"`
+	DY int8 `mc:"i8"`
+	DZ int8 `mc:"i8"`
+	Yaw int8 `mc:"i8"`
+	Pitch int8 `mc:"i8"`
+	OnGround bool `mc:"bool"`
 }
 
 func (EntityMoveLook) PacketID() int32 { return 0x17 }
 
 type EntityStatus struct {
-	EntityID     int32 `mc:"i32"`
-	EntityStatus int8  `mc:"i8"`
+	EntityID int32 `mc:"i32"`
+	EntityStatus int8 `mc:"i8"`
 }
 
 func (EntityStatus) PacketID() int32 { return 0x1A }
 
 type EntityTeleport struct {
 	EntityID int32 `mc:"varint"`
-	X        int32 `mc:"i32"`
-	Y        int32 `mc:"i32"`
-	Z        int32 `mc:"i32"`
-	Yaw      int8  `mc:"i8"`
-	Pitch    int8  `mc:"i8"`
-	OnGround bool  `mc:"bool"`
+	X int32 `mc:"i32"`
+	Y int32 `mc:"i32"`
+	Z int32 `mc:"i32"`
+	Yaw int8 `mc:"i8"`
+	Pitch int8 `mc:"i8"`
+	OnGround bool `mc:"bool"`
 }
 
 func (EntityTeleport) PacketID() int32 { return 0x18 }
 
 type EntityVelocity struct {
-	EntityID  int32 `mc:"varint"`
+	EntityID int32 `mc:"varint"`
 	VelocityX int16 `mc:"i16"`
 	VelocityY int16 `mc:"i16"`
 	VelocityZ int16 `mc:"i16"`
@@ -292,9 +292,9 @@ type EntityVelocity struct {
 func (EntityVelocity) PacketID() int32 { return 0x12 }
 
 type Experience struct {
-	ExperienceBar   float32 `mc:"f32"`
-	Level           int32   `mc:"varint"`
-	TotalExperience int32   `mc:"varint"`
+	ExperienceBar float32 `mc:"f32"`
+	Level int32 `mc:"varint"`
+	TotalExperience int32 `mc:"varint"`
 }
 
 func (Experience) PacketID() int32 { return 0x1F }
@@ -312,7 +312,7 @@ type Flying struct {
 func (Flying) PacketID() int32 { return 0x03 }
 
 type GameStateChange struct {
-	Reason   uint8   `mc:"u8"`
+	Reason uint8 `mc:"u8"`
 	GameMode float32 `mc:"f32"`
 }
 
@@ -355,13 +355,13 @@ type LegacyServerListPing struct {
 func (LegacyServerListPing) PacketID() int32 { return 0xFE }
 
 type Login struct {
-	EntityID         int32  `mc:"i32"`
-	GameMode         uint8  `mc:"u8"`
-	Dimension        int8   `mc:"i8"`
-	Difficulty       uint8  `mc:"u8"`
-	MaxPlayers       uint8  `mc:"u8"`
-	LevelType        string `mc:"string"`
-	ReducedDebugInfo bool   `mc:"bool"`
+	EntityID int32 `mc:"i32"`
+	GameMode uint8 `mc:"u8"`
+	Dimension int8 `mc:"i8"`
+	Difficulty uint8 `mc:"u8"`
+	MaxPlayers uint8 `mc:"u8"`
+	LevelType string `mc:"string"`
+	ReducedDebugInfo bool `mc:"bool"`
 }
 
 func (Login) PacketID() int32 { return 0x01 }
@@ -373,9 +373,9 @@ type LoginStart struct {
 func (LoginStart) PacketID() int32 { return 0x00 }
 
 type Look struct {
-	Yaw      float32 `mc:"f32"`
-	Pitch    float32 `mc:"f32"`
-	OnGround bool    `mc:"bool"`
+	Yaw float32 `mc:"f32"`
+	Pitch float32 `mc:"f32"`
+	OnGround bool `mc:"bool"`
 }
 
 func (Look) PacketID() int32 { return 0x05 }
@@ -387,10 +387,10 @@ type Map struct {
 func (Map) PacketID() int32 { return 0x34 }
 
 type MapChunk struct {
-	X         int32  `mc:"i32"`
-	Z         int32  `mc:"i32"`
-	GroundUp  bool   `mc:"bool"`
-	BitMap    uint16 `mc:"u16"`
+	X int32 `mc:"i32"`
+	Z int32 `mc:"i32"`
+	GroundUp bool `mc:"bool"`
+	BitMap uint16 `mc:"u16"`
 	ChunkData []byte `mc:"bytearray"`
 }
 
@@ -415,12 +415,12 @@ type NamedEntitySpawn struct {
 func (NamedEntitySpawn) PacketID() int32 { return 0x0C }
 
 type NamedSoundEffect struct {
-	SoundName string  `mc:"string"`
-	X         int32   `mc:"i32"`
-	Y         int32   `mc:"i32"`
-	Z         int32   `mc:"i32"`
-	Volume    float32 `mc:"f32"`
-	Pitch     uint8   `mc:"u8"`
+	SoundName string `mc:"string"`
+	X int32 `mc:"i32"`
+	Y int32 `mc:"i32"`
+	Z int32 `mc:"i32"`
+	Volume float32 `mc:"f32"`
+	Pitch uint8 `mc:"u8"`
 }
 
 func (NamedSoundEffect) PacketID() int32 { return 0x29 }
@@ -467,79 +467,79 @@ type PlayerlistHeader struct {
 func (PlayerlistHeader) PacketID() int32 { return 0x47 }
 
 type PositionCB struct {
-	X     float64 `mc:"f64"`
-	Y     float64 `mc:"f64"`
-	Z     float64 `mc:"f64"`
-	Yaw   float32 `mc:"f32"`
+	X float64 `mc:"f64"`
+	Y float64 `mc:"f64"`
+	Z float64 `mc:"f64"`
+	Yaw float32 `mc:"f32"`
 	Pitch float32 `mc:"f32"`
-	Flags int8    `mc:"i8"`
+	Flags int8 `mc:"i8"`
 }
 
 func (PositionCB) PacketID() int32 { return 0x08 }
 
 type PositionLook struct {
-	X        float64 `mc:"f64"`
-	Y        float64 `mc:"f64"`
-	Z        float64 `mc:"f64"`
-	Yaw      float32 `mc:"f32"`
-	Pitch    float32 `mc:"f32"`
-	OnGround bool    `mc:"bool"`
+	X float64 `mc:"f64"`
+	Y float64 `mc:"f64"`
+	Z float64 `mc:"f64"`
+	Yaw float32 `mc:"f32"`
+	Pitch float32 `mc:"f32"`
+	OnGround bool `mc:"bool"`
 }
 
 func (PositionLook) PacketID() int32 { return 0x06 }
 
 type PositionSB struct {
-	X        float64 `mc:"f64"`
-	Y        float64 `mc:"f64"`
-	Z        float64 `mc:"f64"`
-	OnGround bool    `mc:"bool"`
+	X float64 `mc:"f64"`
+	Y float64 `mc:"f64"`
+	Z float64 `mc:"f64"`
+	OnGround bool `mc:"bool"`
 }
 
 func (PositionSB) PacketID() int32 { return 0x04 }
 
 type RelEntityMove struct {
 	EntityID int32 `mc:"varint"`
-	DX       int8  `mc:"i8"`
-	DY       int8  `mc:"i8"`
-	DZ       int8  `mc:"i8"`
-	OnGround bool  `mc:"bool"`
+	DX int8 `mc:"i8"`
+	DY int8 `mc:"i8"`
+	DZ int8 `mc:"i8"`
+	OnGround bool `mc:"bool"`
 }
 
 func (RelEntityMove) PacketID() int32 { return 0x15 }
 
 type RemoveEntityEffect struct {
 	EntityID int32 `mc:"varint"`
-	EffectID int8  `mc:"i8"`
+	EffectID int8 `mc:"i8"`
 }
 
 func (RemoveEntityEffect) PacketID() int32 { return 0x1E }
 
 type ResourcePackReceive struct {
-	Hash   string `mc:"string"`
-	Result int32  `mc:"varint"`
+	Hash string `mc:"string"`
+	Result int32 `mc:"varint"`
 }
 
 func (ResourcePackReceive) PacketID() int32 { return 0x19 }
 
 type ResourcePackSend struct {
-	URL  string `mc:"string"`
+	URL string `mc:"string"`
 	Hash string `mc:"string"`
 }
 
 func (ResourcePackSend) PacketID() int32 { return 0x48 }
 
 type Respawn struct {
-	Dimension  int32  `mc:"i32"`
-	Difficulty uint8  `mc:"u8"`
-	Gamemode   uint8  `mc:"u8"`
-	LevelType  string `mc:"string"`
+	Dimension int32 `mc:"i32"`
+	Difficulty uint8 `mc:"u8"`
+	Gamemode uint8 `mc:"u8"`
+	LevelType string `mc:"string"`
 }
 
 func (Respawn) PacketID() int32 { return 0x07 }
 
 type ScoreboardDisplayObjective struct {
-	Position int8   `mc:"i8"`
-	Name     string `mc:"string"`
+	Position int8 `mc:"i8"`
+	Name string `mc:"string"`
 }
 
 func (ScoreboardDisplayObjective) PacketID() int32 { return 0x3D }
@@ -581,10 +581,10 @@ type SetCreativeSlot struct {
 func (SetCreativeSlot) PacketID() int32 { return 0x10 }
 
 type SetProtocol struct {
-	ProtocolVersion int32  `mc:"varint"`
-	ServerHost      string `mc:"string"`
-	ServerPort      uint16 `mc:"u16"`
-	NextState       int32  `mc:"varint"`
+	ProtocolVersion int32 `mc:"varint"`
+	ServerHost string `mc:"string"`
+	ServerPort uint16 `mc:"u16"`
+	NextState int32 `mc:"varint"`
 }
 
 func (SetProtocol) PacketID() int32 { return 0x00 }
@@ -596,11 +596,11 @@ type SetSlot struct {
 func (SetSlot) PacketID() int32 { return 0x2F }
 
 type Settings struct {
-	Locale       string `mc:"string"`
-	ViewDistance int8   `mc:"i8"`
-	ChatFlags    int8   `mc:"i8"`
-	ChatColors   bool   `mc:"bool"`
-	SkinParts    uint8  `mc:"u8"`
+	Locale string `mc:"string"`
+	ViewDistance int8 `mc:"i8"`
+	ChatFlags int8 `mc:"i8"`
+	ChatColors bool `mc:"bool"`
+	SkinParts uint8 `mc:"u8"`
 }
 
 func (Settings) PacketID() int32 { return 0x15 }
@@ -613,10 +613,10 @@ func (SpawnEntity) PacketID() int32 { return 0x0E }
 
 type SpawnEntityExperienceOrb struct {
 	EntityID int32 `mc:"varint"`
-	X        int32 `mc:"i32"`
-	Y        int32 `mc:"i32"`
-	Z        int32 `mc:"i32"`
-	Count    int16 `mc:"i16"`
+	X int32 `mc:"i32"`
+	Y int32 `mc:"i32"`
+	Z int32 `mc:"i32"`
+	Count int16 `mc:"i16"`
 }
 
 func (SpawnEntityExperienceOrb) PacketID() int32 { return 0x11 }
@@ -628,20 +628,20 @@ type SpawnEntityLiving struct {
 func (SpawnEntityLiving) PacketID() int32 { return 0x0F }
 
 type SpawnEntityPainting struct {
-	EntityID  int32  `mc:"varint"`
-	Title     string `mc:"string"`
-	Location  int64  `mc:"position"`
-	Direction uint8  `mc:"u8"`
+	EntityID int32 `mc:"varint"`
+	Title string `mc:"string"`
+	Location int64 `mc:"position"`
+	Direction uint8 `mc:"u8"`
 }
 
 func (SpawnEntityPainting) PacketID() int32 { return 0x10 }
 
 type SpawnEntityWeather struct {
 	EntityID int32 `mc:"varint"`
-	Type     int8  `mc:"i8"`
-	X        int32 `mc:"i32"`
-	Y        int32 `mc:"i32"`
-	Z        int32 `mc:"i32"`
+	Type int8 `mc:"i8"`
+	X int32 `mc:"i32"`
+	Y int32 `mc:"i32"`
+	Z int32 `mc:"i32"`
 }
 
 func (SpawnEntityWeather) PacketID() int32 { return 0x2C }
@@ -666,14 +666,14 @@ func (Statistics) PacketID() int32 { return 0x37 }
 
 type SteerVehicle struct {
 	Sideways float32 `mc:"f32"`
-	Forward  float32 `mc:"f32"`
-	Jump     uint8   `mc:"u8"`
+	Forward float32 `mc:"f32"`
+	Jump uint8 `mc:"u8"`
 }
 
 func (SteerVehicle) PacketID() int32 { return 0x0C }
 
 type Success struct {
-	UUID     string `mc:"string"`
+	UUID string `mc:"string"`
 	Username string `mc:"string"`
 }
 
@@ -704,17 +704,17 @@ type Title struct {
 func (Title) PacketID() int32 { return 0x45 }
 
 type TransactionCB struct {
-	WindowID int8  `mc:"i8"`
-	Action   int16 `mc:"i16"`
-	Accepted bool  `mc:"bool"`
+	WindowID int8 `mc:"i8"`
+	Action int16 `mc:"i16"`
+	Accepted bool `mc:"bool"`
 }
 
 func (TransactionCB) PacketID() int32 { return 0x32 }
 
 type TransactionSB struct {
-	WindowID int8  `mc:"i8"`
-	Action   int16 `mc:"i16"`
-	Accepted bool  `mc:"bool"`
+	WindowID int8 `mc:"i8"`
+	Action int16 `mc:"i16"`
+	Accepted bool `mc:"bool"`
 }
 
 func (TransactionSB) PacketID() int32 { return 0x0F }
@@ -732,35 +732,35 @@ type UpdateEntityNBT struct {
 func (UpdateEntityNBT) PacketID() int32 { return 0x49 }
 
 type UpdateHealth struct {
-	Health         float32 `mc:"f32"`
-	Food           int32   `mc:"varint"`
+	Health float32 `mc:"f32"`
+	Food int32 `mc:"varint"`
 	FoodSaturation float32 `mc:"f32"`
 }
 
 func (UpdateHealth) PacketID() int32 { return 0x06 }
 
 type UpdateSignCB struct {
-	Location int64  `mc:"position"`
-	Text1    string `mc:"string"`
-	Text2    string `mc:"string"`
-	Text3    string `mc:"string"`
-	Text4    string `mc:"string"`
+	Location int64 `mc:"position"`
+	Text1 string `mc:"string"`
+	Text2 string `mc:"string"`
+	Text3 string `mc:"string"`
+	Text4 string `mc:"string"`
 }
 
 func (UpdateSignCB) PacketID() int32 { return 0x33 }
 
 type UpdateSignSB struct {
-	Location int64  `mc:"position"`
-	Text1    string `mc:"string"`
-	Text2    string `mc:"string"`
-	Text3    string `mc:"string"`
-	Text4    string `mc:"string"`
+	Location int64 `mc:"position"`
+	Text1 string `mc:"string"`
+	Text2 string `mc:"string"`
+	Text3 string `mc:"string"`
+	Text4 string `mc:"string"`
 }
 
 func (UpdateSignSB) PacketID() int32 { return 0x12 }
 
 type UpdateTime struct {
-	Age  int64 `mc:"i64"`
+	Age int64 `mc:"i64"`
 	Time int64 `mc:"i64"`
 }
 
@@ -793,8 +793,8 @@ func (WorldBorder) PacketID() int32 { return 0x44 }
 type WorldEvent struct {
 	EffectID int32 `mc:"i32"`
 	Location int64 `mc:"position"`
-	Data     int32 `mc:"i32"`
-	Global   bool  `mc:"bool"`
+	Data int32 `mc:"i32"`
+	Global bool `mc:"bool"`
 }
 
 func (WorldEvent) PacketID() int32 { return 0x28 }
@@ -804,3 +804,4 @@ type WorldParticles struct {
 }
 
 func (WorldParticles) PacketID() int32 { return 0x2A }
+

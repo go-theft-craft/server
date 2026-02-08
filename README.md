@@ -11,9 +11,14 @@ A Minecraft 1.8.9 (protocol 47) server implementation in Go.
 - **Dynamic chunk loading** — View-distance-based loading/unloading with optional world boundary
 - **Block interaction** — Dig and place blocks with broadcast and persistence
 - **Multiplayer** — Player spawning, entity tracking, visibility streaming, movement sync
-- **Chat & commands** — `/tp`, `/gamemode`, `/time`, `/help`, `/list`, `/say`, `/me`, `/kill`, `/seed`
+- **Chat & commands** — `/tp`, `/gamemode`, `/time`, `/help`, `/list`, `/say`, `/me`, `/kill`, `/seed`, `/save`
 - **Inventory** — 36-slot hotbar, 4-slot armor, held item switching, item dropping
-- **Persistence** — Auto-save world state and player data (position, inventory, gamemode)
+- **PvP combat** — Attack players with knockback and hurt animation
+- **Item drops** — Thrown items with physics simulation and auto-pickup
+- **Respawn** — Death screen and respawn flow via `/kill`
+- **Persistence** — Auto-save world state, block overrides, and player data (position, inventory, gamemode)
+- **Configurable build height** — `max-build-height` flag (default 256)
+- **Smart pre-generation** — Skips world pre-generation on restart if already saved
 - **KeepAlive** — 30-second timeout enforcement
 - **Server list** — MOTD, player count, version info
 - **Codegen** — Generates Go types from PrismarineJS minecraft-data JSON schemas
@@ -63,6 +68,8 @@ Connect with a Minecraft 1.8.x client to `localhost:25565`.
 | `-seed` | 0 | World generation seed |
 | `-generator` | "default" | World generator: `default` or `flat` |
 | `-world-radius` | 0 (infinite) | World boundary in chunks |
+| `-auto-save` | 5 | Auto-save interval in minutes (0 = disabled) |
+| `-max-build-height` | 256 | Maximum Y axis |
 
 ## Useful Commands
 
@@ -118,7 +125,7 @@ graph TB
         PLAYER["player<br/>Player state, inventory,<br/>entity tracking, broadcasts"]
         WORLD["world<br/>Chunk cache, block overrides,<br/>dynamic loading"]
         GEN["world/gen<br/>FlatGenerator,<br/>DefaultGenerator<br/>(noise, biomes, caves,<br/>ores, trees)"]
-        STORAGE["storage<br/>JSON file persistence"]
+        STORAGE["storage<br/>JSON + Anvil persistence"]
     end
 
     DMD -->|fetches| PRISMARINE
@@ -220,6 +227,7 @@ graph LR
     IN["Client Packet"] --> D{Packet ID}
     D -->|0x00| KA["KeepAlive<br/>echo response"]
     D -->|0x01| CHAT["Chat Message<br/>command dispatch<br/>or broadcast"]
+    D -->|0x02| UE["Use Entity<br/>PvP attack"]
     D -->|0x03| PG["Player<br/>ground state"]
     D -->|0x04| PP["Player Position<br/>movement"]
     D -->|0x05| PL["Player Look<br/>yaw/pitch"]
@@ -229,7 +237,15 @@ graph LR
     D -->|0x09| HI["Held Item Change<br/>slot selection"]
     D -->|0x0A| ANIM["Animation<br/>arm swing"]
     D -->|0x0B| EA["Entity Action<br/>sneak/sprint"]
+    D -->|0x0D| CW["Close Window"]
+    D -->|0x0E| WC["Window Click<br/>inventory"]
+    D -->|0x10| SCS["Creative Slot"]
+    D -->|0x13| AB["Abilities<br/>fly toggle"]
+    D -->|0x14| TC["Tab Complete"]
     D -->|0x15| CS["Client Settings<br/>skin parts"]
+    D -->|0x16| RS["Client Status<br/>respawn"]
+    D -->|0x17| CP["Custom Payload<br/>MC|Brand"]
+    D -->|0x18| SP["Spectate<br/>teleport"]
 ```
 
 ## Project Structure
@@ -267,18 +283,22 @@ vendor/            Vendored Go dependencies
 | `/time set <value>` | Set world time (day, night, noon, midnight, or number) |
 | `/say <message>` | Broadcast server announcement |
 | `/me <action>` | Send action message |
-| `/kill` | Respawn player |
+| `/kill` | Kill yourself (triggers death screen + respawn) |
 | `/seed` | Show world seed |
+| `/save` | Save world and player data |
 
 ## Persistence
 
-The server auto-saves every 5 minutes and on shutdown.
+The server auto-saves every 5 minutes (configurable via `-auto-save`) and on shutdown. Block overrides persist across restarts.
 
 ```
-storage/
+data/
 ├── config.json              # Server config
 ├── world/
-│   └── overrides.json       # Player-made block modifications
+│   ├── world.json           # World time (age, time of day)
+│   ├── overrides.json       # Player-made block modifications
+│   └── region/
+│       └── r.X.Z.mca        # Anvil region files
 └── players/
     ├── <uuid>.json          # Position, gamemode, inventory per player
     └── ...
@@ -293,43 +313,47 @@ Minecraft 1.8.8 (protocol 47) implementation status:
 | Handshake | 1 | 1 | 100% |
 | Status | 4 | 4 | 100% |
 | Login | 4 | 4 | 100% |
-| Play (server-bound) | 9 | 26 | 35% |
-| Play (client-bound) | 17 | 74 | 23% |
-| **Total** | **35** | **109** | **32%** |
+| Play (server-bound) | 18 | 26 | 69% |
+| Play (client-bound) | 25 | 74 | 34% |
+| **Total** | **52** | **109** | **48%** |
 
 ### What works
 
 - Full connection lifecycle: handshake, status ping, login (offline + online mode)
-- Player movement, look, sneaking, sprinting
+- Player movement, look, sneaking, sprinting with sprint particles
 - Block dig and place with broadcast to other players
-- Chat messaging and commands
-- Multiplayer: player spawning, entity tracking, visibility streaming
-- Inventory: hotbar, armor, held item, item dropping
+- PvP combat: attack with knockback, hurt animation, death animation
+- Chat messaging and commands (including `/save`, `/kill` with respawn)
+- Multiplayer: player spawning, entity tracking, visibility streaming, periodic position resyncs
+- Inventory: hotbar, armor, held item, crafting (2x2), item dropping with physics
+- Item entities: throw arc simulation, terrain-aware landing, auto-pickup
 - Procedural world generation with biomes, caves, ores, trees
-- Dynamic chunk loading/unloading
-- World and player data persistence
+- Dynamic chunk loading/unloading with smart pre-generation skip on restart
+- World and player data persistence (time, block overrides, player state)
+- Gamemode switching with tab list broadcast
+- Flying toggle (creative/spectator)
+- MC|Brand plugin channel exchange
+- Spectator teleport
 - KeepAlive with 30s timeout
 
 ### What's missing
 
-**Entity Interaction & Combat** — No PvP, no mob combat. Missing: `use_entity`, `entity_equipment`, `entity_velocity`, `entity_metadata`, `entity_effect`, `update_attributes`, `combat_event`, `update_health`.
+**World Features** — No weather, sounds. Missing: `spawn_entity_weather`, `world_border`, `explosion`, `named_sound_effect`.
 
-**World Features** — No day/night, weather, sounds, or particles. Missing: `update_time`, `game_state_change`, `spawn_entity_weather`, `world_border`, `explosion`, `named_sound_effect`, `world_particles`, `world_event`, `block_action`, `block_break_animation`, `map_chunk_bulk`, `tile_entity_data`.
-
-**Mobs & NPCs** — No mob spawning or AI. Missing: `spawn_entity_living`, `spawn_entity`, `spawn_entity_painting`, `spawn_entity_experience_orb`, `attach_entity`, `collect`, `entity_status`.
+**Mobs & NPCs** — No mob spawning or AI. Missing: `spawn_entity_living`, `spawn_entity_painting`, `spawn_entity_experience_orb`, `attach_entity`.
 
 **Scoreboard & Teams** — Missing: `scoreboard_objective`, `scoreboard_score`, `scoreboard_display_objective`, `scoreboard_team`.
 
-**UI & Misc** — Missing: `tab_complete`, `update_sign`, `title`, `playerlist_header`, `statistics`, `map`, `camera`, `custom_payload`, `resource_pack_send`, `difficulty`.
+**UI & Misc** — Missing: `title`, `playerlist_header`, `statistics`, `map`, `camera`, `resource_pack_send`.
 
 ## Roadmap
 
-1. **Entity interaction** — use_entity, arm animation, equipment display
-2. **World ambience** — day/night cycle, weather, sounds, particles
-3. **Mob spawning** — living entities, AI, health, combat
-4. **Tile entities** — signs, chests, banners
-5. **Scoreboard & Teams** — sidebar scores, team colors
-6. **Plugin channels** — custom_payload support
+1. **Health & hunger** — Survival damage, food system, natural regeneration
+2. **Mob spawning** — Living entities, AI, health, combat
+3. **Tile entities** — Signs, chests, banners
+4. **Weather** — Rain, thunder, lightning
+5. **Scoreboard & Teams** — Sidebar scores, team colors
+6. **Anvil chunk loading** — Load chunks from .mca files on restart
 
 ## How to Commit
 

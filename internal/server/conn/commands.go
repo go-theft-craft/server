@@ -194,6 +194,9 @@ func cmdGamemode(c *Connection, args []string) {
 		WalkingSpeed: 0.1,
 	})
 
+	// Broadcast gamemode change to all players (tab list update).
+	c.players.BroadcastGameMode(c.self)
+
 	c.sendSuccessMsg(fmt.Sprintf("Game mode set to %s.", modeName))
 }
 

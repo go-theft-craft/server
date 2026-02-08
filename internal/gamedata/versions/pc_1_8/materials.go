@@ -103,8 +103,5 @@ func newMaterialRegistry() gamedata.MaterialRegistry {
 	return &materialRegistry{byName: byName, all: all}
 }
 
-func (r *materialRegistry) ByName(name string) (gamedata.Material, bool) {
-	v, ok := r.byName[name]
-	return v, ok
-}
-func (r *materialRegistry) All() []gamedata.Material { return r.all }
+func (r *materialRegistry) ByName(name string) (gamedata.Material, bool) { v, ok := r.byName[name]; return v, ok }
+func (r *materialRegistry) All() []gamedata.Material                      { return r.all }

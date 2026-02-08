@@ -13,7 +13,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				Ingredients: []gamedata.Ingredient{
 					{ID: 1, Metadata: 3},
-					{ID: 4, Metadata: 0},
+					{ID: 4, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 1, Count: 2, Metadata: 5},
 			},
@@ -33,12 +33,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 406, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 406, Metadata: -1},
 					},
 					{
-						{ID: 406, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 406, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 1, Count: 2, Metadata: 3},
@@ -59,7 +59,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				Ingredients: []gamedata.Ingredient{
 					{ID: 1, Metadata: 3},
-					{ID: 406, Metadata: 0},
+					{ID: 406, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 1, Count: 1, Metadata: 1},
 			},
@@ -82,10 +82,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 3, Metadata: 0},
-						{ID: 13, Metadata: 0},
+						{ID: 13, Metadata: -1},
 					},
 					{
-						{ID: 13, Metadata: 0},
+						{ID: 13, Metadata: -1},
 						{ID: 3, Metadata: 0},
 					},
 				},
@@ -96,7 +96,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 17, Metadata: 12},
+						{ID: 17, Metadata: 0},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 5, Count: 4, Metadata: 0},
@@ -104,7 +104,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 17, Metadata: 13},
+						{ID: 17, Metadata: 1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 5, Count: 4, Metadata: 1},
@@ -112,7 +112,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 17, Metadata: 14},
+						{ID: 17, Metadata: 2},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 5, Count: 4, Metadata: 2},
@@ -120,7 +120,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 17, Metadata: 15},
+						{ID: 17, Metadata: 3},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 5, Count: 4, Metadata: 3},
@@ -128,7 +128,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 162, Metadata: 12},
+						{ID: 162, Metadata: 0},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 5, Count: 4, Metadata: 4},
@@ -136,7 +136,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 162, Metadata: 13},
+						{ID: 162, Metadata: 1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 5, Count: 4, Metadata: 5},
@@ -168,19 +168,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 261, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 261, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 23, Count: 1, Metadata: 0},
@@ -229,19 +229,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 25, Count: 1, Metadata: 0},
@@ -251,19 +251,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 27, Count: 6, Metadata: 0},
@@ -273,19 +273,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 70, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 70, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 28, Count: 6, Metadata: 0},
@@ -295,10 +295,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 341, Metadata: 0},
+						{ID: 341, Metadata: -1},
 					},
 					{
-						{ID: 33, Metadata: 0},
+						{ID: 33, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 29, Count: 1, Metadata: 0},
@@ -308,19 +308,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 33, Count: 1, Metadata: 0},
@@ -330,117 +330,117 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 287, Metadata: 0},
-						{ID: 287, Metadata: 0},
+						{ID: 287, Metadata: -1},
+						{ID: 287, Metadata: -1},
 					},
 					{
-						{ID: 287, Metadata: 0},
-						{ID: 287, Metadata: 0},
+						{ID: 287, Metadata: -1},
+						{ID: 287, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 14},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 13},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 12},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 11},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 10},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 9},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 8},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 7},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 6},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 5},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 4},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 3},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 2},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 1},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 35, Metadata: 0},
+					{ID: 35, Metadata: -1},
 					{ID: 351, Metadata: 0},
 				},
 				Result: gamedata.RecipeResult{ID: 35, Count: 1, Metadata: 0},
@@ -450,19 +450,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 41, Count: 1, Metadata: 0},
@@ -472,19 +472,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 42, Count: 1, Metadata: 0},
@@ -504,9 +504,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 24, Metadata: 0},
-						{ID: 24, Metadata: 0},
-						{ID: 24, Metadata: 0},
+						{ID: 24, Metadata: -1},
+						{ID: 24, Metadata: -1},
+						{ID: 24, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 44, Count: 6, Metadata: 1},
@@ -514,9 +514,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 44, Count: 6, Metadata: 3},
@@ -524,9 +524,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 45, Metadata: 0},
-						{ID: 45, Metadata: 0},
-						{ID: 45, Metadata: 0},
+						{ID: 45, Metadata: -1},
+						{ID: 45, Metadata: -1},
+						{ID: 45, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 44, Count: 6, Metadata: 4},
@@ -534,9 +534,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 98, Metadata: 0},
-						{ID: 98, Metadata: 0},
-						{ID: 98, Metadata: 0},
+						{ID: 98, Metadata: -1},
+						{ID: 98, Metadata: -1},
+						{ID: 98, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 44, Count: 6, Metadata: 5},
@@ -544,9 +544,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 44, Count: 6, Metadata: 6},
@@ -554,9 +554,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 155, Metadata: 0},
-						{ID: 155, Metadata: 0},
-						{ID: 155, Metadata: 0},
+						{ID: 155, Metadata: -1},
+						{ID: 155, Metadata: -1},
+						{ID: 155, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 44, Count: 6, Metadata: 7},
@@ -566,12 +566,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 336, Metadata: 0},
-						{ID: 336, Metadata: 0},
+						{ID: 336, Metadata: -1},
+						{ID: 336, Metadata: -1},
 					},
 					{
-						{ID: 336, Metadata: 0},
-						{ID: 336, Metadata: 0},
+						{ID: 336, Metadata: -1},
+						{ID: 336, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 45, Count: 1, Metadata: 0},
@@ -581,19 +581,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 289, Metadata: 0},
-						{ID: 12, Metadata: 0},
-						{ID: 289, Metadata: 0},
+						{ID: 289, Metadata: -1},
+						{ID: 12, Metadata: -1},
+						{ID: 289, Metadata: -1},
 					},
 					{
-						{ID: 12, Metadata: 0},
-						{ID: 289, Metadata: 0},
-						{ID: 12, Metadata: 0},
+						{ID: 12, Metadata: -1},
+						{ID: 289, Metadata: -1},
+						{ID: 12, Metadata: -1},
 					},
 					{
-						{ID: 289, Metadata: 0},
-						{ID: 12, Metadata: 0},
-						{ID: 289, Metadata: 0},
+						{ID: 289, Metadata: -1},
+						{ID: 12, Metadata: -1},
+						{ID: 289, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 46, Count: 1, Metadata: 0},
@@ -603,19 +603,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 340, Metadata: 0},
-						{ID: 340, Metadata: 0},
-						{ID: 340, Metadata: 0},
+						{ID: 340, Metadata: -1},
+						{ID: 340, Metadata: -1},
+						{ID: 340, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 47, Count: 1, Metadata: 0},
@@ -624,8 +624,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		48: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 4, Metadata: 0},
-					{ID: 106, Metadata: 0},
+					{ID: 4, Metadata: -1},
+					{ID: 106, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 48, Count: 1, Metadata: 0},
 			},
@@ -634,10 +634,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 263, Metadata: 0},
+						{ID: 263, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 50, Count: 4, Metadata: 0},
@@ -647,12 +647,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 0},
 						{ID: 5, Metadata: 0},
 					},
@@ -669,19 +669,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 54, Count: 1, Metadata: 0},
@@ -691,19 +691,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 57, Count: 1, Metadata: 0},
@@ -713,12 +713,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 58, Count: 1, Metadata: 0},
@@ -728,19 +728,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 61, Count: 1, Metadata: 0},
@@ -750,19 +750,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 65, Count: 3, Metadata: 0},
@@ -772,19 +772,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 66, Count: 16, Metadata: 0},
@@ -794,19 +794,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 67, Count: 4, Metadata: 0},
@@ -816,10 +816,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 69, Count: 1, Metadata: 0},
@@ -840,8 +840,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 72, Count: 1, Metadata: 0},
@@ -851,10 +851,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 331, Metadata: 0},
+						{ID: 331, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 75, Count: 1, Metadata: 0},
@@ -874,9 +874,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 80, Metadata: 0},
-						{ID: 80, Metadata: 0},
-						{ID: 80, Metadata: 0},
+						{ID: 80, Metadata: -1},
+						{ID: 80, Metadata: -1},
+						{ID: 80, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 78, Count: 6, Metadata: 0},
@@ -886,12 +886,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 332, Metadata: 0},
-						{ID: 332, Metadata: 0},
+						{ID: 332, Metadata: -1},
+						{ID: 332, Metadata: -1},
 					},
 					{
-						{ID: 332, Metadata: 0},
-						{ID: 332, Metadata: 0},
+						{ID: 332, Metadata: -1},
+						{ID: 332, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 80, Count: 1, Metadata: 0},
@@ -901,12 +901,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 337, Metadata: 0},
-						{ID: 337, Metadata: 0},
+						{ID: 337, Metadata: -1},
+						{ID: 337, Metadata: -1},
 					},
 					{
-						{ID: 337, Metadata: 0},
-						{ID: 337, Metadata: 0},
+						{ID: 337, Metadata: -1},
+						{ID: 337, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 82, Count: 1, Metadata: 0},
@@ -916,19 +916,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 264, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 264, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 84, Count: 1, Metadata: 0},
@@ -939,12 +939,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 5, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 0},
 					},
 					{
 						{ID: 5, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 0},
 					},
 				},
@@ -955,12 +955,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 348, Metadata: 0},
-						{ID: 348, Metadata: 0},
+						{ID: 348, Metadata: -1},
+						{ID: 348, Metadata: -1},
 					},
 					{
-						{ID: 348, Metadata: 0},
-						{ID: 348, Metadata: 0},
+						{ID: 348, Metadata: -1},
+						{ID: 348, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 89, Count: 1, Metadata: 0},
@@ -970,10 +970,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 86, Metadata: 0},
+						{ID: 86, Metadata: -1},
 					},
 					{
-						{ID: 50, Metadata: 0},
+						{ID: 50, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 91, Count: 1, Metadata: 0},
@@ -983,19 +983,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 0},
@@ -1003,19 +1003,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 1},
@@ -1023,19 +1023,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 2},
@@ -1043,19 +1043,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 3},
@@ -1063,19 +1063,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 4},
@@ -1083,19 +1083,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 5},
@@ -1103,19 +1103,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 6},
@@ -1123,19 +1123,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 7},
@@ -1143,19 +1143,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 8},
@@ -1163,19 +1163,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 9},
@@ -1183,19 +1183,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 10},
@@ -1203,19 +1203,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 11},
@@ -1223,19 +1223,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 12},
@@ -1243,19 +1243,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 13},
@@ -1263,19 +1263,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 14},
@@ -1283,19 +1283,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 95, Count: 8, Metadata: 15},
@@ -1305,14 +1305,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 96, Count: 2, Metadata: 0},
@@ -1334,8 +1334,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 98, Metadata: 0},
-					{ID: 106, Metadata: 0},
+					{ID: 98, Metadata: -1},
+					{ID: 106, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 98, Count: 1, Metadata: 1},
 			},
@@ -1355,14 +1355,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 101, Count: 16, Metadata: 0},
@@ -1372,14 +1372,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 102, Count: 16, Metadata: 0},
@@ -1389,19 +1389,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 360, Metadata: 0},
-						{ID: 360, Metadata: 0},
-						{ID: 360, Metadata: 0},
+						{ID: 360, Metadata: -1},
+						{ID: 360, Metadata: -1},
+						{ID: 360, Metadata: -1},
 					},
 					{
-						{ID: 360, Metadata: 0},
-						{ID: 360, Metadata: 0},
-						{ID: 360, Metadata: 0},
+						{ID: 360, Metadata: -1},
+						{ID: 360, Metadata: -1},
+						{ID: 360, Metadata: -1},
 					},
 					{
-						{ID: 360, Metadata: 0},
-						{ID: 360, Metadata: 0},
-						{ID: 360, Metadata: 0},
+						{ID: 360, Metadata: -1},
+						{ID: 360, Metadata: -1},
+						{ID: 360, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 103, Count: 1, Metadata: 0},
@@ -1411,14 +1411,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 107, Count: 1, Metadata: 0},
@@ -1428,19 +1428,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 45, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 45, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 45, Metadata: 0},
-						{ID: 45, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 45, Metadata: -1},
+						{ID: 45, Metadata: -1},
 					},
 					{
-						{ID: 45, Metadata: 0},
-						{ID: 45, Metadata: 0},
-						{ID: 45, Metadata: 0},
+						{ID: 45, Metadata: -1},
+						{ID: 45, Metadata: -1},
+						{ID: 45, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 108, Count: 4, Metadata: 0},
@@ -1450,19 +1450,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 98, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 98, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 98, Metadata: 0},
-						{ID: 98, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 98, Metadata: -1},
+						{ID: 98, Metadata: -1},
 					},
 					{
-						{ID: 98, Metadata: 0},
-						{ID: 98, Metadata: 0},
-						{ID: 98, Metadata: 0},
+						{ID: 98, Metadata: -1},
+						{ID: 98, Metadata: -1},
+						{ID: 98, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 109, Count: 4, Metadata: 0},
@@ -1472,14 +1472,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
 					},
 					{
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 113, Count: 6, Metadata: 0},
@@ -1489,19 +1489,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 405, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 405, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
 					},
 					{
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 114, Count: 4, Metadata: 0},
@@ -1511,19 +1511,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 340, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 340, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 49, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 49, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 49, Metadata: 0},
-						{ID: 49, Metadata: 0},
-						{ID: 49, Metadata: 0},
+						{ID: 49, Metadata: -1},
+						{ID: 49, Metadata: -1},
+						{ID: 49, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 116, Count: 1, Metadata: 0},
@@ -1533,19 +1533,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 331, Metadata: 0},
-						{ID: 89, Metadata: 0},
-						{ID: 331, Metadata: 0},
+						{ID: 331, Metadata: -1},
+						{ID: 89, Metadata: -1},
+						{ID: 331, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 123, Count: 1, Metadata: 0},
@@ -1617,19 +1617,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 24, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 24, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 24, Metadata: 0},
-						{ID: 24, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 24, Metadata: -1},
+						{ID: 24, Metadata: -1},
 					},
 					{
-						{ID: 24, Metadata: 0},
-						{ID: 24, Metadata: 0},
-						{ID: 24, Metadata: 0},
+						{ID: 24, Metadata: -1},
+						{ID: 24, Metadata: -1},
+						{ID: 24, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 128, Count: 4, Metadata: 0},
@@ -1639,19 +1639,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 49, Metadata: 0},
-						{ID: 49, Metadata: 0},
-						{ID: 49, Metadata: 0},
+						{ID: 49, Metadata: -1},
+						{ID: 49, Metadata: -1},
+						{ID: 49, Metadata: -1},
 					},
 					{
-						{ID: 49, Metadata: 0},
-						{ID: 381, Metadata: 0},
-						{ID: 49, Metadata: 0},
+						{ID: 49, Metadata: -1},
+						{ID: 381, Metadata: -1},
+						{ID: 49, Metadata: -1},
 					},
 					{
-						{ID: 49, Metadata: 0},
-						{ID: 49, Metadata: 0},
-						{ID: 49, Metadata: 0},
+						{ID: 49, Metadata: -1},
+						{ID: 49, Metadata: -1},
+						{ID: 49, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 130, Count: 1, Metadata: 0},
@@ -1661,13 +1661,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 131, Count: 2, Metadata: 0},
@@ -1677,19 +1677,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 388, Metadata: 0},
-						{ID: 388, Metadata: 0},
-						{ID: 388, Metadata: 0},
+						{ID: 388, Metadata: -1},
+						{ID: 388, Metadata: -1},
+						{ID: 388, Metadata: -1},
 					},
 					{
-						{ID: 388, Metadata: 0},
-						{ID: 388, Metadata: 0},
-						{ID: 388, Metadata: 0},
+						{ID: 388, Metadata: -1},
+						{ID: 388, Metadata: -1},
+						{ID: 388, Metadata: -1},
 					},
 					{
-						{ID: 388, Metadata: 0},
-						{ID: 388, Metadata: 0},
-						{ID: 388, Metadata: 0},
+						{ID: 388, Metadata: -1},
+						{ID: 388, Metadata: -1},
+						{ID: 388, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 133, Count: 1, Metadata: 0},
@@ -1699,12 +1699,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 1},
 						{ID: 5, Metadata: 1},
 					},
@@ -1721,12 +1721,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 2},
 						{ID: 5, Metadata: 2},
 					},
@@ -1743,12 +1743,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 3},
 						{ID: 5, Metadata: 3},
 					},
@@ -1765,19 +1765,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 399, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 399, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 49, Metadata: 0},
-						{ID: 49, Metadata: 0},
-						{ID: 49, Metadata: 0},
+						{ID: 49, Metadata: -1},
+						{ID: 49, Metadata: -1},
+						{ID: 49, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 138, Count: 1, Metadata: 0},
@@ -1787,14 +1787,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 139, Count: 6, Metadata: 0},
@@ -1802,14 +1802,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 48, Metadata: 0},
-						{ID: 48, Metadata: 0},
-						{ID: 48, Metadata: 0},
+						{ID: 48, Metadata: -1},
+						{ID: 48, Metadata: -1},
+						{ID: 48, Metadata: -1},
 					},
 					{
-						{ID: 48, Metadata: 0},
-						{ID: 48, Metadata: 0},
-						{ID: 48, Metadata: 0},
+						{ID: 48, Metadata: -1},
+						{ID: 48, Metadata: -1},
+						{ID: 48, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 139, Count: 6, Metadata: 1},
@@ -1819,7 +1819,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 143, Count: 1, Metadata: 0},
@@ -1840,19 +1840,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 42, Metadata: 0},
-						{ID: 42, Metadata: 0},
-						{ID: 42, Metadata: 0},
+						{ID: 42, Metadata: -1},
+						{ID: 42, Metadata: -1},
+						{ID: 42, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 145, Count: 1, Metadata: 0},
@@ -1862,8 +1862,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 131, Metadata: 0},
-						{ID: 54, Metadata: 0},
+						{ID: 131, Metadata: -1},
+						{ID: 54, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 146, Count: 1, Metadata: 0},
@@ -1873,8 +1873,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 147, Count: 1, Metadata: 0},
@@ -1884,8 +1884,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 148, Count: 1, Metadata: 0},
@@ -1895,19 +1895,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 406, Metadata: 0},
-						{ID: 406, Metadata: 0},
-						{ID: 406, Metadata: 0},
+						{ID: 406, Metadata: -1},
+						{ID: 406, Metadata: -1},
+						{ID: 406, Metadata: -1},
 					},
 					{
-						{ID: 126, Metadata: 0},
-						{ID: 126, Metadata: 0},
-						{ID: 126, Metadata: 0},
+						{ID: 126, Metadata: -1},
+						{ID: 126, Metadata: -1},
+						{ID: 126, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 151, Count: 1, Metadata: 0},
@@ -1917,19 +1917,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 331, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 331, Metadata: 0},
+						{ID: 331, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 331, Metadata: -1},
 					},
 					{
-						{ID: 331, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 331, Metadata: 0},
+						{ID: 331, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 331, Metadata: -1},
 					},
 					{
-						{ID: 331, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 331, Metadata: 0},
+						{ID: 331, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 331, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 152, Count: 1, Metadata: 0},
@@ -1939,19 +1939,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 54, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 54, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 154, Count: 1, Metadata: 0},
@@ -1961,12 +1961,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 406, Metadata: 0},
-						{ID: 406, Metadata: 0},
+						{ID: 406, Metadata: -1},
+						{ID: 406, Metadata: -1},
 					},
 					{
-						{ID: 406, Metadata: 0},
-						{ID: 406, Metadata: 0},
+						{ID: 406, Metadata: -1},
+						{ID: 406, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 155, Count: 1, Metadata: 0},
@@ -1998,19 +1998,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 155, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 155, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 155, Metadata: 0},
-						{ID: 155, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 155, Metadata: -1},
+						{ID: 155, Metadata: -1},
 					},
 					{
-						{ID: 155, Metadata: 0},
-						{ID: 155, Metadata: 0},
-						{ID: 155, Metadata: 0},
+						{ID: 155, Metadata: -1},
+						{ID: 155, Metadata: -1},
+						{ID: 155, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 156, Count: 4, Metadata: 0},
@@ -2020,19 +2020,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 75, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 75, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 157, Count: 6, Metadata: 0},
@@ -2042,19 +2042,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 158, Count: 1, Metadata: 0},
@@ -2064,19 +2064,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 0},
@@ -2084,19 +2084,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 1},
@@ -2104,19 +2104,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 2},
@@ -2124,19 +2124,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 3},
@@ -2144,19 +2144,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 4},
@@ -2164,19 +2164,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 5},
@@ -2184,19 +2184,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 6},
@@ -2204,19 +2204,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 7},
@@ -2224,19 +2224,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 8},
@@ -2244,19 +2244,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 9},
@@ -2264,19 +2264,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 10},
@@ -2284,19 +2284,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 11},
@@ -2304,19 +2304,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 12},
@@ -2324,19 +2324,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 13},
@@ -2344,19 +2344,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 14},
@@ -2364,19 +2364,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
 					},
 					{
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
-						{ID: 172, Metadata: 0},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
+						{ID: 172, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 159, Count: 8, Metadata: 15},
@@ -2628,12 +2628,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 4},
 						{ID: 5, Metadata: 4},
 					},
@@ -2650,12 +2650,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 5, Metadata: 5},
 						{ID: 5, Metadata: 5},
 					},
@@ -2672,19 +2672,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 341, Metadata: 0},
-						{ID: 341, Metadata: 0},
-						{ID: 341, Metadata: 0},
+						{ID: 341, Metadata: -1},
+						{ID: 341, Metadata: -1},
+						{ID: 341, Metadata: -1},
 					},
 					{
-						{ID: 341, Metadata: 0},
-						{ID: 341, Metadata: 0},
-						{ID: 341, Metadata: 0},
+						{ID: 341, Metadata: -1},
+						{ID: 341, Metadata: -1},
+						{ID: 341, Metadata: -1},
 					},
 					{
-						{ID: 341, Metadata: 0},
-						{ID: 341, Metadata: 0},
-						{ID: 341, Metadata: 0},
+						{ID: 341, Metadata: -1},
+						{ID: 341, Metadata: -1},
+						{ID: 341, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 165, Count: 1, Metadata: 0},
@@ -2694,12 +2694,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 167, Count: 1, Metadata: 0},
@@ -2709,12 +2709,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
 					},
 					{
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 168, Count: 1, Metadata: 0},
@@ -2722,19 +2722,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
 					},
 					{
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
 					},
 					{
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 168, Count: 1, Metadata: 1},
@@ -2742,19 +2742,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
 					},
 					{
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
 					},
 					{
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
+						{ID: 409, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 168, Count: 1, Metadata: 2},
@@ -2764,19 +2764,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 409, Metadata: 0},
-						{ID: 410, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
+						{ID: 410, Metadata: -1},
+						{ID: 409, Metadata: -1},
 					},
 					{
-						{ID: 410, Metadata: 0},
-						{ID: 410, Metadata: 0},
-						{ID: 410, Metadata: 0},
+						{ID: 410, Metadata: -1},
+						{ID: 410, Metadata: -1},
+						{ID: 410, Metadata: -1},
 					},
 					{
-						{ID: 409, Metadata: 0},
-						{ID: 410, Metadata: 0},
-						{ID: 409, Metadata: 0},
+						{ID: 409, Metadata: -1},
+						{ID: 410, Metadata: -1},
+						{ID: 409, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 169, Count: 1, Metadata: 0},
@@ -2786,19 +2786,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
 					},
 					{
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
 					},
 					{
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 170, Count: 1, Metadata: 0},
@@ -2808,8 +2808,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 0},
@@ -2817,8 +2817,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 1},
@@ -2826,8 +2826,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 2},
@@ -2835,8 +2835,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 3},
@@ -2844,8 +2844,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 4},
@@ -2853,8 +2853,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 5},
@@ -2862,8 +2862,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 6},
@@ -2871,8 +2871,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 7},
@@ -2880,8 +2880,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 8},
@@ -2889,8 +2889,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 9},
@@ -2898,8 +2898,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 10},
@@ -2907,8 +2907,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 11},
@@ -2916,8 +2916,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 12},
@@ -2925,8 +2925,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 13},
@@ -2934,8 +2934,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 14},
@@ -2943,8 +2943,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 171, Count: 3, Metadata: 15},
@@ -3015,19 +3015,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 179, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 179, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 179, Metadata: 0},
-						{ID: 179, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 179, Metadata: -1},
+						{ID: 179, Metadata: -1},
 					},
 					{
-						{ID: 179, Metadata: 0},
-						{ID: 179, Metadata: 0},
-						{ID: 179, Metadata: 0},
+						{ID: 179, Metadata: -1},
+						{ID: 179, Metadata: -1},
+						{ID: 179, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 180, Count: 4, Metadata: 0},
@@ -3037,9 +3037,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 179, Metadata: 0},
-						{ID: 179, Metadata: 0},
-						{ID: 179, Metadata: 0},
+						{ID: 179, Metadata: -1},
+						{ID: 179, Metadata: -1},
+						{ID: 179, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 182, Count: 6, Metadata: 0},
@@ -3049,14 +3049,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 1},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 1},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 183, Count: 1, Metadata: 0},
@@ -3066,14 +3066,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 2},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 2},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 184, Count: 1, Metadata: 0},
@@ -3083,14 +3083,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 3},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 3},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 185, Count: 1, Metadata: 0},
@@ -3100,14 +3100,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 5},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 5},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 186, Count: 1, Metadata: 0},
@@ -3117,14 +3117,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 4},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 4},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 187, Count: 1, Metadata: 0},
@@ -3135,12 +3135,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 5, Metadata: 1},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 1},
 					},
 					{
 						{ID: 5, Metadata: 1},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 1},
 					},
 				},
@@ -3152,12 +3152,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 5, Metadata: 2},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 2},
 					},
 					{
 						{ID: 5, Metadata: 2},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 2},
 					},
 				},
@@ -3169,12 +3169,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 5, Metadata: 3},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 3},
 					},
 					{
 						{ID: 5, Metadata: 3},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 3},
 					},
 				},
@@ -3186,12 +3186,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 5, Metadata: 5},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 5},
 					},
 					{
 						{ID: 5, Metadata: 5},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 5},
 					},
 				},
@@ -3203,12 +3203,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 5, Metadata: 4},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 4},
 					},
 					{
 						{ID: 5, Metadata: 4},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 5, Metadata: 4},
 					},
 				},
@@ -3219,21 +3219,21 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 256, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 256, Metadata: 0},
-					{ID: 256, Metadata: 0},
+					{ID: 256, Metadata: -1},
+					{ID: 256, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 256, Count: 1, Metadata: 0},
 			},
@@ -3242,27 +3242,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 257, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 257, Metadata: 0},
-					{ID: 257, Metadata: 0},
+					{ID: 257, Metadata: -1},
+					{ID: 257, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 257, Count: 1, Metadata: 0},
 			},
@@ -3271,24 +3271,24 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 258, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 258, Metadata: 0},
-					{ID: 258, Metadata: 0},
+					{ID: 258, Metadata: -1},
+					{ID: 258, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 258, Count: 1, Metadata: 0},
 			},
@@ -3296,15 +3296,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		259: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 265, Metadata: 0},
-					{ID: 318, Metadata: 0},
+					{ID: 265, Metadata: -1},
+					{ID: 318, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 259, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 259, Metadata: 0},
-					{ID: 259, Metadata: 0},
+					{ID: 259, Metadata: -1},
+					{ID: 259, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 259, Count: 1, Metadata: 0},
 			},
@@ -3313,27 +3313,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 287, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 287, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 287, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 287, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 287, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 287, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 261, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 261, Metadata: 0},
-					{ID: 261, Metadata: 0},
+					{ID: 261, Metadata: -1},
+					{ID: 261, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 261, Count: 1, Metadata: 0},
 			},
@@ -3342,13 +3342,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 318, Metadata: 0},
+						{ID: 318, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 288, Metadata: 0},
+						{ID: 288, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 262, Count: 4, Metadata: 0},
@@ -3358,7 +3358,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 173, Metadata: 0},
+						{ID: 173, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 263, Count: 9, Metadata: 0},
@@ -3368,7 +3368,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 57, Metadata: 0},
+						{ID: 57, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 264, Count: 9, Metadata: 0},
@@ -3378,7 +3378,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 42, Metadata: 0},
+						{ID: 42, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 265, Count: 9, Metadata: 0},
@@ -3388,7 +3388,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 41, Metadata: 0},
+						{ID: 41, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 266, Count: 9, Metadata: 0},
@@ -3396,19 +3396,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
 					},
 					{
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
 					},
 					{
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 266, Count: 1, Metadata: 0},
@@ -3418,21 +3418,21 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 267, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 267, Metadata: 0},
-					{ID: 267, Metadata: 0},
+					{ID: 267, Metadata: -1},
+					{ID: 267, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 267, Count: 1, Metadata: 0},
 			},
@@ -3447,15 +3447,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 5, Metadata: 0},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 268, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 268, Metadata: 0},
-					{ID: 268, Metadata: 0},
+					{ID: 268, Metadata: -1},
+					{ID: 268, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 268, Count: 1, Metadata: 0},
 			},
@@ -3467,18 +3467,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 5, Metadata: 0},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 269, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 269, Metadata: 0},
-					{ID: 269, Metadata: 0},
+					{ID: 269, Metadata: -1},
+					{ID: 269, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 269, Count: 1, Metadata: 0},
 			},
@@ -3492,22 +3492,22 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 5, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 270, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 270, Metadata: 0},
-					{ID: 270, Metadata: 0},
+					{ID: 270, Metadata: -1},
+					{ID: 270, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 270, Count: 1, Metadata: 0},
 			},
@@ -3521,19 +3521,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 5, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 271, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 271, Metadata: 0},
-					{ID: 271, Metadata: 0},
+					{ID: 271, Metadata: -1},
+					{ID: 271, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 271, Count: 1, Metadata: 0},
 			},
@@ -3542,21 +3542,21 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 272, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 272, Metadata: 0},
-					{ID: 272, Metadata: 0},
+					{ID: 272, Metadata: -1},
+					{ID: 272, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 272, Count: 1, Metadata: 0},
 			},
@@ -3565,21 +3565,21 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 273, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 273, Metadata: 0},
-					{ID: 273, Metadata: 0},
+					{ID: 273, Metadata: -1},
+					{ID: 273, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 273, Count: 1, Metadata: 0},
 			},
@@ -3588,27 +3588,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 274, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 274, Metadata: 0},
-					{ID: 274, Metadata: 0},
+					{ID: 274, Metadata: -1},
+					{ID: 274, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 274, Count: 1, Metadata: 0},
 			},
@@ -3617,24 +3617,24 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 275, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 275, Metadata: 0},
-					{ID: 275, Metadata: 0},
+					{ID: 275, Metadata: -1},
+					{ID: 275, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 275, Count: 1, Metadata: 0},
 			},
@@ -3643,21 +3643,21 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 276, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 276, Metadata: 0},
-					{ID: 276, Metadata: 0},
+					{ID: 276, Metadata: -1},
+					{ID: 276, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 276, Count: 1, Metadata: 0},
 			},
@@ -3666,21 +3666,21 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 277, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 277, Metadata: 0},
-					{ID: 277, Metadata: 0},
+					{ID: 277, Metadata: -1},
+					{ID: 277, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 277, Count: 1, Metadata: 0},
 			},
@@ -3689,27 +3689,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 278, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 278, Metadata: 0},
-					{ID: 278, Metadata: 0},
+					{ID: 278, Metadata: -1},
+					{ID: 278, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 278, Count: 1, Metadata: 0},
 			},
@@ -3718,24 +3718,24 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 279, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 279, Metadata: 0},
-					{ID: 279, Metadata: 0},
+					{ID: 279, Metadata: -1},
+					{ID: 279, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 279, Count: 1, Metadata: 0},
 			},
@@ -3744,10 +3744,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 280, Count: 4, Metadata: 0},
@@ -3757,14 +3757,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 281, Count: 4, Metadata: 0},
@@ -3773,9 +3773,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		282: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 40, Metadata: 0},
-					{ID: 39, Metadata: 0},
-					{ID: 281, Metadata: 0},
+					{ID: 40, Metadata: -1},
+					{ID: 39, Metadata: -1},
+					{ID: 281, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 282, Count: 1, Metadata: 0},
 			},
@@ -3784,21 +3784,21 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 283, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 283, Metadata: 0},
-					{ID: 283, Metadata: 0},
+					{ID: 283, Metadata: -1},
+					{ID: 283, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 283, Count: 1, Metadata: 0},
 			},
@@ -3807,21 +3807,21 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 284, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 284, Metadata: 0},
-					{ID: 284, Metadata: 0},
+					{ID: 284, Metadata: -1},
+					{ID: 284, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 284, Count: 1, Metadata: 0},
 			},
@@ -3830,27 +3830,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 285, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 285, Metadata: 0},
-					{ID: 285, Metadata: 0},
+					{ID: 285, Metadata: -1},
+					{ID: 285, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 285, Count: 1, Metadata: 0},
 			},
@@ -3859,24 +3859,24 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 286, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 286, Metadata: 0},
-					{ID: 286, Metadata: 0},
+					{ID: 286, Metadata: -1},
+					{ID: 286, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 286, Count: 1, Metadata: 0},
 			},
@@ -3889,20 +3889,20 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 5, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 290, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 290, Metadata: 0},
-					{ID: 290, Metadata: 0},
+					{ID: 290, Metadata: -1},
+					{ID: 290, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 290, Count: 1, Metadata: 0},
 			},
@@ -3911,24 +3911,24 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 291, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 291, Metadata: 0},
-					{ID: 291, Metadata: 0},
+					{ID: 291, Metadata: -1},
+					{ID: 291, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 291, Count: 1, Metadata: 0},
 			},
@@ -3937,24 +3937,24 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 292, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 292, Metadata: 0},
-					{ID: 292, Metadata: 0},
+					{ID: 292, Metadata: -1},
+					{ID: 292, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 292, Count: 1, Metadata: 0},
 			},
@@ -3963,24 +3963,24 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 293, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 293, Metadata: 0},
-					{ID: 293, Metadata: 0},
+					{ID: 293, Metadata: -1},
+					{ID: 293, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 293, Count: 1, Metadata: 0},
 			},
@@ -3989,24 +3989,24 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 294, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 294, Metadata: 0},
-					{ID: 294, Metadata: 0},
+					{ID: 294, Metadata: -1},
+					{ID: 294, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 294, Count: 1, Metadata: 0},
 			},
@@ -4015,7 +4015,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 170, Metadata: 0},
+						{ID: 170, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 296, Count: 9, Metadata: 0},
@@ -4025,9 +4025,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 297, Count: 1, Metadata: 0},
@@ -4037,22 +4037,22 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 334, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 334, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 298, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 298, Metadata: 0},
-					{ID: 298, Metadata: 0},
+					{ID: 298, Metadata: -1},
+					{ID: 298, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 298, Count: 1, Metadata: 0},
 			},
@@ -4061,27 +4061,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 334, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 334, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 334, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 334, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 299, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 299, Metadata: 0},
-					{ID: 299, Metadata: 0},
+					{ID: 299, Metadata: -1},
+					{ID: 299, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 299, Count: 1, Metadata: 0},
 			},
@@ -4090,27 +4090,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 334, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 334, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 300, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 300, Metadata: 0},
-					{ID: 300, Metadata: 0},
+					{ID: 300, Metadata: -1},
+					{ID: 300, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 300, Count: 1, Metadata: 0},
 			},
@@ -4119,22 +4119,22 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 					{
-						{ID: 334, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 334, Metadata: 0},
+						{ID: 334, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 334, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 301, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 301, Metadata: 0},
-					{ID: 301, Metadata: 0},
+					{ID: 301, Metadata: -1},
+					{ID: 301, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 301, Count: 1, Metadata: 0},
 			},
@@ -4142,8 +4142,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		302: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 302, Metadata: 0},
-					{ID: 302, Metadata: 0},
+					{ID: 302, Metadata: -1},
+					{ID: 302, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 302, Count: 1, Metadata: 0},
 			},
@@ -4151,8 +4151,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		303: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 303, Metadata: 0},
-					{ID: 303, Metadata: 0},
+					{ID: 303, Metadata: -1},
+					{ID: 303, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 303, Count: 1, Metadata: 0},
 			},
@@ -4160,8 +4160,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		304: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 304, Metadata: 0},
-					{ID: 304, Metadata: 0},
+					{ID: 304, Metadata: -1},
+					{ID: 304, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 304, Count: 1, Metadata: 0},
 			},
@@ -4169,8 +4169,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		305: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 305, Metadata: 0},
-					{ID: 305, Metadata: 0},
+					{ID: 305, Metadata: -1},
+					{ID: 305, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 305, Count: 1, Metadata: 0},
 			},
@@ -4179,22 +4179,22 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 306, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 306, Metadata: 0},
-					{ID: 306, Metadata: 0},
+					{ID: 306, Metadata: -1},
+					{ID: 306, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 306, Count: 1, Metadata: 0},
 			},
@@ -4203,27 +4203,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 307, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 307, Metadata: 0},
-					{ID: 307, Metadata: 0},
+					{ID: 307, Metadata: -1},
+					{ID: 307, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 307, Count: 1, Metadata: 0},
 			},
@@ -4232,27 +4232,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 308, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 308, Metadata: 0},
-					{ID: 308, Metadata: 0},
+					{ID: 308, Metadata: -1},
+					{ID: 308, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 308, Count: 1, Metadata: 0},
 			},
@@ -4261,22 +4261,22 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 309, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 309, Metadata: 0},
-					{ID: 309, Metadata: 0},
+					{ID: 309, Metadata: -1},
+					{ID: 309, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 309, Count: 1, Metadata: 0},
 			},
@@ -4285,22 +4285,22 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 310, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 310, Metadata: 0},
-					{ID: 310, Metadata: 0},
+					{ID: 310, Metadata: -1},
+					{ID: 310, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 310, Count: 1, Metadata: 0},
 			},
@@ -4309,27 +4309,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 311, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 311, Metadata: 0},
-					{ID: 311, Metadata: 0},
+					{ID: 311, Metadata: -1},
+					{ID: 311, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 311, Count: 1, Metadata: 0},
 			},
@@ -4338,27 +4338,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 312, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 312, Metadata: 0},
-					{ID: 312, Metadata: 0},
+					{ID: 312, Metadata: -1},
+					{ID: 312, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 312, Count: 1, Metadata: 0},
 			},
@@ -4367,22 +4367,22 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 					{
-						{ID: 264, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 264, Metadata: 0},
+						{ID: 264, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 264, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 313, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 313, Metadata: 0},
-					{ID: 313, Metadata: 0},
+					{ID: 313, Metadata: -1},
+					{ID: 313, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 313, Count: 1, Metadata: 0},
 			},
@@ -4391,22 +4391,22 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 314, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 314, Metadata: 0},
-					{ID: 314, Metadata: 0},
+					{ID: 314, Metadata: -1},
+					{ID: 314, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 314, Count: 1, Metadata: 0},
 			},
@@ -4415,27 +4415,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 315, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 315, Metadata: 0},
-					{ID: 315, Metadata: 0},
+					{ID: 315, Metadata: -1},
+					{ID: 315, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 315, Count: 1, Metadata: 0},
 			},
@@ -4444,27 +4444,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 316, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 316, Metadata: 0},
-					{ID: 316, Metadata: 0},
+					{ID: 316, Metadata: -1},
+					{ID: 316, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 316, Count: 1, Metadata: 0},
 			},
@@ -4473,22 +4473,22 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 317, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 317, Metadata: 0},
-					{ID: 317, Metadata: 0},
+					{ID: 317, Metadata: -1},
+					{ID: 317, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 317, Count: 1, Metadata: 0},
 			},
@@ -4497,19 +4497,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 35, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 35, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 321, Count: 1, Metadata: 0},
@@ -4519,19 +4519,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 260, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 260, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 322, Count: 1, Metadata: 0},
@@ -4539,19 +4539,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 41, Metadata: 0},
-						{ID: 41, Metadata: 0},
-						{ID: 41, Metadata: 0},
+						{ID: 41, Metadata: -1},
+						{ID: 41, Metadata: -1},
+						{ID: 41, Metadata: -1},
 					},
 					{
-						{ID: 41, Metadata: 0},
-						{ID: 260, Metadata: 0},
-						{ID: 41, Metadata: 0},
+						{ID: 41, Metadata: -1},
+						{ID: 260, Metadata: -1},
+						{ID: 41, Metadata: -1},
 					},
 					{
-						{ID: 41, Metadata: 0},
-						{ID: 41, Metadata: 0},
-						{ID: 41, Metadata: 0},
+						{ID: 41, Metadata: -1},
+						{ID: 41, Metadata: -1},
+						{ID: 41, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 322, Count: 1, Metadata: 1},
@@ -4561,19 +4561,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 323, Count: 3, Metadata: 0},
@@ -4602,14 +4602,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 325, Count: 1, Metadata: 0},
@@ -4619,14 +4619,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 328, Count: 1, Metadata: 0},
@@ -4636,16 +4636,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 330, Count: 3, Metadata: 0},
@@ -4655,7 +4655,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 152, Metadata: 0},
+						{ID: 152, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 331, Count: 9, Metadata: 0},
@@ -4665,14 +4665,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 333, Count: 1, Metadata: 0},
@@ -4682,12 +4682,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 415, Metadata: 0},
-						{ID: 415, Metadata: 0},
+						{ID: 415, Metadata: -1},
+						{ID: 415, Metadata: -1},
 					},
 					{
-						{ID: 415, Metadata: 0},
-						{ID: 415, Metadata: 0},
+						{ID: 415, Metadata: -1},
+						{ID: 415, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 334, Count: 1, Metadata: 0},
@@ -4697,9 +4697,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 338, Metadata: 0},
-						{ID: 338, Metadata: 0},
-						{ID: 338, Metadata: 0},
+						{ID: 338, Metadata: -1},
+						{ID: 338, Metadata: -1},
+						{ID: 338, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 339, Count: 3, Metadata: 0},
@@ -4708,10 +4708,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		340: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 339, Metadata: 0},
-					{ID: 339, Metadata: 0},
-					{ID: 339, Metadata: 0},
-					{ID: 334, Metadata: 0},
+					{ID: 339, Metadata: -1},
+					{ID: 339, Metadata: -1},
+					{ID: 339, Metadata: -1},
+					{ID: 334, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 340, Count: 1, Metadata: 0},
 			},
@@ -4720,7 +4720,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 165, Metadata: 0},
+						{ID: 165, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 341, Count: 9, Metadata: 0},
@@ -4730,10 +4730,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 54, Metadata: 0},
+						{ID: 54, Metadata: -1},
 					},
 					{
-						{ID: 328, Metadata: 0},
+						{ID: 328, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 342, Count: 1, Metadata: 0},
@@ -4743,10 +4743,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 61, Metadata: 0},
+						{ID: 61, Metadata: -1},
 					},
 					{
-						{ID: 328, Metadata: 0},
+						{ID: 328, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 343, Count: 1, Metadata: 0},
@@ -4756,19 +4756,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 345, Count: 1, Metadata: 0},
@@ -4778,27 +4778,27 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 287, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 287, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 287, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 287, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 346, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 346, Metadata: 0},
-					{ID: 346, Metadata: 0},
+					{ID: 346, Metadata: -1},
+					{ID: 346, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 346, Count: 1, Metadata: 0},
 			},
@@ -4807,19 +4807,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 266, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 266, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 266, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 266, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 347, Count: 1, Metadata: 0},
@@ -4836,7 +4836,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 37, Metadata: 0},
+						{ID: 37, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 351, Count: 1, Metadata: 11},
@@ -4990,7 +4990,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 38, Metadata: 0},
+						{ID: 38, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 351, Count: 1, Metadata: 7},
@@ -5013,7 +5013,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 22, Metadata: 0},
+						{ID: 22, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 351, Count: 9, Metadata: 4},
@@ -5021,7 +5021,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 352, Metadata: 0},
+						{ID: 352, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 351, Count: 3, Metadata: 15},
@@ -5031,7 +5031,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 338, Metadata: 0},
+						{ID: 338, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 353, Count: 1, Metadata: 0},
@@ -5041,19 +5041,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 335, Metadata: 0},
-						{ID: 335, Metadata: 0},
-						{ID: 335, Metadata: 0},
+						{ID: 335, Metadata: -1},
+						{ID: 335, Metadata: -1},
+						{ID: 335, Metadata: -1},
 					},
 					{
-						{ID: 353, Metadata: 0},
-						{ID: 344, Metadata: 0},
-						{ID: 353, Metadata: 0},
+						{ID: 353, Metadata: -1},
+						{ID: 344, Metadata: -1},
+						{ID: 353, Metadata: -1},
 					},
 					{
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
-						{ID: 296, Metadata: 0},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
+						{ID: 296, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 354, Count: 1, Metadata: 0},
@@ -5063,14 +5063,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 					{
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
-						{ID: 5, Metadata: 0},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
+						{ID: 5, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 355, Count: 1, Metadata: 0},
@@ -5080,9 +5080,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 75, Metadata: 0},
-						{ID: 331, Metadata: 0},
-						{ID: 75, Metadata: 0},
+						{ID: 75, Metadata: -1},
+						{ID: 331, Metadata: -1},
+						{ID: 75, Metadata: -1},
 					},
 					{
 						{ID: 1, Metadata: 0},
@@ -5097,9 +5097,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 296, Metadata: 0},
+						{ID: 296, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 296, Metadata: 0},
+						{ID: 296, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 357, Count: 8, Metadata: 0},
@@ -5109,104 +5109,104 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 339, Metadata: 0},
-						{ID: 339, Metadata: 0},
-						{ID: 339, Metadata: 0},
+						{ID: 339, Metadata: -1},
+						{ID: 339, Metadata: -1},
+						{ID: 339, Metadata: -1},
 					},
 					{
-						{ID: 339, Metadata: 0},
-						{ID: 358, Metadata: 0},
-						{ID: 339, Metadata: 0},
+						{ID: 339, Metadata: -1},
+						{ID: 358, Metadata: -1},
+						{ID: 339, Metadata: -1},
 					},
 					{
-						{ID: 339, Metadata: 0},
-						{ID: 339, Metadata: 0},
-						{ID: 339, Metadata: 0},
+						{ID: 339, Metadata: -1},
+						{ID: 339, Metadata: -1},
+						{ID: 339, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 358, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 358, Metadata: 0},
-					{ID: 395, Metadata: 0},
+					{ID: 358, Metadata: -1},
+					{ID: 395, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 358, Count: 2, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 358, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
+					{ID: 358, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 358, Count: 3, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 358, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
+					{ID: 358, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 358, Count: 4, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 395, Metadata: 0},
-					{ID: 358, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
+					{ID: 395, Metadata: -1},
+					{ID: 358, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 358, Count: 5, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 358, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 358, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 358, Count: 6, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 358, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 358, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 358, Count: 7, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 358, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 358, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 358, Count: 8, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 358, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
-					{ID: 395, Metadata: 0},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 358, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
+					{ID: 395, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 358, Count: 9, Metadata: 0},
 			},
@@ -5215,20 +5215,20 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 359, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 359, Metadata: 0},
-					{ID: 359, Metadata: 0},
+					{ID: 359, Metadata: -1},
+					{ID: 359, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 359, Count: 1, Metadata: 0},
 			},
@@ -5237,7 +5237,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 86, Metadata: 0},
+						{ID: 86, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 361, Count: 4, Metadata: 0},
@@ -5247,7 +5247,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 360, Metadata: 0},
+						{ID: 360, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 362, Count: 1, Metadata: 0},
@@ -5257,7 +5257,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 266, Metadata: 0},
+						{ID: 266, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 371, Count: 9, Metadata: 0},
@@ -5267,14 +5267,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 20, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 20, Metadata: 0},
+						{ID: 20, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 20, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 20, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 20, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 374, Count: 3, Metadata: 0},
@@ -5283,9 +5283,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		376: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 39, Metadata: 0},
-					{ID: 353, Metadata: 0},
-					{ID: 375, Metadata: 0},
+					{ID: 39, Metadata: -1},
+					{ID: 353, Metadata: -1},
+					{ID: 375, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 376, Count: 1, Metadata: 0},
 			},
@@ -5294,7 +5294,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 369, Metadata: 0},
+						{ID: 369, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 377, Count: 2, Metadata: 0},
@@ -5303,8 +5303,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		378: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 377, Metadata: 0},
-					{ID: 341, Metadata: 0},
+					{ID: 377, Metadata: -1},
+					{ID: 341, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 378, Count: 1, Metadata: 0},
 			},
@@ -5313,14 +5313,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 369, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 369, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
-						{ID: 4, Metadata: 0},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
+						{ID: 4, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 379, Count: 1, Metadata: 0},
@@ -5330,19 +5330,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 					{
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
-						{ID: 265, Metadata: 0},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
+						{ID: 265, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 380, Count: 1, Metadata: 0},
@@ -5351,8 +5351,8 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		381: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 377, Metadata: 0},
-					{ID: 368, Metadata: 0},
+					{ID: 377, Metadata: -1},
+					{ID: 368, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 381, Count: 1, Metadata: 0},
 			},
@@ -5361,19 +5361,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
 					},
 					{
-						{ID: 371, Metadata: 0},
-						{ID: 360, Metadata: 0},
-						{ID: 371, Metadata: 0},
+						{ID: 371, Metadata: -1},
+						{ID: 360, Metadata: -1},
+						{ID: 371, Metadata: -1},
 					},
 					{
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 382, Count: 1, Metadata: 0},
@@ -5382,9 +5382,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		385: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 377, Metadata: 0},
-					{ID: 263, Metadata: 0},
-					{ID: 289, Metadata: 0},
+					{ID: 377, Metadata: -1},
+					{ID: 263, Metadata: -1},
+					{ID: 289, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 385, Count: 3, Metadata: 0},
 			},
@@ -5392,9 +5392,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		386: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 340, Metadata: 0},
+					{ID: 340, Metadata: -1},
 					{ID: 351, Metadata: 0},
-					{ID: 288, Metadata: 0},
+					{ID: 288, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 386, Count: 1, Metadata: 0},
 			},
@@ -5402,85 +5402,85 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		387: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 386, Metadata: 0},
-					{ID: 387, Metadata: 0},
+					{ID: 386, Metadata: -1},
+					{ID: 387, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 387, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 386, Metadata: 0},
-					{ID: 387, Metadata: 0},
-					{ID: 386, Metadata: 0},
+					{ID: 386, Metadata: -1},
+					{ID: 387, Metadata: -1},
+					{ID: 386, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 387, Count: 2, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 386, Metadata: 0},
-					{ID: 387, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
+					{ID: 386, Metadata: -1},
+					{ID: 387, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 387, Count: 3, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 387, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 387, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 387, Count: 4, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 387, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 387, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 387, Count: 5, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 387, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 387, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 387, Count: 6, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 387, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 387, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 387, Count: 7, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 387, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
-					{ID: 386, Metadata: 0},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 387, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
+					{ID: 386, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 387, Count: 8, Metadata: 0},
 			},
@@ -5489,7 +5489,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 133, Metadata: 0},
+						{ID: 133, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 388, Count: 9, Metadata: 0},
@@ -5499,19 +5499,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 334, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 334, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 389, Count: 1, Metadata: 0},
@@ -5521,14 +5521,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 336, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 336, Metadata: 0},
+						{ID: 336, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 336, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 336, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 336, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 390, Count: 1, Metadata: 0},
@@ -5538,19 +5538,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 339, Metadata: 0},
-						{ID: 339, Metadata: 0},
-						{ID: 339, Metadata: 0},
+						{ID: 339, Metadata: -1},
+						{ID: 339, Metadata: -1},
+						{ID: 339, Metadata: -1},
 					},
 					{
-						{ID: 339, Metadata: 0},
-						{ID: 345, Metadata: 0},
-						{ID: 339, Metadata: 0},
+						{ID: 339, Metadata: -1},
+						{ID: 345, Metadata: -1},
+						{ID: 339, Metadata: -1},
 					},
 					{
-						{ID: 339, Metadata: 0},
-						{ID: 339, Metadata: 0},
-						{ID: 339, Metadata: 0},
+						{ID: 339, Metadata: -1},
+						{ID: 339, Metadata: -1},
+						{ID: 339, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 395, Count: 1, Metadata: 0},
@@ -5560,19 +5560,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
 					},
 					{
-						{ID: 371, Metadata: 0},
-						{ID: 391, Metadata: 0},
-						{ID: 371, Metadata: 0},
+						{ID: 371, Metadata: -1},
+						{ID: 391, Metadata: -1},
+						{ID: 371, Metadata: -1},
 					},
 					{
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
-						{ID: 371, Metadata: 0},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
+						{ID: 371, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 396, Count: 1, Metadata: 0},
@@ -5582,20 +5582,20 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 346, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 346, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 391, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 391, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 398, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 398, Metadata: 0},
-					{ID: 398, Metadata: 0},
+					{ID: 398, Metadata: -1},
+					{ID: 398, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 398, Count: 1, Metadata: 0},
 			},
@@ -5603,9 +5603,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		400: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 86, Metadata: 0},
-					{ID: 353, Metadata: 0},
-					{ID: 344, Metadata: 0},
+					{ID: 86, Metadata: -1},
+					{ID: 353, Metadata: -1},
+					{ID: 344, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 400, Count: 1, Metadata: 0},
 			},
@@ -5613,16 +5613,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		401: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 339, Metadata: 0},
-					{ID: 289, Metadata: 0},
+					{ID: 339, Metadata: -1},
+					{ID: 289, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 401, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 402, Metadata: 0},
-					{ID: 339, Metadata: 0},
-					{ID: 289, Metadata: 0},
+					{ID: 402, Metadata: -1},
+					{ID: 339, Metadata: -1},
+					{ID: 289, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 401, Count: 1, Metadata: 0},
 			},
@@ -5630,16 +5630,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 		402: {
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 289, Metadata: 0},
-					{ID: 351, Metadata: 0},
-					{ID: 264, Metadata: 0},
+					{ID: 289, Metadata: -1},
+					{ID: 351, Metadata: -1},
+					{ID: 264, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 402, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 402, Metadata: 0},
-					{ID: 351, Metadata: 0},
+					{ID: 402, Metadata: -1},
+					{ID: 351, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 402, Count: 1, Metadata: 0},
 			},
@@ -5648,14 +5648,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 75, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 75, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 75, Metadata: 0},
-						{ID: 406, Metadata: 0},
-						{ID: 75, Metadata: 0},
+						{ID: 75, Metadata: -1},
+						{ID: 406, Metadata: -1},
+						{ID: 75, Metadata: -1},
 					},
 					{
 						{ID: 1, Metadata: 0},
@@ -5670,12 +5670,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
 					},
 					{
-						{ID: 405, Metadata: 0},
-						{ID: 405, Metadata: 0},
+						{ID: 405, Metadata: -1},
+						{ID: 405, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 405, Count: 1, Metadata: 0},
@@ -5685,10 +5685,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 46, Metadata: 0},
+						{ID: 46, Metadata: -1},
 					},
 					{
-						{ID: 328, Metadata: 0},
+						{ID: 328, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 407, Count: 1, Metadata: 0},
@@ -5698,10 +5698,10 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 154, Metadata: 0},
+						{ID: 154, Metadata: -1},
 					},
 					{
-						{ID: 328, Metadata: 0},
+						{ID: 328, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 408, Count: 1, Metadata: 0},
@@ -5711,19 +5711,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 412, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 412, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 391, Metadata: 0},
-						{ID: 393, Metadata: 0},
-						{ID: 39, Metadata: 0},
+						{ID: 391, Metadata: -1},
+						{ID: 393, Metadata: -1},
+						{ID: 39, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 281, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 281, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 413, Count: 1, Metadata: 0},
@@ -5733,19 +5733,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 280, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 						{ID: 44, Metadata: 0},
-						{ID: 280, Metadata: 0},
+						{ID: 280, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 416, Count: 1, Metadata: 0},
@@ -5755,19 +5755,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 287, Metadata: 0},
-						{ID: 287, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 287, Metadata: -1},
+						{ID: 287, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 287, Metadata: 0},
-						{ID: 341, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 287, Metadata: -1},
+						{ID: 341, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 287, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 287, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 420, Count: 2, Metadata: 0},
@@ -5777,36 +5777,36 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 					{
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
-						{ID: 35, Metadata: 0},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
+						{ID: 35, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 280, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 280, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 425, Metadata: 0},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
@@ -5819,9 +5819,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
@@ -5834,9 +5834,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
@@ -5849,9 +5849,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
@@ -5864,9 +5864,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
@@ -5879,9 +5879,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
@@ -5894,9 +5894,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
@@ -5909,9 +5909,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
@@ -5924,9 +5924,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
@@ -5939,9 +5939,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
@@ -5954,9 +5954,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
@@ -5969,9 +5969,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
@@ -5984,9 +5984,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
@@ -5999,9 +5999,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
@@ -6014,9 +6014,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
@@ -6029,9 +6029,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
@@ -6049,14 +6049,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6069,14 +6069,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6089,14 +6089,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6109,14 +6109,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6129,14 +6129,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6149,14 +6149,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6169,14 +6169,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6189,14 +6189,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6209,14 +6209,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6229,14 +6229,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6249,14 +6249,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6269,14 +6269,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6289,14 +6289,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6309,14 +6309,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6329,14 +6329,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6349,14 +6349,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6365,15 +6365,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6382,15 +6382,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6399,15 +6399,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6416,15 +6416,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6433,15 +6433,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6450,15 +6450,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6467,15 +6467,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6484,15 +6484,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6501,15 +6501,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6518,15 +6518,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6535,15 +6535,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6552,15 +6552,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6569,15 +6569,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6586,15 +6586,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6603,15 +6603,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6620,15 +6620,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6636,15 +6636,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 				},
@@ -6653,15 +6653,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 				},
@@ -6670,15 +6670,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 				},
@@ -6687,15 +6687,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 				},
@@ -6704,15 +6704,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 				},
@@ -6721,15 +6721,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 				},
@@ -6738,15 +6738,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 				},
@@ -6755,15 +6755,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 				},
@@ -6772,15 +6772,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 				},
@@ -6789,15 +6789,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 				},
@@ -6806,15 +6806,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 				},
@@ -6823,15 +6823,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 				},
@@ -6840,15 +6840,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 				},
@@ -6857,15 +6857,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 				},
@@ -6874,15 +6874,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 				},
@@ -6891,15 +6891,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 				},
@@ -6909,15 +6909,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6926,15 +6926,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6943,15 +6943,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6960,15 +6960,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6977,15 +6977,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -6994,15 +6994,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7011,15 +7011,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7028,15 +7028,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7045,15 +7045,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7062,15 +7062,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7079,15 +7079,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7096,15 +7096,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7113,15 +7113,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7130,15 +7130,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7147,15 +7147,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7164,15 +7164,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7185,9 +7185,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7200,9 +7200,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7215,9 +7215,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7230,9 +7230,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7245,9 +7245,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7260,9 +7260,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7275,9 +7275,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7290,9 +7290,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7305,9 +7305,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7320,9 +7320,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7335,9 +7335,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7350,9 +7350,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7365,9 +7365,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7380,9 +7380,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7395,9 +7395,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7410,9 +7410,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7421,17 +7421,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 				},
@@ -7441,17 +7441,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 				},
@@ -7461,17 +7461,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 				},
@@ -7481,17 +7481,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 				},
@@ -7501,17 +7501,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 				},
@@ -7521,17 +7521,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 				},
@@ -7541,17 +7541,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 				},
@@ -7561,17 +7561,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 				},
@@ -7581,17 +7581,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 				},
@@ -7601,17 +7601,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 				},
@@ -7621,17 +7621,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 				},
@@ -7641,17 +7641,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 				},
@@ -7661,17 +7661,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 				},
@@ -7681,17 +7681,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 				},
@@ -7701,17 +7701,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 				},
@@ -7721,17 +7721,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 				},
@@ -7740,19 +7740,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7760,19 +7760,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7780,19 +7780,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7800,19 +7800,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7820,19 +7820,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7840,19 +7840,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7860,19 +7860,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7880,19 +7880,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7900,19 +7900,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7920,19 +7920,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7940,19 +7940,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7960,19 +7960,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -7980,19 +7980,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8000,19 +8000,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8020,19 +8020,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8040,19 +8040,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8061,18 +8061,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8081,18 +8081,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8101,18 +8101,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8121,18 +8121,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8141,18 +8141,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8161,18 +8161,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8181,18 +8181,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8201,18 +8201,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8221,18 +8221,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8241,18 +8241,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8261,18 +8261,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8281,18 +8281,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8301,18 +8301,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8321,18 +8321,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8341,18 +8341,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8361,18 +8361,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8381,17 +8381,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 				},
@@ -8401,17 +8401,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 				},
@@ -8421,17 +8421,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 				},
@@ -8441,17 +8441,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 				},
@@ -8461,17 +8461,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 				},
@@ -8481,17 +8481,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 				},
@@ -8501,17 +8501,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 				},
@@ -8521,17 +8521,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 				},
@@ -8541,17 +8541,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 				},
@@ -8561,17 +8561,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 				},
@@ -8581,17 +8581,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 				},
@@ -8601,17 +8601,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 				},
@@ -8621,17 +8621,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 				},
@@ -8641,17 +8641,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 				},
@@ -8661,17 +8661,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 				},
@@ -8681,17 +8681,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 				},
@@ -8700,9 +8700,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
@@ -8710,9 +8710,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8720,9 +8720,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
@@ -8730,9 +8730,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8740,9 +8740,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
@@ -8750,9 +8750,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8760,9 +8760,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
@@ -8770,9 +8770,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8780,9 +8780,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
@@ -8790,9 +8790,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8800,9 +8800,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
@@ -8810,9 +8810,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8820,9 +8820,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
@@ -8830,9 +8830,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8840,9 +8840,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
@@ -8850,9 +8850,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8860,9 +8860,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
@@ -8870,9 +8870,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8880,9 +8880,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
@@ -8890,9 +8890,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8900,9 +8900,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
@@ -8910,9 +8910,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8920,9 +8920,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
@@ -8930,9 +8930,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8940,9 +8940,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
@@ -8950,9 +8950,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8960,9 +8960,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
@@ -8970,9 +8970,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -8980,9 +8980,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
@@ -8990,9 +8990,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9000,9 +9000,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
@@ -9010,9 +9010,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9025,11 +9025,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9042,11 +9042,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9059,11 +9059,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9076,11 +9076,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9093,11 +9093,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9110,11 +9110,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9127,11 +9127,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9144,11 +9144,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9161,11 +9161,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9178,11 +9178,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9195,11 +9195,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9212,11 +9212,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9229,11 +9229,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9246,11 +9246,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9263,11 +9263,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9280,11 +9280,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9296,12 +9296,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9313,12 +9313,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9330,12 +9330,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9347,12 +9347,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9364,12 +9364,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9381,12 +9381,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9398,12 +9398,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9415,12 +9415,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9432,12 +9432,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9449,12 +9449,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9466,12 +9466,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9483,12 +9483,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9500,12 +9500,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9517,12 +9517,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9534,12 +9534,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9551,12 +9551,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -9564,12 +9564,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
@@ -9581,12 +9581,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
@@ -9598,12 +9598,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
@@ -9615,12 +9615,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
@@ -9632,12 +9632,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
@@ -9649,12 +9649,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
@@ -9666,12 +9666,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
@@ -9683,12 +9683,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
@@ -9700,12 +9700,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
@@ -9717,12 +9717,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
@@ -9734,12 +9734,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
@@ -9751,12 +9751,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
@@ -9768,12 +9768,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
@@ -9785,12 +9785,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
@@ -9802,12 +9802,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
@@ -9819,12 +9819,12 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
@@ -9836,11 +9836,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
@@ -9853,11 +9853,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
@@ -9870,11 +9870,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
@@ -9887,11 +9887,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
@@ -9904,11 +9904,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
@@ -9921,11 +9921,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
@@ -9938,11 +9938,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
@@ -9955,11 +9955,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
@@ -9972,11 +9972,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
@@ -9989,11 +9989,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
@@ -10006,11 +10006,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
@@ -10023,11 +10023,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
@@ -10040,11 +10040,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
@@ -10057,11 +10057,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
@@ -10074,11 +10074,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
@@ -10091,11 +10091,11 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
@@ -10110,17 +10110,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 15},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10130,17 +10130,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 14},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10150,17 +10150,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 13},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10170,17 +10170,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 12},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10190,17 +10190,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 11},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10210,17 +10210,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 10},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10230,17 +10230,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 9},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10250,17 +10250,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 8},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10270,17 +10270,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 7},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10290,17 +10290,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 6},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10310,17 +10310,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 5},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10330,17 +10330,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 4},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10350,17 +10350,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 3},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10370,17 +10370,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 2},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10390,17 +10390,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10410,17 +10410,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					{
 						{ID: 351, Metadata: 0},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10428,17 +10428,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 						{ID: 351, Metadata: 15},
 					},
@@ -10448,17 +10448,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 						{ID: 351, Metadata: 14},
 					},
@@ -10468,17 +10468,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 						{ID: 351, Metadata: 13},
 					},
@@ -10488,17 +10488,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 						{ID: 351, Metadata: 12},
 					},
@@ -10508,17 +10508,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 						{ID: 351, Metadata: 11},
 					},
@@ -10528,17 +10528,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 						{ID: 351, Metadata: 10},
 					},
@@ -10548,17 +10548,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 						{ID: 351, Metadata: 9},
 					},
@@ -10568,17 +10568,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 						{ID: 351, Metadata: 8},
 					},
@@ -10588,17 +10588,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 						{ID: 351, Metadata: 7},
 					},
@@ -10608,17 +10608,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 						{ID: 351, Metadata: 6},
 					},
@@ -10628,17 +10628,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 						{ID: 351, Metadata: 5},
 					},
@@ -10648,17 +10648,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 						{ID: 351, Metadata: 4},
 					},
@@ -10668,17 +10668,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 						{ID: 351, Metadata: 3},
 					},
@@ -10688,17 +10688,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 						{ID: 351, Metadata: 2},
 					},
@@ -10708,17 +10708,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 						{ID: 351, Metadata: 1},
 					},
@@ -10728,17 +10728,17 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 						{ID: 351, Metadata: 0},
 					},
@@ -10758,9 +10758,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10778,9 +10778,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10798,9 +10798,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10818,9 +10818,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10838,9 +10838,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10858,9 +10858,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10878,9 +10878,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10898,9 +10898,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10918,9 +10918,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10938,9 +10938,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10958,9 +10958,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10978,9 +10978,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -10998,9 +10998,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11018,9 +11018,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11038,9 +11038,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11058,9 +11058,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11068,9 +11068,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
@@ -11088,9 +11088,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
@@ -11108,9 +11108,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
@@ -11128,9 +11128,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
@@ -11148,9 +11148,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
@@ -11168,9 +11168,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
@@ -11188,9 +11188,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
@@ -11208,9 +11208,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
@@ -11228,9 +11228,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
@@ -11248,9 +11248,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
@@ -11268,9 +11268,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
@@ -11288,9 +11288,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
@@ -11308,9 +11308,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
@@ -11328,9 +11328,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
@@ -11348,9 +11348,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
@@ -11368,9 +11368,9 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
@@ -11389,7 +11389,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11398,7 +11398,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11407,7 +11407,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11416,7 +11416,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11425,7 +11425,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11434,7 +11434,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11443,7 +11443,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11452,7 +11452,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11461,7 +11461,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11470,7 +11470,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11479,7 +11479,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11488,7 +11488,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11497,7 +11497,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11506,7 +11506,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11515,7 +11515,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11524,7 +11524,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11532,7 +11532,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 				},
@@ -11541,7 +11541,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 				},
@@ -11550,7 +11550,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 				},
@@ -11559,7 +11559,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 				},
@@ -11568,7 +11568,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 				},
@@ -11577,7 +11577,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 				},
@@ -11586,7 +11586,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 				},
@@ -11595,7 +11595,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 				},
@@ -11604,7 +11604,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 				},
@@ -11613,7 +11613,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 				},
@@ -11622,7 +11622,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 				},
@@ -11631,7 +11631,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 				},
@@ -11640,7 +11640,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 				},
@@ -11649,7 +11649,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 				},
@@ -11658,7 +11658,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 				},
@@ -11667,7 +11667,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 				},
@@ -11677,15 +11677,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11694,15 +11694,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11711,15 +11711,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11728,15 +11728,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11745,15 +11745,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11762,15 +11762,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11779,15 +11779,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11796,15 +11796,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11813,15 +11813,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11830,15 +11830,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11847,15 +11847,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11864,15 +11864,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11881,15 +11881,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11898,15 +11898,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11915,15 +11915,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11932,15 +11932,15 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11948,16 +11948,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11965,16 +11965,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11982,16 +11982,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -11999,16 +11999,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12016,16 +12016,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12033,16 +12033,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12050,16 +12050,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12067,16 +12067,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12084,16 +12084,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12101,16 +12101,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12118,16 +12118,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12135,16 +12135,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12152,16 +12152,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12169,16 +12169,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12186,16 +12186,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12203,16 +12203,16 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12220,13 +12220,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 				},
@@ -12235,13 +12235,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 				},
@@ -12250,13 +12250,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 				},
@@ -12265,13 +12265,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 				},
@@ -12280,13 +12280,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 				},
@@ -12295,13 +12295,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 				},
@@ -12310,13 +12310,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 				},
@@ -12325,13 +12325,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 				},
@@ -12340,13 +12340,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 				},
@@ -12355,13 +12355,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 				},
@@ -12370,13 +12370,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 				},
@@ -12385,13 +12385,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 				},
@@ -12400,13 +12400,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 				},
@@ -12415,13 +12415,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 				},
@@ -12430,13 +12430,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 				},
@@ -12445,13 +12445,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 				},
@@ -12461,18 +12461,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12481,18 +12481,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12501,18 +12501,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12521,18 +12521,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12541,18 +12541,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12561,18 +12561,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12581,18 +12581,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12601,18 +12601,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12621,18 +12621,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12641,18 +12641,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12661,18 +12661,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12681,18 +12681,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12701,18 +12701,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12721,18 +12721,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12741,18 +12741,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12761,18 +12761,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12781,13 +12781,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12796,13 +12796,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12811,13 +12811,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12826,13 +12826,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12841,13 +12841,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12856,13 +12856,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12871,13 +12871,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12886,13 +12886,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12901,13 +12901,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12916,13 +12916,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12931,13 +12931,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12946,13 +12946,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12961,13 +12961,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12976,13 +12976,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -12991,13 +12991,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13006,13 +13006,13 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13020,19 +13020,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13040,19 +13040,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13060,19 +13060,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13080,19 +13080,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13100,19 +13100,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13120,19 +13120,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13140,19 +13140,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13160,19 +13160,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13180,19 +13180,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13200,19 +13200,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13220,19 +13220,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13240,19 +13240,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13260,19 +13260,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13280,19 +13280,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13300,19 +13300,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13320,19 +13320,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
-						{ID: 425, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
+						{ID: 425, Metadata: -1},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13343,7 +13343,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13354,7 +13354,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13365,7 +13365,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13376,7 +13376,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13387,7 +13387,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13398,7 +13398,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13409,7 +13409,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13420,7 +13420,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13431,7 +13431,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13442,7 +13442,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13453,7 +13453,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13464,7 +13464,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13475,7 +13475,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13486,7 +13486,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13497,7 +13497,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13508,7 +13508,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13516,19 +13516,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13536,19 +13536,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13556,19 +13556,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13576,19 +13576,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13596,19 +13596,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13616,19 +13616,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13636,19 +13636,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13656,19 +13656,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13676,19 +13676,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13696,19 +13696,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13716,19 +13716,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13736,19 +13736,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13756,19 +13756,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13776,19 +13776,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13796,19 +13796,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13816,19 +13816,19 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -13842,7 +13842,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
@@ -13862,7 +13862,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
@@ -13882,7 +13882,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
@@ -13902,7 +13902,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
@@ -13922,7 +13922,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
@@ -13942,7 +13942,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
@@ -13962,7 +13962,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
@@ -13982,7 +13982,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
@@ -14002,7 +14002,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
@@ -14022,7 +14022,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
@@ -14042,7 +14042,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
@@ -14062,7 +14062,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
@@ -14082,7 +14082,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
@@ -14102,7 +14102,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
@@ -14122,7 +14122,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
@@ -14142,7 +14142,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
@@ -14155,271 +14155,271 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
-					{ID: 425, Metadata: 0},
+					{ID: 106, Metadata: -1},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 15},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 14},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 13},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 12},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 11},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 10},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 9},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 8},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 7},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 6},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 5},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 4},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 3},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 2},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 1},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 106, Metadata: 0},
+					{ID: 106, Metadata: -1},
 					{ID: 351, Metadata: 0},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
-					{ID: 425, Metadata: 0},
+					{ID: 45, Metadata: -1},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 15},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 14},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 13},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 12},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 11},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 10},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 9},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 8},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 7},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 6},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 5},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 4},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 3},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 2},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 1},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
-					{ID: 45, Metadata: 0},
+					{ID: 45, Metadata: -1},
 					{ID: 351, Metadata: 0},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -14427,18 +14427,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14447,18 +14447,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14467,18 +14467,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14487,18 +14487,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14507,18 +14507,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14527,18 +14527,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14547,18 +14547,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14567,18 +14567,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14587,18 +14587,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14607,18 +14607,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14627,18 +14627,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14647,18 +14647,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14667,18 +14667,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14687,18 +14687,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14707,18 +14707,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14727,18 +14727,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				InShape: [][]gamedata.Ingredient{
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
@@ -14746,18 +14746,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 15},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 15},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 15},
 					},
 				},
@@ -14766,18 +14766,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 14},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 14},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 14},
 					},
 				},
@@ -14786,18 +14786,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 13},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 13},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 13},
 					},
 				},
@@ -14806,18 +14806,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 12},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 12},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 12},
 					},
 				},
@@ -14826,18 +14826,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 11},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 11},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 11},
 					},
 				},
@@ -14846,18 +14846,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 10},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 10},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 10},
 					},
 				},
@@ -14866,18 +14866,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 9},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 9},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 9},
 					},
 				},
@@ -14886,18 +14886,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 8},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 8},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 8},
 					},
 				},
@@ -14906,18 +14906,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 7},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 7},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 7},
 					},
 				},
@@ -14926,18 +14926,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 6},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 6},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 6},
 					},
 				},
@@ -14946,18 +14946,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 5},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 5},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 5},
 					},
 				},
@@ -14966,18 +14966,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 4},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 4},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 4},
 					},
 				},
@@ -14986,18 +14986,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 3},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 3},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 3},
 					},
 				},
@@ -15006,18 +15006,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 2},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 2},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 2},
 					},
 				},
@@ -15026,18 +15026,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 1},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 1},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 1},
 					},
 				},
@@ -15046,18 +15046,18 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				InShape: [][]gamedata.Ingredient{
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 						{ID: 351, Metadata: 0},
-						{ID: 0, Metadata: 0},
+						{ID: 0, Metadata: -1},
 					},
 					{
 						{ID: 351, Metadata: 0},
-						{ID: 425, Metadata: 0},
+						{ID: 425, Metadata: -1},
 						{ID: 351, Metadata: 0},
 					},
 				},
@@ -15066,7 +15066,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 			{
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15074,7 +15074,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 15},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15082,7 +15082,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 14},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15090,7 +15090,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 13},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15098,7 +15098,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 12},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15106,7 +15106,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 11},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15114,7 +15114,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 10},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15122,7 +15122,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 9},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15130,7 +15130,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 8},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15138,7 +15138,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 7},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15146,7 +15146,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 6},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15154,7 +15154,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 5},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15162,7 +15162,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 4},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15170,7 +15170,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 3},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15178,7 +15178,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 2},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15186,7 +15186,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 1},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15194,14 +15194,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 4},
 					{ID: 351, Metadata: 0},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15209,7 +15209,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 15},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15217,7 +15217,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 14},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15225,7 +15225,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 13},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15233,7 +15233,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 12},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15241,7 +15241,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 11},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15249,7 +15249,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 10},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15257,7 +15257,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 9},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15265,7 +15265,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 8},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15273,7 +15273,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 7},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15281,7 +15281,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 6},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15289,7 +15289,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 5},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15297,7 +15297,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 4},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15305,7 +15305,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 3},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15313,7 +15313,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 2},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15321,7 +15321,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 1},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15329,14 +15329,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 397, Metadata: 1},
 					{ID: 351, Metadata: 0},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15344,7 +15344,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 15},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15352,7 +15352,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 14},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15360,7 +15360,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 13},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15368,7 +15368,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 12},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15376,7 +15376,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 11},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15384,7 +15384,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 10},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15392,7 +15392,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 9},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15400,7 +15400,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 8},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15408,7 +15408,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 7},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15416,7 +15416,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 6},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15424,7 +15424,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 5},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15432,7 +15432,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 4},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15440,7 +15440,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 3},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15448,7 +15448,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 2},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15456,7 +15456,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 1},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15464,14 +15464,14 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 38, Metadata: 8},
 					{ID: 351, Metadata: 0},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
 			{
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15479,7 +15479,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 15},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15487,7 +15487,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 14},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15495,7 +15495,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 13},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15503,7 +15503,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 12},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15511,7 +15511,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 11},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15519,7 +15519,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 10},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15527,7 +15527,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 9},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15535,7 +15535,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 8},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15543,7 +15543,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 7},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15551,7 +15551,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 6},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15559,7 +15559,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 5},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15567,7 +15567,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 4},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15575,7 +15575,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 3},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15583,7 +15583,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 2},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15591,7 +15591,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 1},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},
@@ -15599,7 +15599,7 @@ func newRecipeRegistry() gamedata.RecipeRegistry {
 				Ingredients: []gamedata.Ingredient{
 					{ID: 322, Metadata: 1},
 					{ID: 351, Metadata: 0},
-					{ID: 425, Metadata: 0},
+					{ID: 425, Metadata: -1},
 				},
 				Result: gamedata.RecipeResult{ID: 425, Count: 1, Metadata: 0},
 			},

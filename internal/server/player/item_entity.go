@@ -19,9 +19,9 @@ type ItemEntity struct {
 }
 
 // SpawnItemEntity creates and broadcasts a dropped item entity.
-// groundAt returns the ground-level Y at a given block (x, z) coordinate,
+// groundAt returns the ground-level Y below a given block position (x, y, z),
 // used to estimate where the item will land for pickup distance checks.
-func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, yaw float32, groundAt func(x, z int) float64) {
+func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, yaw float32, groundAt func(x, y, z int) float64) {
 	entityID := m.AllocateEntityID()
 
 	// Calculate throw velocity based on player's yaw (vanilla: 0.3 blocks/tick horizontal, 0.1 up).
@@ -98,7 +98,9 @@ const (
 	itemExpiryTicks int64 = 6000
 
 	// pickupRadius is the distance (in blocks) within which a player can pick up items.
-	pickupRadius = 1.5
+	// Larger than vanilla (1.0) to compensate for estimated landing positions
+	// (server doesn't tick item physics, so positions may differ from client).
+	pickupRadius = 2.5
 )
 
 // TryPickupItems checks for item entities near the player, attempts to add them
@@ -257,9 +259,9 @@ func buildSpawnEntityDataAt(ie *ItemEntity, spawnX, spawnY, spawnZ float64) []by
 
 // estimateLanding approximates where an item entity will land by simulating
 // vanilla entity physics (gravity before move, drag after) for up to 4 seconds.
-// groundAt returns the ground-level Y at a given block (x, z) coordinate so
-// the simulation accounts for terrain height changes along the trajectory.
-func estimateLanding(x, y, z float64, velX, velY, velZ int16, groundAt func(x, z int) float64) (float64, float64, float64) {
+// groundAt returns the ground-level Y below a given block (x, y, z) position so
+// the simulation finds the correct floor even inside caves.
+func estimateLanding(x, y, z float64, velX, velY, velZ int16, groundAt func(x, y, z int) float64) (float64, float64, float64) {
 	const (
 		gravity  = 0.04 // blocks/tick² downward
 		drag     = 0.98 // velocity multiplier per tick
@@ -272,6 +274,10 @@ func estimateLanding(x, y, z float64, velX, velY, velZ int16, groundAt func(x, z
 
 	px, py, pz := x, y, z
 	for range maxTicks {
+		// Save pre-move Y so we scan ground from above the surface
+		// even if the item falls past it in one tick.
+		prevPY := py
+
 		// Vanilla order: gravity → move → drag.
 		vy -= gravity
 		px += vx
@@ -280,8 +286,9 @@ func estimateLanding(x, y, z float64, velX, velY, velZ int16, groundAt func(x, z
 		vx *= drag
 		vy *= drag
 		vz *= drag
-		// Check ground level at the current XZ position.
-		groundY := groundAt(int(math.Floor(px)), int(math.Floor(pz)))
+		// Check ground level from the pre-move Y to avoid missing
+		// the surface when the item falls through it in a single tick.
+		groundY := groundAt(int(math.Floor(px)), int(math.Floor(prevPY))+1, int(math.Floor(pz)))
 		if vy < 0 && py <= groundY {
 			py = groundY
 			break

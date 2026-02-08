@@ -19,6 +19,7 @@ type Config struct {
 	GeneratorType   string `json:"generator_type"`    // "default" or "flat"
 	WorldRadius     int    `json:"world_radius"`      // world boundary in chunks (0 = infinite)
 	AutoSaveMinutes int    `json:"auto_save_minutes"` // auto-save interval in minutes (0 = disabled)
+	MaxBuildHeight  int    `json:"max_build_height"`  // maximum Y axis (default 256)
 
 	// RSA keypair for online-mode encryption handshake.
 	PrivateKey   *rsa.PrivateKey `json:"-"`
@@ -36,6 +37,7 @@ func DefaultConfig() *Config {
 		GeneratorType:   GeneratorDefault,
 		AutoSaveMinutes: 5,
 		WorldRadius:     500,
+		MaxBuildHeight:  256,
 	}
 }
 
@@ -69,5 +71,8 @@ func Merge(cfg *Config, fromFile *Config, explicitFlags map[string]bool) {
 	}
 	if !explicitFlags["auto-save"] {
 		cfg.AutoSaveMinutes = fromFile.AutoSaveMinutes
+	}
+	if !explicitFlags["max-build-height"] {
+		cfg.MaxBuildHeight = fromFile.MaxBuildHeight
 	}
 }

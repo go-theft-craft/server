@@ -9,7 +9,6 @@ import (
 
 	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
 	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/packet"
 )
 
 // Manager tracks all connected players and handles entity visibility.
@@ -379,11 +378,24 @@ func buildPlayerInfoAdd(p *Player) []byte {
 		}
 	}
 
-	_, _ = mcnet.WriteVarInt(&buf, int32(packet.GameModeCreative)) // gamemode
-	_, _ = mcnet.WriteVarInt(&buf, 0)                              // ping
-	buf.WriteByte(0)                                               // no display name
+	_, _ = mcnet.WriteVarInt(&buf, int32(p.GetGameMode())) // gamemode
+	_, _ = mcnet.WriteVarInt(&buf, 0)                      // ping
+	buf.WriteByte(0)                                       // no display name
 
 	return buf.Bytes()
+}
+
+// BroadcastGameMode sends a PlayerInfo Update Gamemode packet to all players.
+func (m *Manager) BroadcastGameMode(p *Player) {
+	var buf bytes.Buffer
+
+	_, _ = mcnet.WriteVarInt(&buf, 1) // action: Update Gamemode
+	_, _ = mcnet.WriteVarInt(&buf, 1) // count: 1
+	buf.Write(p.UUIDBytes[:])
+	_, _ = mcnet.WriteVarInt(&buf, int32(p.GetGameMode()))
+
+	data := buf.Bytes()
+	m.Broadcast(&pkt.PlayerInfo{Data: data})
 }
 
 // buildPlayerInfoRemove builds a PlayerInfo packet data with action=4 (Remove Player).

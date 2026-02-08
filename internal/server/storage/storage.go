@@ -91,6 +91,53 @@ func (s *Storage) SaveWorld(w *world.World) error {
 	return s.atomicWriteJSON(path, &wd)
 }
 
+// HasSavedWorld returns true if the world was previously saved to disk.
+func (s *Storage) HasSavedWorld() bool {
+	path := filepath.Join(s.dir, "world", "world.json")
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+// SaveBlockOverrides writes the block overrides map to world/overrides.json.
+func (s *Storage) SaveBlockOverrides(w *world.World) error {
+	overrides := w.GetBlockOverrides()
+	entries := make([]BlockOverrideEntry, 0, len(overrides))
+	for pos, stateID := range overrides {
+		entries = append(entries, BlockOverrideEntry{
+			X: pos.X, Y: pos.Y, Z: pos.Z, StateID: stateID,
+		})
+	}
+
+	path := filepath.Join(s.dir, "world", "overrides.json")
+	return s.atomicWriteJSON(path, entries)
+}
+
+// LoadBlockOverrides reads world/overrides.json and restores block overrides.
+func (s *Storage) LoadBlockOverrides(w *world.World) error {
+	path := filepath.Join(s.dir, "world", "overrides.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("read block overrides: %w", err)
+	}
+
+	var entries []BlockOverrideEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return fmt.Errorf("parse block overrides: %w", err)
+	}
+
+	overrides := make(map[world.BlockPos]int32, len(entries))
+	for _, e := range entries {
+		overrides[world.BlockPos{X: e.X, Y: e.Y, Z: e.Z}] = e.StateID
+	}
+
+	w.SetBlockOverrides(overrides)
+	s.log.Info("loaded block overrides", "count", len(overrides))
+	return nil
+}
+
 // SaveWorldAnvil writes the world in Minecraft's Anvil region file format (.mca).
 func (s *Storage) SaveWorldAnvil(w *world.World) error {
 	regionDir := filepath.Join(s.dir, "world", "region")

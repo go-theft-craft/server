@@ -390,7 +390,7 @@ func loadRecipes(raw []byte) ([]recipeTmplEntry, error) {
 			ingredients := make([]ingredientTmpl, len(r.Ingredients))
 			for j, ing := range r.Ingredients {
 				parsed := schema.ParseIngredient(ing)
-				ingredients[j] = ingredientTmpl{ID: parsed.ID, Metadata: parsed.Metadata}
+				ingredients[j] = ingredientTmpl{ID: parsed.ID, Metadata: fixLogMeta(parsed)}
 			}
 
 			inShape := make([][]ingredientTmpl, len(r.InShape))
@@ -398,7 +398,7 @@ func loadRecipes(raw []byte) ([]recipeTmplEntry, error) {
 				inShape[j] = make([]ingredientTmpl, len(row))
 				for k, cell := range row {
 					parsed := schema.ParseIngredient(cell)
-					inShape[j][k] = ingredientTmpl{ID: parsed.ID, Metadata: parsed.Metadata}
+					inShape[j][k] = ingredientTmpl{ID: parsed.ID, Metadata: fixLogMeta(parsed)}
 				}
 			}
 
@@ -417,6 +417,17 @@ func loadRecipes(raw []byte) ([]recipeTmplEntry, error) {
 	})
 
 	return result, nil
+}
+
+// fixLogMeta strips log orientation bits from PrismarineJS recipe metadata.
+// PrismarineJS uses bark-variant metadata (12-15) for log ingredients, but
+// dropped logs in gameplay have simple type metadata (0-3). Strip the upper
+// orientation bits so recipes match items players actually have.
+func fixLogMeta(ing schema.RecipeIngredient) int {
+	if (ing.ID == 17 || ing.ID == 162) && ing.Metadata >= 4 {
+		return ing.Metadata & 0x3
+	}
+	return ing.Metadata
 }
 
 // Collision Shapes

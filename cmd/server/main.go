@@ -30,6 +30,7 @@ func main() {
 	flag.StringVar(&cfg.GeneratorType, "generator", cfg.GeneratorType, "world generator type (default, flat)")
 	flag.IntVar(&cfg.WorldRadius, "world-radius", cfg.WorldRadius, "world radius in chunks (0 = infinite)")
 	flag.IntVar(&cfg.AutoSaveMinutes, "auto-save", cfg.AutoSaveMinutes, "auto-save interval in minutes (0 = disabled)")
+	flag.IntVar(&cfg.MaxBuildHeight, "max-build-height", cfg.MaxBuildHeight, "maximum Y axis (default 256)")
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))

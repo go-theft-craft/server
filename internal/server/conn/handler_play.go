@@ -589,7 +589,7 @@ func (c *Connection) handleBlockDig(data []byte) error {
 
 		if !dropped.IsEmpty() {
 			pos := c.self.GetPosition()
-			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.playerGroundY(pos))
+			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
 		}
 
 		// Sync the held slot back to the client so the UI updates.
@@ -642,9 +642,12 @@ func (c *Connection) breakBlock(x, y, z int, posVal int64) {
 
 // findGroundLevel scans downward from startY to find the first non-air block,
 // returning the Y coordinate where an item would rest (top of that block).
-// Capped at 64 blocks scan depth.
 func (c *Connection) findGroundLevel(x, startY, z int) int {
-	for y := startY - 1; y >= startY-64 && y >= 0; y-- {
+	maxY := c.cfg.MaxBuildHeight
+	if startY > maxY {
+		startY = maxY
+	}
+	for y := startY - 1; y >= 0; y-- {
 		if c.world.GetBlock(x, y, z) != 0 {
 			return y + 1
 		}
@@ -657,12 +660,12 @@ func (c *Connection) playerGroundY(pos player.Position) float64 {
 	return float64(c.findGroundLevel(int(math.Floor(pos.X)), int(pos.Y), int(math.Floor(pos.Z))))
 }
 
-// groundAtFunc returns a callback that finds the ground level at any (x, z) block position.
-// The scan starts from the player's current Y level.
-func (c *Connection) groundAtFunc() func(x, z int) float64 {
-	startY := int(c.self.GetPosition().Y)
-	return func(x, z int) float64 {
-		return float64(c.findGroundLevel(x, startY+10, z))
+// groundAtFunc returns a callback that finds the ground level below a given (x, y, z)
+// block position. Scans downward from the item's current Y so it correctly finds
+// cave floors instead of landing on ceilings or terrain far above the player.
+func (c *Connection) groundAtFunc() func(x, y, z int) float64 {
+	return func(x, y, z int) float64 {
+		return float64(c.findGroundLevel(x, y, z))
 	}
 }
 
@@ -697,6 +700,15 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 
 	// Special position -1,-1,-1 means the player is using an item (not placing a block).
 	if posVal == -1 {
+		// Try to equip armor from hotbar via right-click.
+		if armorProtoSlot := armorSlotForItem(slot.BlockID); armorProtoSlot >= 0 {
+			heldIdx := int16(36) + int16(c.self.Inventory.GetHeldSlot())
+			heldItem := c.getWindowSlot(heldIdx)
+			armorItem := c.getWindowSlot(armorProtoSlot)
+			c.setWindowSlot(armorProtoSlot, heldItem)
+			c.setWindowSlot(heldIdx, armorItem)
+			_ = c.sendWindowItems()
+		}
 		return nil
 	}
 

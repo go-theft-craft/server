@@ -182,3 +182,22 @@ func (w *World) SetTime(age, timeOfDay int64) {
 	w.age = age
 	w.timeOfDay = timeOfDay
 }
+
+// GetBlockOverrides returns a copy of all block overrides (used for persistence).
+func (w *World) GetBlockOverrides() map[BlockPos]int32 {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+
+	result := make(map[BlockPos]int32, len(w.blocks))
+	for k, v := range w.blocks {
+		result[k] = v
+	}
+	return result
+}
+
+// SetBlockOverrides replaces all block overrides (used when loading from storage).
+func (w *World) SetBlockOverrides(overrides map[BlockPos]int32) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.blocks = overrides
+}

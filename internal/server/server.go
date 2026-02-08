@@ -51,10 +51,13 @@ func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) *Server {
 
 // Start begins listening for connections and blocks until the context is cancelled.
 func (s *Server) Start(ctx context.Context) error {
-	// Load saved world data (time).
+	// Load saved world data (time + block overrides).
 	if s.storage != nil {
 		if err := s.storage.LoadWorld(s.world); err != nil {
 			s.log.Error("failed to load world data", "error", err)
+		}
+		if err := s.storage.LoadBlockOverrides(s.world); err != nil {
+			s.log.Error("failed to load block overrides", "error", err)
 		}
 	}
 
@@ -68,10 +71,14 @@ func (s *Server) Start(ctx context.Context) error {
 	defer listener.Close()
 
 	if s.cfg.WorldRadius > 0 {
-		total := (2*s.cfg.WorldRadius + 1) * (2*s.cfg.WorldRadius + 1)
-		s.log.Info("pre-generating world", "radius", s.cfg.WorldRadius, "chunks", total)
-		s.world.PreGenerateRadius(s.cfg.WorldRadius)
-		s.log.Info("world pre-generation complete")
+		if s.storage != nil && s.storage.HasSavedWorld() {
+			s.log.Info("world already saved, skipping pre-generation")
+		} else {
+			total := (2*s.cfg.WorldRadius + 1) * (2*s.cfg.WorldRadius + 1)
+			s.log.Info("pre-generating world", "radius", s.cfg.WorldRadius, "chunks", total)
+			s.world.PreGenerateRadius(s.cfg.WorldRadius)
+			s.log.Info("world pre-generation complete")
+		}
 	}
 
 	s.log.Info("server started",
@@ -171,6 +178,12 @@ func (s *Server) saveAll() {
 		s.log.Error("auto-save world failed", "error", err)
 	} else {
 		s.log.Info("world saved")
+	}
+
+	if err := s.storage.SaveBlockOverrides(s.world); err != nil {
+		s.log.Error("auto-save block overrides failed", "error", err)
+	} else {
+		s.log.Info("block overrides saved")
 	}
 
 	if err := s.storage.SaveWorldAnvil(s.world); err != nil {

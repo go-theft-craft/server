@@ -671,11 +671,11 @@ func (c *Connection) handleCloseWindow(data []byte) error {
 	// Return crafting grid items to inventory or drop them.
 	pos := c.self.GetPosition()
 	groundAt := c.groundAtFunc()
-	for i := 0; i < 4; i++ {
+	for i := 0; i < slotCraftCount; i++ {
 		if c.craftingGrid[i].IsEmpty() {
 			continue
 		}
-		if !c.tryAddToSection(c.craftingGrid[i], 9, 44) {
+		if !c.tryAddToSection(c.craftingGrid[i], slotMainStart, slotHotbarEnd) {
 			// Inventory full, drop the item.
 			c.players.SpawnItemEntity(c.self.EntityID, c.craftingGrid[i], pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
 		}
@@ -723,16 +723,16 @@ func armorSlotForItem(blockID int16) int16 {
 	switch blockID {
 	// Helmets
 	case 298, 302, 306, 310, 314:
-		return 5
+		return slotHelmet
 	// Chestplates
 	case 299, 303, 307, 311, 315:
-		return 6
+		return slotChestplate
 	// Leggings
 	case 300, 304, 308, 312, 316:
-		return 7
+		return slotLeggings
 	// Boots
 	case 301, 305, 309, 313, 317:
-		return 8
+		return slotBoots
 	default:
 		return -1
 	}
@@ -740,7 +740,7 @@ func armorSlotForItem(blockID int16) int16 {
 
 // consumeCraftingIngredients removes one item from each occupied crafting grid slot.
 func (c *Connection) consumeCraftingIngredients() {
-	for i := 0; i < 4; i++ {
+	for i := 0; i < slotCraftCount; i++ {
 		if c.craftingGrid[i].IsEmpty() {
 			continue
 		}
@@ -751,11 +751,11 @@ func (c *Connection) consumeCraftingIngredients() {
 	}
 }
 
-// updateCraftingOutput checks the crafting grid against recipes and updates slot 0.
+// updateCraftingOutput checks the crafting grid against recipes and updates the output slot.
 func (c *Connection) updateCraftingOutput() {
 	result := c.matchCraftingRecipe()
 	c.craftingOutput = result
-	_ = c.sendSetSlot(0, 0, result)
+	_ = c.sendSetSlot(0, slotCraftOutput, result)
 }
 
 // matchCraftingRecipe tries to match the 2x2 crafting grid against known recipes.
@@ -763,7 +763,7 @@ func (c *Connection) updateCraftingOutput() {
 func (c *Connection) matchCraftingRecipe() player.Slot {
 	// Check if crafting grid is empty.
 	allEmpty := true
-	for i := 0; i < 4; i++ {
+	for i := 0; i < slotCraftCount; i++ {
 		if !c.craftingGrid[i].IsEmpty() {
 			allEmpty = false
 			break

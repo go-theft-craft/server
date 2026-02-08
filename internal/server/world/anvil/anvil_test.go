@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/internal/server/world"
+	"github.com/go-theft-craft/server/internal/server/world/gen"
 )
 
 func TestSetNibble(t *testing.T) {

@@ -9,4 +9,4 @@ tasks:
   codegen:
     desc: Generate Go code from Minecraft schemas
     cmds:
-      - go run ./cmd/codegen -scheme ./scheme/pc-1.8 -out ./internal/gamedata/versions
+      - go run ./cmd/codegen -scheme ./scheme/pc-1.8 -out ./pkg/gamedata/versions

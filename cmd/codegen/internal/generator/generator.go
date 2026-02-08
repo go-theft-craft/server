@@ -12,7 +12,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/OCharnyshevich/minecraft-server/cmd/codegen/internal/schema"
+	"github.com/go-theft-craft/server/cmd/codegen/internal/schema"
 )
 
 //go:embed templates/*.tmpl

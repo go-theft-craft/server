@@ -1,8 +1,8 @@
 package conn
 
 import (
-	"github.com/OCharnyshevich/minecraft-server/internal/gamedata"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
+	"github.com/go-theft-craft/server/pkg/gamedata"
+	"github.com/go-theft-craft/server/internal/server/player"
 )
 
 // matchRecipe2x2 tries to match a 2x2 crafting grid against all known recipes.

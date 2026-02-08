@@ -3,7 +3,7 @@ package player
 import (
 	"bytes"
 
-	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
+	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
 // Metadata type IDs for MC 1.8 entity metadata format.

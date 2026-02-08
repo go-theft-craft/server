@@ -4,7 +4,7 @@ import (
 	"math"
 	"sync"
 
-	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // SkinProperty holds a single Mojang skin/cape property.

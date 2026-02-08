@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"testing"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/internal/server/world/gen"
 )
 
 func TestEncodeChunkFlatGenerator(t *testing.T) {

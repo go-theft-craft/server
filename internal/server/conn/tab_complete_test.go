@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
+	"github.com/go-theft-craft/server/internal/server/player"
 )
 
 func testManager(names ...string) *player.Manager {

@@ -3,7 +3,7 @@ package world
 import (
 	"encoding/binary"
 
-	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
+	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
 const (

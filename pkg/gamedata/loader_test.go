@@ -3,7 +3,7 @@ package gamedata_test
 import (
 	"testing"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/gamedata"
+	"github.com/go-theft-craft/server/pkg/gamedata"
 )
 
 func TestLoad_UnknownVersion(t *testing.T) {

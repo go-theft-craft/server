@@ -5,8 +5,8 @@ import (
 	"encoding/binary"
 	"math"
 
-	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
-	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
+	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // ItemEntity represents a dropped item in the world.

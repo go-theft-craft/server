@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/internal/server/world/gen"
 )
 
 const (

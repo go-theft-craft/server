@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/OCharnyshevich/minecraft-server/cmd/codegen/internal/generator"
+	"github.com/go-theft-craft/server/cmd/codegen/internal/generator"
 )
 
 func main() {
 	schemeDir := flag.String("scheme", "", "path to the scheme directory (e.g. ./scheme/pc-1.8)")
-	outDir := flag.String("out", "./internal/gamedata/versions", "output base directory for generated packages")
+	outDir := flag.String("out", "./pkg/gamedata/versions", "output base directory for generated packages")
 	pkg := flag.String("pkg", "", "package name override (default: derived from scheme dir name)")
 
 	flag.Parse()

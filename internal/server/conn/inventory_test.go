@@ -3,7 +3,7 @@ package conn
 import (
 	"testing"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
+	"github.com/go-theft-craft/server/internal/server/player"
 )
 
 func stone(count int8) player.Slot {

@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
-	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
+	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
+	"github.com/go-theft-craft/server/internal/server/player"
 )
 
 // Player inventory window (window 0) slot layout.
@@ -103,7 +103,9 @@ func (c *Connection) handleWindowClick(data []byte) error {
 		return c.sendTransaction(0, actionID, false)
 	}
 
+	c.log.Info("window click", "slot", slotIndex, "button", button, "mode", mode, "craftOutput", c.craftingOutput, "cursor", c.cursorSlot)
 	c.dispatchClick(slotIndex, button, int(mode))
+	c.log.Info("after click", "craftOutput", c.craftingOutput, "cursor", c.cursorSlot)
 
 	// Full inventory sync so client matches server state.
 	_ = c.sendWindowItems()

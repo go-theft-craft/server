@@ -3,7 +3,7 @@ package world
 import (
 	"testing"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/internal/server/world/gen"
 )
 
 func TestWorldBaseStateFlatGenerator(t *testing.T) {

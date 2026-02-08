@@ -3,9 +3,9 @@ package anvil
 import (
 	"bytes"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/nbt"
+	"github.com/go-theft-craft/server/internal/server/world"
+	"github.com/go-theft-craft/server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/internal/server/world/nbt"
 )
 
 // EncodeChunkNBT encodes a chunk as MC 1.8 NBT format.

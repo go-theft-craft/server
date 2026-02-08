@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/gamedata"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
-	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/storage"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/pkg/gamedata"
+	"github.com/go-theft-craft/server/internal/server/config"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
+	"github.com/go-theft-craft/server/internal/server/player"
+	"github.com/go-theft-craft/server/internal/server/storage"
+	"github.com/go-theft-craft/server/internal/server/world"
+	"github.com/go-theft-craft/server/internal/server/world/gen"
 )
 
 // State represents the connection state.

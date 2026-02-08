@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // BuildEquipmentPackets builds 5 EntityEquipment (0x04) raw data payloads:

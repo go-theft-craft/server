@@ -3,7 +3,7 @@ package world
 import (
 	"sync"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/internal/server/world/gen"
 )
 
 // BlockPos represents a block position in the world.

@@ -3,8 +3,8 @@ package conn
 import (
 	"fmt"
 
-	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
-	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
+	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 func (c *Connection) handleHandshake(packetID int32, data []byte) error {

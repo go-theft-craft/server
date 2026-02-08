@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // Slot represents a Minecraft inventory slot.

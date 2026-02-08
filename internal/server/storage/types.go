@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
+	"github.com/go-theft-craft/server/internal/server/player"
 )
 
 // PlayerData is the serializable representation of a player's state.

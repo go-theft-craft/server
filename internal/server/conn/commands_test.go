@@ -6,12 +6,12 @@ import (
 	"sync"
 	"testing"
 
-	pkt "github.com/OCharnyshevich/minecraft-server/internal/gamedata/versions/pc_1_8"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
-	mcnet "github.com/OCharnyshevich/minecraft-server/internal/server/net"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
+	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	"github.com/go-theft-craft/server/internal/server/config"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
+	"github.com/go-theft-craft/server/internal/server/player"
+	"github.com/go-theft-craft/server/internal/server/world"
+	"github.com/go-theft-craft/server/internal/server/world/gen"
 )
 
 // packetRecorder captures packets written via mcnet.WritePacket.

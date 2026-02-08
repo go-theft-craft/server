@@ -7,11 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/player"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/anvil"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/internal/server/config"
+	"github.com/go-theft-craft/server/internal/server/player"
+	"github.com/go-theft-craft/server/internal/server/world"
+	"github.com/go-theft-craft/server/internal/server/world/anvil"
+	"github.com/go-theft-craft/server/internal/server/world/gen"
 )
 
 // Storage handles file-based persistence for config, world, and player data.

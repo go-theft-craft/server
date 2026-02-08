@@ -11,9 +11,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/OCharnyshevich/minecraft-server/internal/server"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/config"
-	"github.com/OCharnyshevich/minecraft-server/internal/server/storage"
+	"github.com/go-theft-craft/server/internal/server"
+	"github.com/go-theft-craft/server/internal/server/config"
+	"github.com/go-theft-craft/server/internal/server/storage"
 )
 
 func main() {

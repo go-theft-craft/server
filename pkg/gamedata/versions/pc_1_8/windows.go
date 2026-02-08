@@ -12,7 +12,7 @@ type windowRegistry struct {
 func newWindowRegistry() gamedata.WindowRegistry {
 	all := []gamedata.Window{
 		{
-			ID: "",
+			ID:   "",
 			Name: "Player",
 			Slots: []gamedata.WindowSlot{
 				{Name: "craft result", Index: 0, Size: 0},
@@ -25,7 +25,7 @@ func newWindowRegistry() gamedata.WindowRegistry {
 			},
 		},
 		{
-			ID: "EntityHorse",
+			ID:   "EntityHorse",
 			Name: "Horse",
 			Slots: []gamedata.WindowSlot{
 				{Name: "saddle", Index: 0, Size: 0},
@@ -37,7 +37,7 @@ func newWindowRegistry() gamedata.WindowRegistry {
 			},
 		},
 		{
-			ID: "minecraft:anvil",
+			ID:   "minecraft:anvil",
 			Name: "Anvil",
 			Slots: []gamedata.WindowSlot{
 				{Name: "tool", Index: 0, Size: 0},
@@ -49,7 +49,7 @@ func newWindowRegistry() gamedata.WindowRegistry {
 			},
 		},
 		{
-			ID: "minecraft:beacon",
+			ID:   "minecraft:beacon",
 			Name: "Beacon",
 			Slots: []gamedata.WindowSlot{
 				{Name: "input", Index: 0, Size: 0},
@@ -64,7 +64,7 @@ func newWindowRegistry() gamedata.WindowRegistry {
 			},
 		},
 		{
-			ID: "minecraft:brewing_stand",
+			ID:   "minecraft:brewing_stand",
 			Name: "Brewing Stand",
 			Slots: []gamedata.WindowSlot{
 				{Name: "ingredient", Index: 3, Size: 0},
@@ -78,15 +78,15 @@ func newWindowRegistry() gamedata.WindowRegistry {
 			},
 		},
 		{
-			ID: "minecraft:chest",
+			ID:   "minecraft:chest",
 			Name: "Chest",
 		},
 		{
-			ID: "minecraft:container",
+			ID:   "minecraft:container",
 			Name: "Container",
 		},
 		{
-			ID: "minecraft:crafting_table",
+			ID:   "minecraft:crafting_table",
 			Name: "Workbench",
 			Slots: []gamedata.WindowSlot{
 				{Name: "craft result", Index: 0, Size: 0},
@@ -94,15 +94,15 @@ func newWindowRegistry() gamedata.WindowRegistry {
 			},
 		},
 		{
-			ID: "minecraft:dispenser",
+			ID:   "minecraft:dispenser",
 			Name: "Dispenser",
 		},
 		{
-			ID: "minecraft:dropper",
+			ID:   "minecraft:dropper",
 			Name: "Dropper",
 		},
 		{
-			ID: "minecraft:enchanting_table",
+			ID:   "minecraft:enchanting_table",
 			Name: "Enchantment Table",
 			Slots: []gamedata.WindowSlot{
 				{Name: "enchanted", Index: 0, Size: 0},
@@ -119,7 +119,7 @@ func newWindowRegistry() gamedata.WindowRegistry {
 			},
 		},
 		{
-			ID: "minecraft:furnace",
+			ID:   "minecraft:furnace",
 			Name: "Furnace",
 			Slots: []gamedata.WindowSlot{
 				{Name: "smelted", Index: 0, Size: 0},
@@ -134,11 +134,11 @@ func newWindowRegistry() gamedata.WindowRegistry {
 			},
 		},
 		{
-			ID: "minecraft:hopper",
+			ID:   "minecraft:hopper",
 			Name: "Hopper",
 		},
 		{
-			ID: "minecraft:villager",
+			ID:   "minecraft:villager",
 			Name: "NPC Trade",
 			Slots: []gamedata.WindowSlot{
 				{Name: "give 1", Index: 0, Size: 0},
@@ -158,6 +158,9 @@ func newWindowRegistry() gamedata.WindowRegistry {
 	return &windowRegistry{byID: byID, byName: byName, all: all}
 }
 
-func (r *windowRegistry) ByID(id string) (gamedata.Window, bool)      { v, ok := r.byID[id]; return v, ok }
-func (r *windowRegistry) ByName(name string) (gamedata.Window, bool) { v, ok := r.byName[name]; return v, ok }
-func (r *windowRegistry) All() []gamedata.Window                      { return r.all }
+func (r *windowRegistry) ByID(id string) (gamedata.Window, bool) { v, ok := r.byID[id]; return v, ok }
+func (r *windowRegistry) ByName(name string) (gamedata.Window, bool) {
+	v, ok := r.byName[name]
+	return v, ok
+}
+func (r *windowRegistry) All() []gamedata.Window { return r.all }

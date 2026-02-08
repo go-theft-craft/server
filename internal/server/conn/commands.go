@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
+	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
 type command struct {

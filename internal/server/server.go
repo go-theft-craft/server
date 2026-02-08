@@ -7,14 +7,14 @@ import (
 	"net"
 	"time"
 
-	"github.com/go-theft-craft/server/pkg/gamedata"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/conn"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
-	"github.com/go-theft-craft/server/internal/server/world"
-	"github.com/go-theft-craft/server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/pkg/gamedata"
+	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	"github.com/go-theft-craft/server/pkg/world"
+	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
 // Server is the main Minecraft server that accepts TCP connections.

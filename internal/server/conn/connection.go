@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-theft-craft/server/pkg/gamedata"
 	"github.com/go-theft-craft/server/internal/server/config"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
-	"github.com/go-theft-craft/server/internal/server/world"
-	"github.com/go-theft-craft/server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/pkg/gamedata"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
+	"github.com/go-theft-craft/server/pkg/world"
+	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
 // State represents the connection state.

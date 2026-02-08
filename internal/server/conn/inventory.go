@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/go-theft-craft/server/internal/server/player"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	mcnet "github.com/go-theft-craft/server/pkg/protocol"
-	"github.com/go-theft-craft/server/internal/server/player"
 )
 
 // Player inventory window (window 0) slot layout.

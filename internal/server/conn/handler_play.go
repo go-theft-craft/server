@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-theft-craft/server/pkg/gamedata"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
-	"github.com/go-theft-craft/server/internal/server/world/gen"
+	"github.com/go-theft-craft/server/pkg/gamedata"
+	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	mcnet "github.com/go-theft-craft/server/pkg/protocol"
+	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
 func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinProperty) error {

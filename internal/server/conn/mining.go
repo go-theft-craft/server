@@ -3,8 +3,8 @@ package conn
 import (
 	"math/rand"
 
-	"github.com/go-theft-craft/server/pkg/gamedata"
 	"github.com/go-theft-craft/server/internal/server/player"
+	"github.com/go-theft-craft/server/pkg/gamedata"
 )
 
 // canHarvest returns whether the player's held tool can harvest the given block

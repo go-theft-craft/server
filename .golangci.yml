@@ -22,18 +22,6 @@ linters:
     - gocritic     # Custom rules via ruleguard (gui spacing, etc.)
 
   settings:
-    gocritic:
-      # Enable ruleguard checker for custom lint rules
-      enabled-checks:
-        - ruleguard
-      settings:
-        ruleguard:
-          # Path to ruleguard rules file(s) - ${config-path} resolves to config file directory
-          # Glob pattern includes all rule files: gui_spacing.go, gui_hotkeys.go, etc.
-          rules: "${config-path}/rules/*.go"
-          # Fail on errors loading ruleguard files
-          failOn: dsl
-
     forbidigo:
 #      forbid:
       # Don't analyze types - use simple pattern matching

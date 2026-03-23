@@ -1,10 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.13.6/.schema/devbox.schema.json",
   "packages": {
-    "go": "1.25.2",
+    "go": "1.26.1",
     "gofumpt": "0.7.0",
-    "golangci-lint": "2.3.0",
-    "gci": "0.13.6",
+    "golangci-lint": "2.11.3",
+    "gci": "0.13.7",
     "gcc": "latest",
     "libcap": "latest",
     "go-task": "latest",

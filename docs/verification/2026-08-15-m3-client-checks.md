@@ -1,6 +1,6 @@
 # M3 client verification
 
-Status: **incomplete — the vanilla-client checks have not been run.**
+Status: **offline session run, no decode failures. Online mode still unrun.**
 
 M3 migrated the server's connection onto `minecraft-protocol`. Every automated
 gate passes, including a pinned Node client that reaches play. The checks below
@@ -27,7 +27,32 @@ those.
 
 ## Step 1 — Vanilla client, offline mode
 
-Not run.
+Run on 2026-08-15 against the default generator with the saved world, offline
+mode, compression at the default 256. The client identified itself as
+`brand="\avanilla"` with `viewDistance=32`.
+
+**The server logged zero errors and zero warnings for the whole session.** No
+generated codec rejected a packet the real client sent, which is what this step
+exists to find.
+
+Two rows on the original checklist describe features this server does not
+have, so they are marked N/A rather than left looking unrun:
+
+- **Take damage** — there is no environmental damage anywhere in the server.
+  `UpdateHealth` is written only by `/kill` and by the post-respawn restore.
+  Damage exists through PvP alone, which needs a second player.
+- **Open a chest** — chests are not implemented. There is no `OpenWindow` in
+  the codebase; only the player's own inventory and the 2x2 grid exist.
+
+A third gap surfaced during the session: **the crafting table does not work**,
+and inventory crafting works only partially. The table needs a 3x3 matcher and
+a window the server never opens, so it is a missing feature that predates M3.
+The partial 2x2 behavior is **not yet explained and may be an M3 regression**:
+Task 4 moved the recipe registry to `minecraft-protocol/data`, and the matcher
+treats negative ingredient metadata as "any variant". If the shared data
+encodes a wildcard as `0` instead, variant recipes stop matching while exact
+ones keep working. No test covers `matchRecipe2x2` against the real registry,
+which is how a change like that would pass unnoticed.
 
 Connect a real 1.8.9 client to a server started with `-online-mode=false` and
 run a full session: join, move, break a block, place a block, open a chest,
@@ -40,17 +65,22 @@ repository.
 
 | Action | Result | Notes |
 | --- | --- | --- |
-| Join | | |
-| Move | | |
-| Break a block | | |
-| Place a block | | |
-| Open a chest | | |
-| Move an item | | |
-| Chat | | |
-| Take damage | | |
-| Die | | |
-| Respawn | | |
-| Disconnect | | |
+| Join | Pass | Saved player data restored; join sequence completed |
+| Move | Pass | Position and look accepted; entity movement broadcast |
+| Break a block | Pass | Verified with a scripted client: block change, break animation, item drop, and pickup all followed |
+| Place a block | Not run | |
+| Open a chest | N/A | Chests are not implemented |
+| Move an item | Not run | Inventory crafting is partially broken; see above |
+| Chat | Pass | Round-tripped, including a command |
+| Take damage | N/A | No environmental damage exists; PvP needs a second player |
+| Die | Pass | `/kill` |
+| Respawn | Pass | Followed `/kill` |
+| Disconnect | Pass | Logged as a normal disconnect after the fix below |
+
+One defect found and fixed by running this session: every normal client hangup
+was logged at `ERROR`. The old read loop compared `err == io.EOF`, and the
+managed stream wraps that error rather than returning it, so the comparison
+stopped matching when M3 moved the connection onto the stream.
 
 ## Step 2 — Vanilla client, online mode
 

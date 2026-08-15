@@ -42,7 +42,9 @@ have, so they are marked N/A rather than left looking unrun:
 - **Open a chest** — chests are not implemented. There is no `OpenWindow` in
   the codebase; only the player's own inventory and the 2x2 grid exist.
 
-A third gap surfaced during the session: **the crafting table does not work**,
+The gameplay problems this session surfaced are recorded separately in
+[the session findings](2026-08-15-m3-session-findings.md), with what was ruled
+out for each. In short: **the crafting table does not work**,
 and inventory crafting works only partially. The table needs a 3x3 matcher and
 a window the server never opens, so it is a missing feature that predates M3.
 The partial 2x2 behavior is **not yet explained and may be an M3 regression**:

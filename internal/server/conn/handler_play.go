@@ -12,6 +12,7 @@ import (
 	"time"
 
 	gamedata "github.com/go-theft-craft/minecraft-protocol/data"
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
@@ -367,7 +368,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		if c.self.GetGameMode() != packet.GameModeSpectator {
 			break
 		}
-		targetUUID := formatUUID(p.Target)
+		targetUUID := java.UUID(p.Target).String()
 		target := c.players.GetByUUID(targetUUID)
 		if target != nil {
 			pos := target.GetPosition()

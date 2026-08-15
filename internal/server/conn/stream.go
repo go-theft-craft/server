@@ -74,23 +74,6 @@ type packetValue interface {
 	PacketID() int32
 }
 
-// setState moves the connection and its session to the same state.
-//
-// The session proposes a transition of its own when it decodes or encodes a
-// generated packet that implies one, but this connection still writes raw
-// payloads, which carry no value for it to inspect. Driving both explicitly
-// keeps them from diverging; Task 6 lets the handshake and login packets
-// propose their own transitions again.
-func (c *Connection) setState(next State) error {
-	c.state = next
-
-	if err := c.stream.SetState(c.ctx, c.streamState()); err != nil {
-		return fmt.Errorf("set stream state: %w", err)
-	}
-
-	return nil
-}
-
 // readPacket waits for the next packet the client sent.
 func (c *Connection) readPacket(ctx context.Context) (protocol.Packet, error) {
 	return c.stream.Read(ctx)

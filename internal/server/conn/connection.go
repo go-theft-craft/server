@@ -11,7 +11,6 @@ import (
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	"github.com/go-theft-craft/minecraft-protocol/data"
-	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
@@ -48,10 +47,6 @@ type Connection struct {
 	// Player management
 	players *player.Manager
 	self    *player.Player
-
-	// Login state (online mode)
-	loginUsername    string
-	loginVerifyToken []byte
 
 	// Chunk tracking (only accessed from Handle goroutine, no mutex needed)
 	loadedChunks map[gen.ChunkPos]struct{}
@@ -169,6 +164,12 @@ func (c *Connection) Handle() {
 }
 
 func (c *Connection) handleNextPacket() error {
+	// Login is a phase, not a packet. The acceptor owns inbound delivery for
+	// its whole duration, so the read loop hands over rather than dispatching.
+	if c.state == StateLogin {
+		return c.runLogin()
+	}
+
 	packet, err := c.readPacket(c.ctx)
 	if err != nil {
 		return err
@@ -182,8 +183,6 @@ func (c *Connection) handleNextPacket() error {
 		return c.handleHandshake(packet)
 	case StateStatus:
 		return c.handleStatus(packet)
-	case StateLogin:
-		return c.handleLogin(packet.ID, packet.Payload)
 	case StatePlay:
 		return c.handlePlay(packet.ID, packet.Payload)
 	default:
@@ -195,17 +194,4 @@ func (c *Connection) handleNextPacket() error {
 func (c *Connection) disconnect(reason string) {
 	c.log.Info("disconnecting", "reason", reason)
 	c.cancel()
-}
-
-// enableEncryption installs AES/CFB8 on the stream's transport.
-//
-// The cipher covers the frame length prefix, which the session never sees, so
-// it is applied to the stream rather than proposed by a packet.
-func (c *Connection) enableEncryption(sharedSecret []byte) error {
-	secret, err := java.SharedSecretFrom(sharedSecret)
-	if err != nil {
-		return fmt.Errorf("adopt session key: %w", err)
-	}
-
-	return c.stream.Control(c.ctx, java.EncryptionControl{Secret: secret})
 }

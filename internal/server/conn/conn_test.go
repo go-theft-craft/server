@@ -3,6 +3,8 @@ package conn
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +17,7 @@ import (
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+	"github.com/go-theft-craft/minecraft-protocol/login"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/config"
@@ -82,6 +85,13 @@ func newHarnessWith(t *testing.T, configure func(*config.Config)) *harness {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	settings := config.DefaultConfig()
+	// Every login builds an acceptor, and an acceptor needs the server's key
+	// even offline, where it never puts the public half on the wire.
+	settings.PrivateKey = testServerKey()
+	// This harness reads frames directly, so it cannot follow a compression
+	// envelope. Tests that care about compression drive a real client stream
+	// instead; see TestLoginNegotiatesCompression.
+	settings.CompressionThreshold = -1
 	if configure != nil {
 		configure(settings)
 	}
@@ -309,7 +319,7 @@ func TestOfflineLoginReachesPlay(t *testing.T) {
 	if confirmed.Username != "Tester" {
 		t.Fatalf("username = %q, want %q", confirmed.Username, "Tester")
 	}
-	if want := formatUUID(offlineUUID("Tester")); confirmed.UUID != want {
+	if want := login.OfflineUUID(testerName(t)).String(); confirmed.UUID != want {
 		t.Fatalf("UUID = %q, want %q", confirmed.UUID, want)
 	}
 
@@ -512,3 +522,27 @@ func TestHandshakeTransitionsTheSession(t *testing.T) {
 		})
 	}
 }
+
+// testerName is the parsed form of the name every login test uses.
+func testerName(t *testing.T) java.Username {
+	t.Helper()
+
+	name, err := java.ParseUsername("Tester")
+	if err != nil {
+		t.Fatalf("ParseUsername: %v", err)
+	}
+
+	return name
+}
+
+// testServerKey is generated once for the whole package. Key generation is the
+// slowest thing a login test does, and every test can share one.
+var testServerKey = sync.OnceValue(func() *rsa.PrivateKey {
+	// 1024 bits, as Java Edition uses for this exchange.
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		panic("generate test server key: " + err.Error())
+	}
+
+	return key
+})

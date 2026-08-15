@@ -3,13 +3,13 @@ package conn
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"errors"
 	"flag"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
@@ -31,10 +31,12 @@ import (
 
 var updateFixtures = flag.Bool("update", false, "rewrite the byte-parity fixtures")
 
-// fixedPublicKeyDER stands in for a server's public key so the encryption
-// request is byte-stable. It is not a real key and nothing parses it on the
-// way out: the server copies cfg.PublicKeyDER into the packet verbatim. No
-// private material appears in this file or in testdata.
+// fixedPublicKeyDER is the placeholder the encryption-request fixture stores
+// where a real key would be. The acceptor derives the key from the server's
+// keypair, which is generated per test run, so the bytes cannot be pinned; the
+// harness substitutes this before comparing, which keeps the framing and the
+// field order pinned instead. No private material appears in this file or in
+// testdata.
 var fixedPublicKeyDER = []byte{
 	0x30, 0x82, 0x01, 0x22, 0x30, 0x0d, 0x06, 0x09,
 	0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01,
@@ -139,16 +141,24 @@ func TestByteParityEncryptionRequest(t *testing.T) {
 	if decoded.ServerID != "" {
 		t.Fatalf("server ID = %q, want empty", decoded.ServerID)
 	}
-	if !bytes.Equal(decoded.PublicKey, fixedPublicKeyDER) {
-		t.Fatal("the encryption request must carry the configured public key")
+	// The key on the wire has to be the server's own, and it has to be
+	// readable as one. Both halves matter: a request carrying a malformed key
+	// reaches a client that cannot answer it.
+	parsed, err := java.ParseServerPublicKey(decoded.PublicKey)
+	if err != nil {
+		t.Fatalf("the encryption request must carry a parseable public key: %v", err)
+	}
+	if !parsed.Equal(&testServerKey().PublicKey) {
+		t.Fatal("the encryption request must carry the server's own public key")
 	}
 	if len(decoded.VerifyToken) != 4 {
 		t.Fatalf("verify token is %d bytes, want 4", len(decoded.VerifyToken))
 	}
 
-	// The token is random per connection, so the fixture holds a fixed one.
-	// Substituting it keeps the surrounding framing and field order pinned,
-	// which is what the migration can actually break.
+	// Neither the key nor the token can be pinned: one is generated per test
+	// run and the other per connection. Substituting both keeps the framing
+	// and the field order pinned, which is what the migration can break.
+	decoded.PublicKey = fixedPublicKeyDER
 	decoded.VerifyToken = fixedVerifyToken
 	assertFixture(t, "encryption_request", encode(t, &decoded))
 }
@@ -201,9 +211,8 @@ var errRefused = errors.New("account did not join")
 // call stubbed. verify is what the session server would have answered; nil
 // means it refuses, which is the path that produces the login disconnect.
 //
-// The public key is fixed rather than generated, which is what keeps the
-// encryption-request fixture byte-stable and keeps every private key in this
-// package confined to a single test process.
+// The key is the package's own test key, generated once per run and never
+// written to disk.
 func newOnlineHarness(t *testing.T, verify *mojangProfile) *harness {
 	t.Helper()
 
@@ -217,14 +226,7 @@ func newOnlineHarness(t *testing.T, verify *mojangProfile) *harness {
 	}
 	t.Cleanup(func() { verifyMojang = originalVerify })
 
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		t.Fatalf("generate key: %v", err)
-	}
-
 	return newHarnessWith(t, func(settings *config.Config) {
 		settings.OnlineMode = true
-		settings.PrivateKey = key
-		settings.PublicKeyDER = fixedPublicKeyDER
 	})
 }

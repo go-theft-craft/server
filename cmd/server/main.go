@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
 	"flag"
 	"log/slog"
 	"os"
@@ -31,6 +30,7 @@ func main() {
 	flag.IntVar(&cfg.WorldRadius, "world-radius", cfg.WorldRadius, "world radius in chunks (0 = infinite)")
 	flag.IntVar(&cfg.AutoSaveMinutes, "auto-save", cfg.AutoSaveMinutes, "auto-save interval in minutes (0 = disabled)")
 	flag.IntVar(&cfg.MaxBuildHeight, "max-build-height", cfg.MaxBuildHeight, "maximum Y axis (default 256)")
+	flag.IntVar(&cfg.CompressionThreshold, "compression-threshold", cfg.CompressionThreshold, "compress packets at or above this size (-1 disables)")
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -61,18 +61,21 @@ func main() {
 		log.Error("save config", "error", err)
 	}
 
+	// The keypair is generated in both modes. The login acceptor is
+	// constructed per connection and requires one; generating it here means a
+	// login never pays for key generation, and offline mode simply never puts
+	// the public half on the wire.
+	//
+	// 1024 bits is what Java Edition uses for this exchange.
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		log.Error("generate RSA key", "error", err)
+		os.Exit(1)
+	}
+
+	cfg.PrivateKey = key
+
 	if cfg.OnlineMode {
-		key, err := rsa.GenerateKey(rand.Reader, 1024)
-		if err != nil {
-			log.Error("generate RSA key", "error", err)
-			os.Exit(1)
-		}
-		cfg.PrivateKey = key
-		cfg.PublicKeyDER, err = x509.MarshalPKIXPublicKey(&key.PublicKey)
-		if err != nil {
-			log.Error("marshal public key", "error", err)
-			os.Exit(1)
-		}
 		log.Info("online mode enabled, RSA keypair generated")
 	}
 

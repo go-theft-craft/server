@@ -2,34 +2,10 @@ package conn
 
 import (
 	"context"
-	"crypto/sha1"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"net/http"
-	"strings"
 )
-
-// minecraftSHA1HexDigest computes the Minecraft-style SHA1 hex digest.
-// The result is a signed two's complement hex string (no zero-padding,
-// negative values prefixed with "-").
-func minecraftSHA1HexDigest(serverID string, sharedSecret, publicKeyDER []byte) string {
-	h := sha1.New()
-	h.Write([]byte(serverID))
-	h.Write(sharedSecret)
-	h.Write(publicKeyDER)
-	hash := h.Sum(nil)
-
-	// Interpret as signed big.Int (two's complement).
-	n := new(big.Int).SetBytes(hash)
-	// Check sign bit.
-	if hash[0]&0x80 != 0 {
-		// Negative: compute two's complement.
-		// n = n - 2^160
-		n.Sub(n, new(big.Int).Lsh(big.NewInt(1), 160))
-	}
-	return n.Text(16)
-}
 
 type mojangProperty struct {
 	Name      string `json:"name"`
@@ -136,18 +112,4 @@ func fetchSkinByUsername(ctx context.Context, username string) ([]mojangProperty
 	}
 
 	return skinProfile.Properties, nil
-}
-
-// formatMojangUUID inserts hyphens into a 32-char hex UUID string.
-func formatMojangUUID(hexID string) string {
-	if len(hexID) != 32 {
-		return hexID
-	}
-	return strings.Join([]string{
-		hexID[0:8],
-		hexID[8:12],
-		hexID[12:16],
-		hexID[16:20],
-		hexID[20:32],
-	}, "-")
 }

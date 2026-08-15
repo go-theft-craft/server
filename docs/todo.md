@@ -1,0 +1,3 @@
+- [ ] have option to measure which player load server a lot 
+- [ ] have option to measure which npc/family/feature load server a lot 
+- [ ] trace when/how each item was created

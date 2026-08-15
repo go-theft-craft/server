@@ -21,9 +21,14 @@ type Config struct {
 	AutoSaveMinutes int    `json:"auto_save_minutes"` // auto-save interval in minutes (0 = disabled)
 	MaxBuildHeight  int    `json:"max_build_height"`  // maximum Y axis (default 256)
 
-	// RSA keypair for online-mode encryption handshake.
-	PrivateKey   *rsa.PrivateKey `json:"-"`
-	PublicKeyDER []byte          `json:"-"`
+	// CompressionThreshold is the packet size at or above which the server
+	// compresses. A negative value disables compression entirely.
+	CompressionThreshold int `json:"compression_threshold"`
+
+	// PrivateKey is the RSA keypair the login acceptor uses. Its public half
+	// is derived from it when a login needs it, so the server does not carry
+	// a second, separately encoded copy that could drift.
+	PrivateKey *rsa.PrivateKey `json:"-"`
 }
 
 // DefaultConfig returns a Config with sensible defaults.
@@ -38,6 +43,10 @@ func DefaultConfig() *Config {
 		AutoSaveMinutes: 5,
 		WorldRadius:     500,
 		MaxBuildHeight:  256,
+
+		// Vanilla's own default. The server had no compression at all before
+		// M3, so this is new behavior rather than a migrated setting.
+		CompressionThreshold: 256,
 	}
 }
 
@@ -74,5 +83,8 @@ func Merge(cfg *Config, fromFile *Config, explicitFlags map[string]bool) {
 	}
 	if !explicitFlags["max-build-height"] {
 		cfg.MaxBuildHeight = fromFile.MaxBuildHeight
+	}
+	if !explicitFlags["compression-threshold"] {
+		cfg.CompressionThreshold = fromFile.CompressionThreshold
 	}
 }

@@ -88,7 +88,7 @@ protocol 47 API, which is why it lands before this migration rather than after.
 **Interfaces:**
 - Produces: `DecryptSharedSecret(*rsa.PrivateKey, []byte) (SharedSecret, error)`, `VerifyToken(*rsa.PrivateKey, expected, encrypted []byte) error`, `ErrVerifyTokenMismatch`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Generate a key pair in the test with `rsa.GenerateKey`; never load one from
 disk. Cover: a secret encrypted by M2's client half decrypts to the same
@@ -102,19 +102,19 @@ Assert that the returned `SharedSecret` still redacts itself under `%v`, `%s`,
 and `%#v`, so the server-side path cannot leak what the client-side path
 protects.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 ```bash
 devbox run -- task test -- ./wire/java
 ```
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `rsa.DecryptPKCS1v15` for both values, `subtle.ConstantTimeCompare` for the
 token, and length checks before either. Return the M2 `SharedSecret` type rather
 than a `[]byte`.
 
-- [ ] **Step 4: Commit** as `feat(java): add server-side key exchange`.
+- [x] **Step 4: Commit** as `feat(java): add server-side key exchange`.
 
 ### Task 2: The login acceptor
 
@@ -127,7 +127,7 @@ than a `[]byte`.
 **Interfaces:**
 - Produces: `NewAcceptor(*rsa.PrivateKey, ...AcceptorOption) (*Acceptor, error)`, `(*Acceptor).Accept(context.Context, *protocol.Stream) (Profile, error)`, `WithVerifier(Verifier)`, `WithCompressionThreshold(int)`, `WithServerID(string)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Drive the acceptor against M2's client `Negotiator` over `net.Pipe`, with a real
 `protocol.Stream` on each side. This is the test that could not exist if the two
@@ -145,13 +145,13 @@ Assert that the acceptor makes no HTTP request — the `Verifier` is the only
 outbound edge, and the test's verifier records that it was called with the hash
 the client computed.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 ```bash
 devbox run -- task test -- ./login
 ```
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Dispatch on the descriptor login roles from M2 Task 7; do not name a generated
 packet type. Order matters and is fixed: read login start; if a verifier is
@@ -160,14 +160,37 @@ token, install the cipher through `Stream.Control`, compute the hash, call
 `Verify`; then, if a threshold is configured, send `set_compression`; then send
 login success. Return only after the session has reached play.
 
-- [ ] **Step 4: Run race and interop gates**
+- [x] **Step 4: Run race and interop gates**
 
 ```bash
 devbox run -- task test:race -- ./login
 devbox run -- task verify
 ```
 
-- [ ] **Step 5: Commit** as `feat(login): add the server-side login acceptor`.
+- [x] **Step 5: Commit** as `feat(login): add the server-side login acceptor`.
+
+Implemented, with one deviation recorded. The plan asked the acceptor to
+dispatch on the descriptor login roles rather than name a generated packet
+type. Role dispatch covers only inbound packets: the role table maps a
+`(state, direction, id)` triple to a role, and there is no role-based way to
+*construct* the clientbound encryption request, set-compression, and success
+packets, each of which needs fields set. The acceptor would therefore have
+named protocol 47 types for its outbound half regardless, leaving it
+protocol-47-bound while paying for a lookup that buys nothing. It dispatches on
+concrete generated types, exactly as the client negotiator already does, and
+M2's recorded decision stands unchanged: the `login` package is protocol 47
+only, and M4 parameterizes both halves together.
+
+Two things found while implementing:
+
+- The acceptor installs the cipher before it calls the verifier, not after.
+  The exchange is complete by then, and calling a session server first would
+  hold the connection in plaintext for the length of an outbound HTTP request.
+- Offline logins need a UUID and the acceptor is the only thing holding the
+  name at that point, so `login.OfflineUUID` derives the vanilla identity
+  (version 3 over `OfflinePlayer:<name>`). It is byte-identical to the server's
+  existing `offlineUUID`, which is what keeps Task 7's UUID-formatting
+  assertion true.
 
 ---
 

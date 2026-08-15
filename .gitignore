@@ -40,3 +40,6 @@ go.work.sum
 # Persistence data
 data/
 build/
+interop/node/node_modules/
+# npm noise from running install with --prefix; the interop lockfile is tracked.
+/package-lock.json

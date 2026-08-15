@@ -1,0 +1,14 @@
+{
+  "name": "go-theft-craft-server-interop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Loopback-only client harness that logs into the Go server with the pinned Node minecraft-protocol implementation.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=23"
+  },
+  "dependencies": {
+    "minecraft-protocol": "1.66.2"
+  }
+}

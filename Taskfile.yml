@@ -63,6 +63,13 @@ tasks:
     cmds:
       - golangci-lint run
 
+  test:interop:
+    desc: Run the loopback interoperability lane against the pinned Node client
+    deps: [ deps ]
+    cmds:
+      - npm ci --prefix interop/node
+      - go test -mod vendor -count=1 ./interop
+
   test:
     desc: Run go unit tests
     deps: [ deps ]

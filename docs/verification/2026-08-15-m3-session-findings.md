@@ -10,9 +10,12 @@ client checks existed to test.
 
 They are recorded here rather than fixed in M3, because the milestone's rule is
 to add newly discovered work to a later milestone instead of silently expanding
-the active one. All three belong to M6 and M9, and finding 2 is named in M6's
-checklist in the master plan. Each entry says what was ruled out and how, so
-whoever picks it up does not repeat the elimination.
+the active one. Each entry says what was ruled out and how, so whoever picks it
+up does not repeat the elimination.
+
+Finding 2 is now settled and fixed, ahead of M6, because M6's checklist could
+not close without it and the answer was a day's evidence rather than a
+migration. Findings 1 and 3 remain open, owned by M6 and M9.
 
 ## 1. The crafting table does not work
 
@@ -27,44 +30,49 @@ the shift-click and result-slot behavior that goes with them.
 
 ## 2. Inventory crafting works only partially
 
-**Status:** open, owned by M6. **May be an M3 regression.**
+**Status:** fixed. **Not an M3 regression** — the registry swap is ruled out.
 
-M3 closed on its own scope — the connection path — with every gate green and
-both client checks passed. This is game logic reading migrated data, so it
-carries into M6, which finishes the consumer migration and is required to
-settle it. It is listed there in the master plan rather than left here alone.
+**Ruled out — the migrated recipe data.** The suspicion was that the shared
+data encoded a wildcard ingredient as `0` where the old local data used `-1`,
+which would make the matcher demand an exact variant and silently drop every
+recipe accepting one. It does not. `schema.ParseIngredient` normalizes both a
+bare integer ingredient and an object with a null `metadata` to `-1`, and the
+generated registry shows wildcards intact — `{ID: 4, Metadata: -1}` for the
+cobblestone in a furnace, for one.
 
-Task 4 moved the recipe registry from the server's own generated data to
-`minecraft-protocol/data`. The matcher treats a negative ingredient metadata as
-"any variant":
+The earlier `Metadata: -1` count difference — 3609 old against 956 shared — was
+the empty-cell padding the note already suspected, not lost wildcards.
 
-```go
-if expected.Metadata >= 0 && data.Metadata(gridSlot.ItemDamage) != expected.Metadata {
-    return false
-}
-```
+**Ruled out — the matcher.** `matchRecipe2x2` was run against the real registry
+across fourteen cases covering exact-metadata ingredients (each wood variant),
+wildcard ingredients (planks to sticks, both coal variants to torches), shaped
+recipes at every grid offset, full-grid and shapeless recipes, and two
+non-recipes. All fourteen produce the correct result, including the correct
+result metadata and count. The registry is a map, so the matcher was also run
+200 times per grid to confirm no grid matches two recipes.
 
-If the shared data encodes a wildcard ingredient as `0` where the old local data
-used `-1`, every recipe accepting a variant — planks from any log, torches from
-any coal — silently stops matching, while exact-metadata recipes keep working.
-That is the shape of "works partially".
+**The actual cause: shift-click crafted once.** `handleShiftClick` on the
+output slot ran a single craft and stopped, where vanilla repeats until the
+grid runs out. A player shift-clicking eight logs got four planks instead of
+thirty-two, which is exactly "works partially" from the client side. Normal
+clicking the output always worked, one result stack per click.
 
-**Partly checked, not settled.** The two datasets carry very different numbers
-of `Metadata: -1` entries — 3609 in the old generated recipes, 956 in the
-shared ones. That is suggestive but not conclusive: the old generator most
-likely padded *empty* shape cells with `{ID: 0, Metadata: -1}` where the shared
-data uses `0`, and the matcher ignores the metadata of an empty cell anyway
-because of its `expected.ID > 0` guard.
+**A duplication bug found on the fix path.** `tryAddToSection` places what fits
+and *then* returns false, so its callers, which all treated false as "nothing
+moved", left the source stack intact after part of it had already been
+deposited. Shift-clicking a full stack into an inventory with room for ten
+created ten items from nothing. It is split into `addToSection`, returning the
+leftover count, and every shift-click path now keeps the remainder in the
+source slot. The output path uses a non-mutating `spaceForItem` check so a
+craft that cannot be deposited whole is refused before any ingredient is
+consumed, matching vanilla.
 
-What still has to be compared is a cell with `ID > 0` that accepts any
-variant — planks from any log is the clearest case — in both datasets. If the
-shared data gives that ingredient `Metadata: 0`, the matcher demands an exact
-variant and the recipe stops matching.
-
-**Coverage gap either way:** no test exercises `matchRecipe2x2` against the real
-registry. The existing tests build recipe structs by hand, so the data
-underneath the matcher can change without a single test failing. That gap let
-this reach a play session, and closing it belongs with the fix.
+**Coverage gap, closed.** No test exercised `matchRecipe2x2` against the real
+registry, and worse, `newTestConnWithCapture` left `gameData` nil — so every
+crafting path in the test suite silently produced nothing, and no assertion
+noticed. The harness now supplies the real `v1_8.Data()`, and
+`internal/server/conn/crafting_test.go` covers the matcher against the shared
+registry plus the click, shift-click, refusal, and partial-move paths.
 
 ## 3. Breaking a placed block returns two items in survival
 
@@ -101,6 +109,7 @@ have not been read yet; that is where to start.
 ## What these say about M3
 
 Nothing here implicates the transport, the framing, the compression, the
-encryption, or the generated codecs. Finding 2 is the only one that could be
-caused by the migration, and it is a data-shape question in a game-logic
-matcher rather than a wire problem.
+encryption, or the generated codecs. Finding 2 was the only one that could have
+been caused by the migration, and it was not: the shared registry carries the
+wildcard ingredients intact, and the defect was pre-existing game logic in the
+server's own shift-click handler. M3 changed no crafting behavior.

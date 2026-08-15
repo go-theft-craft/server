@@ -107,11 +107,18 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 
 	w := world.NewWorld(gen.NewFlatGenerator(0))
 
+	// The real registry, not a stub: crafting silently produces nothing when
+	// gameData is nil, which hid every recipe defect from these tests.
+	gameData, err := v1_8.Data()
+	if err != nil {
+		t.Fatalf("game data: %v", err)
+	}
+
 	clientEnd, serverEnd := net.Pipe()
 
-	limits, err := protocol.NewLimits()
-	if err != nil {
-		t.Fatalf("limits: %v", err)
+	limits, limitsErr := protocol.NewLimits()
+	if limitsErr != nil {
+		t.Fatalf("limits: %v", limitsErr)
 	}
 	stream, err := newStream(serverEnd, limits)
 	if err != nil {
@@ -156,6 +163,7 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 		self:           p,
 		players:        m,
 		world:          w,
+		gameData:       gameData,
 		loadedChunks:   make(map[gen.ChunkPos]struct{}),
 		keepAliveAcked: true,
 		cursorSlot:     player.EmptySlot,

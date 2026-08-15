@@ -332,15 +332,12 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 
 // handleShiftClick handles mode 1: shift-click to move items between sections.
 func (c *Connection) handleShiftClick(slot int16, _ int8) {
-	if slot < 0 || slot > slotHotbarEnd || slot == slotCraftOutput {
-		// Shift-click crafting output: take result and auto-move.
-		if slot == slotCraftOutput && !c.craftingOutput.IsEmpty() {
-			result := c.craftingOutput
-			if c.tryAddToSection(result, slotMainStart, slotHotbarEnd) {
-				c.consumeCraftingIngredients()
-				c.updateCraftingOutput()
-			}
-		}
+	if slot == slotCraftOutput {
+		c.shiftCraftAll()
+		return
+	}
+
+	if slot < 0 || slot > slotHotbarEnd {
 		return
 	}
 
@@ -349,50 +346,97 @@ func (c *Connection) handleShiftClick(slot int16, _ int8) {
 		return
 	}
 
-	moved := false
+	// leftover is what the destination could not take. The items that did fit
+	// have already been placed, so the source slot keeps only the remainder.
+	leftover := int(item.ItemCount)
 	switch {
 	case slot >= slotArmorStart && slot <= slotArmorEnd:
 		// Armor → main inventory or hotbar.
-		moved = c.tryAddToSection(item, slotMainStart, slotHotbarEnd)
+		leftover = c.addToSection(item, slotMainStart, slotHotbarEnd)
 	case slot >= slotMainStart && slot <= slotMainEnd:
 		// Main inventory → try armor first if applicable, then hotbar.
-		if armorSlot := armorSlotForItem(item.BlockID); armorSlot >= 0 {
-			existing := c.getWindowSlot(armorSlot)
-			if existing.IsEmpty() {
-				c.setWindowSlot(armorSlot, item)
-				moved = true
-			}
-		}
-		if !moved {
-			moved = c.tryAddToSection(item, slotHotbarStart, slotHotbarEnd)
+		if c.equipArmor(item) {
+			leftover = 0
+		} else {
+			leftover = c.addToSection(item, slotHotbarStart, slotHotbarEnd)
 		}
 	case slot >= slotHotbarStart && slot <= slotHotbarEnd:
 		// Hotbar → try armor first if applicable, then main inventory.
-		if armorSlot := armorSlotForItem(item.BlockID); armorSlot >= 0 {
-			existing := c.getWindowSlot(armorSlot)
-			if existing.IsEmpty() {
-				c.setWindowSlot(armorSlot, item)
-				moved = true
-			}
-		}
-		if !moved {
-			moved = c.tryAddToSection(item, slotMainStart, slotMainEnd)
+		if c.equipArmor(item) {
+			leftover = 0
+		} else {
+			leftover = c.addToSection(item, slotMainStart, slotMainEnd)
 		}
 	case slot >= slotCraftStart && slot <= slotCraftEnd:
 		// Crafting grid → main or hotbar.
-		moved = c.tryAddToSection(item, slotMainStart, slotHotbarEnd)
+		leftover = c.addToSection(item, slotMainStart, slotHotbarEnd)
 	}
 
-	if moved {
+	if leftover == int(item.ItemCount) {
+		return
+	}
+
+	if leftover == 0 {
 		c.setWindowSlot(slot, player.EmptySlot)
-		if slot >= slotCraftStart && slot <= slotCraftEnd {
-			c.updateCraftingOutput()
-		}
+	} else {
+		remainder := item
+		remainder.ItemCount = int8(leftover)
+		c.setWindowSlot(slot, remainder)
+	}
+
+	if slot >= slotCraftStart && slot <= slotCraftEnd {
+		c.updateCraftingOutput()
 	}
 }
 
-// tryAddToSection tries to add an item into slots [lo, hi]. Returns true if fully placed.
-func (c *Connection) tryAddToSection(item player.Slot, lo, hi int16) bool {
+// equipArmor moves item into its armor slot when the item is armor and that
+// slot is empty.
+func (c *Connection) equipArmor(item player.Slot) bool {
+	armorSlot := armorSlotForItem(item.BlockID)
+	if armorSlot < 0 || !c.getWindowSlot(armorSlot).IsEmpty() {
+		return false
+	}
+	c.setWindowSlot(armorSlot, item)
+
+	return true
+}
+
+// shiftCraftAll crafts repeatedly while a whole result stack still fits, which
+// is what vanilla does when the crafting output is shift-clicked. Taking the
+// output with a normal click crafts once; shift-click drains the grid.
+func (c *Connection) shiftCraftAll() {
+	crafted := false
+
+	// A 2x2 grid holds at most 64 of each ingredient, so no grid can support
+	// more crafts than that. The bound keeps a matcher that fails to consume
+	// its ingredients from spinning here.
+	for range 64 {
+		result := c.craftingOutput
+		if result.IsEmpty() {
+			break
+		}
+		// Vanilla refuses a craft it cannot deposit whole rather than
+		// splitting the result stack.
+		if c.spaceForItem(result, slotMainStart, slotHotbarEnd) < int(result.ItemCount) {
+			break
+		}
+
+		c.addToSection(result, slotMainStart, slotHotbarEnd)
+		c.consumeCraftingIngredients()
+		c.craftingOutput = c.matchCraftingRecipe()
+		crafted = true
+	}
+
+	if crafted {
+		c.updateCraftingOutput()
+	}
+}
+
+// addToSection places as much of item as fits into slots [lo, hi] and returns
+// the count that did not fit. It reports the leftover rather than a bool
+// because a partial add still moves what fits: a caller that read failure as
+// "nothing happened" and kept the source stack duplicated the placed items.
+func (c *Connection) addToSection(item player.Slot, lo, hi int16) int {
 	remaining := int(item.ItemCount)
 
 	// First pass: try to merge into existing stacks.
@@ -423,7 +467,24 @@ func (c *Connection) tryAddToSection(item player.Slot, lo, hi int16) bool {
 		}
 	}
 
-	return remaining == 0
+	return remaining
+}
+
+// spaceForItem reports how many of item slots [lo, hi] can still accept,
+// without moving anything.
+func (c *Connection) spaceForItem(item player.Slot, lo, hi int16) int {
+	space := 0
+	for s := lo; s <= hi; s++ {
+		existing := c.getWindowSlot(s)
+		switch {
+		case existing.IsEmpty():
+			space += 64
+		case canStack(existing, item) && existing.ItemCount < 64:
+			space += 64 - int(existing.ItemCount)
+		}
+	}
+
+	return space
 }
 
 // handleNumberKey handles mode 2: pressing number keys 1-9 to swap with hotbar.
@@ -686,9 +747,12 @@ func (c *Connection) handleCloseWindow(data []byte) error {
 		if c.craftingGrid[i].IsEmpty() {
 			continue
 		}
-		if !c.tryAddToSection(c.craftingGrid[i], slotMainStart, slotHotbarEnd) {
-			// Inventory full, drop the item.
-			c.players.SpawnItemEntity(c.self.EntityID, c.craftingGrid[i], pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
+		// Only what did not fit is dropped. Dropping the whole stack after
+		// part of it was already stored would duplicate the stored part.
+		if leftover := c.addToSection(c.craftingGrid[i], slotMainStart, slotHotbarEnd); leftover > 0 {
+			dropped := c.craftingGrid[i]
+			dropped.ItemCount = int8(leftover)
+			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
 		}
 		c.craftingGrid[i] = player.EmptySlot
 	}

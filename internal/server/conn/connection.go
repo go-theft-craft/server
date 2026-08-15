@@ -9,10 +9,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-theft-craft/minecraft-protocol/data"
+
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
-	"github.com/go-theft-craft/server/pkg/gamedata"
 	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
@@ -72,14 +73,14 @@ type Connection struct {
 	dead bool
 
 	// Game data registries (blocks, materials, recipes, etc.)
-	gameData *gamedata.GameData
+	gameData *data.Set
 
 	// SaveAll triggers a server-wide save (set by Server).
 	SaveAll func()
 }
 
 // NewConnection creates a new Connection from a raw TCP connection.
-func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World, players *player.Manager, store *storage.Storage, gd *gamedata.GameData) *Connection {
+func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World, players *player.Manager, store *storage.Storage, gd *data.Set) *Connection {
 	ctx, cancel := context.WithCancel(ctx)
 	return &Connection{
 		conn:           conn,

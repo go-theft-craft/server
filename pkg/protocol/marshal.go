@@ -11,7 +11,7 @@ const tagName = "mc"
 // Marshal encodes a Packet struct into bytes using mc struct tags.
 func Marshal(p Packet) ([]byte, error) {
 	v := reflect.ValueOf(p)
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 	if v.Kind() != reflect.Struct {
@@ -39,7 +39,7 @@ func Marshal(p Packet) ([]byte, error) {
 // Unmarshal decodes bytes into a Packet struct using mc struct tags.
 func Unmarshal(data []byte, p Packet) error {
 	v := reflect.ValueOf(p)
-	if v.Kind() != reflect.Ptr || v.IsNil() {
+	if v.Kind() != reflect.Pointer || v.IsNil() {
 		return fmt.Errorf("unmarshal: expected non-nil pointer, got %T", p)
 	}
 	v = v.Elem()

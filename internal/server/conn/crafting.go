@@ -1,13 +1,14 @@
 package conn
 
 import (
+	"github.com/go-theft-craft/minecraft-protocol/data"
+
 	"github.com/go-theft-craft/server/internal/server/player"
-	"github.com/go-theft-craft/server/pkg/gamedata"
 )
 
 // matchRecipe2x2 tries to match a 2x2 crafting grid against all known recipes.
 // The grid layout is: [0]=top-left, [1]=top-right, [2]=bottom-left, [3]=bottom-right.
-func matchRecipe2x2(grid [4]player.Slot, recipes gamedata.RecipeRegistry) player.Slot {
+func matchRecipe2x2(grid [4]player.Slot, recipes data.RecipeRegistry) player.Slot {
 	all := recipes.All()
 	for _, recipeList := range all {
 		for _, recipe := range recipeList {
@@ -26,7 +27,7 @@ func matchRecipe2x2(grid [4]player.Slot, recipes gamedata.RecipeRegistry) player
 }
 
 // matchShaped2x2 checks if the grid matches a shaped recipe at any valid position.
-func matchShaped2x2(grid [4]player.Slot, recipe gamedata.Recipe) bool {
+func matchShaped2x2(grid [4]player.Slot, recipe data.Recipe) bool {
 	shape := recipe.InShape
 	rows := len(shape)
 	if rows == 0 || rows > 2 {
@@ -65,14 +66,14 @@ func matchShaped2x2(grid [4]player.Slot, recipe gamedata.Recipe) bool {
 }
 
 // checkShapedAt checks if the shape matches at the given offset in the 2x2 grid.
-func checkShapedAt(grid [4]player.Slot, shape [][]gamedata.Ingredient, rowOff, colOff int) bool {
+func checkShapedAt(grid [4]player.Slot, shape data.RecipeShape, rowOff, colOff int) bool {
 	for r := 0; r < 2; r++ {
 		for c := 0; c < 2; c++ {
 			gridSlot := grid[r*2+c]
 			shapeR := r - rowOff
 			shapeC := c - colOff
 
-			var expected gamedata.Ingredient
+			var expected data.Ingredient
 			inShape := false
 			if shapeR >= 0 && shapeR < len(shape) && shapeC >= 0 && shapeC < len(shape[shapeR]) {
 				expected = shape[shapeR][shapeC]
@@ -84,10 +85,10 @@ func checkShapedAt(grid [4]player.Slot, shape [][]gamedata.Ingredient, rowOff, c
 				if gridSlot.IsEmpty() {
 					return false
 				}
-				if int(gridSlot.BlockID) != expected.ID {
+				if data.ItemID(gridSlot.BlockID) != expected.ID {
 					return false
 				}
-				if expected.Metadata >= 0 && int(gridSlot.ItemDamage) != expected.Metadata {
+				if expected.Metadata >= 0 && data.Metadata(gridSlot.ItemDamage) != expected.Metadata {
 					return false
 				}
 			} else if !gridSlot.IsEmpty() {
@@ -100,10 +101,10 @@ func checkShapedAt(grid [4]player.Slot, shape [][]gamedata.Ingredient, rowOff, c
 }
 
 // mirrorShape horizontally flips a recipe shape.
-func mirrorShape(shape [][]gamedata.Ingredient) [][]gamedata.Ingredient {
-	mirrored := make([][]gamedata.Ingredient, len(shape))
+func mirrorShape(shape data.RecipeShape) data.RecipeShape {
+	mirrored := make(data.RecipeShape, len(shape))
 	for i, row := range shape {
-		mirrored[i] = make([]gamedata.Ingredient, len(row))
+		mirrored[i] = make(data.RecipeIngredients, len(row))
 		for j := range row {
 			mirrored[i][j] = row[len(row)-1-j]
 		}
@@ -113,7 +114,7 @@ func mirrorShape(shape [][]gamedata.Ingredient) [][]gamedata.Ingredient {
 
 // matchShapeless2x2 checks if the grid contains exactly the required ingredients
 // (in any order) for a shapeless recipe.
-func matchShapeless2x2(grid [4]player.Slot, recipe gamedata.Recipe) bool {
+func matchShapeless2x2(grid [4]player.Slot, recipe data.Recipe) bool {
 	if len(recipe.Ingredients) > 4 {
 		return false
 	}
@@ -138,7 +139,7 @@ func matchShapeless2x2(grid [4]player.Slot, recipe gamedata.Recipe) bool {
 			if used[j] {
 				continue
 			}
-			if int(gs.BlockID) == ing.ID && (ing.Metadata < 0 || int(gs.ItemDamage) == ing.Metadata) {
+			if data.ItemID(gs.BlockID) == ing.ID && (ing.Metadata < 0 || data.Metadata(gs.ItemDamage) == ing.Metadata) {
 				used[j] = true
 				found = true
 				break
@@ -151,7 +152,7 @@ func matchShapeless2x2(grid [4]player.Slot, recipe gamedata.Recipe) bool {
 	return true
 }
 
-func recipeResultToSlot(result gamedata.RecipeResult) player.Slot {
+func recipeResultToSlot(result data.RecipeResult) player.Slot {
 	return player.Slot{
 		BlockID:    int16(result.ID),
 		ItemCount:  int8(result.Count),

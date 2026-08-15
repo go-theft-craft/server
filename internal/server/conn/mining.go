@@ -3,23 +3,24 @@ package conn
 import (
 	"math/rand"
 
+	"github.com/go-theft-craft/minecraft-protocol/data"
+
 	"github.com/go-theft-craft/server/internal/server/player"
-	"github.com/go-theft-craft/server/pkg/gamedata"
 )
 
 // canHarvest returns whether the player's held tool can harvest the given block
 // (i.e. the block will actually drop items). If harvestTools is nil, any tool works.
-func canHarvest(block gamedata.Block, heldItemID int16) bool {
+func canHarvest(block data.Block, heldItemID int16) bool {
 	if block.HarvestTools == nil {
 		return true
 	}
-	return block.HarvestTools[int(heldItemID)]
+	return block.HarvestTools[data.ItemID(heldItemID)]
 }
 
 // calcBreakTime returns the expected break time in ticks for a block given the
 // player's held item and game mode. Returns -1 for unbreakable blocks.
 // Based on https://minecraft.wiki/w/Breaking#Speed
-func calcBreakTime(block gamedata.Block, heldItemID int16, materials gamedata.MaterialRegistry) int {
+func calcBreakTime(block data.Block, heldItemID int16, materials data.MaterialRegistry) int {
 	if block.Hardness == nil {
 		return -1 // unbreakable (e.g. bedrock)
 	}
@@ -37,7 +38,7 @@ func calcBreakTime(block gamedata.Block, heldItemID int16, materials gamedata.Ma
 	if materials != nil && block.Material != "" {
 		mat, ok := materials.ByName(block.Material)
 		if ok {
-			if speed, hasSpeed := mat.ToolSpeeds[int(heldItemID)]; hasSpeed {
+			if speed, hasSpeed := mat.ToolSpeeds[data.ItemID(heldItemID)]; hasSpeed {
 				speedMultiplier = speed
 			}
 		}
@@ -65,7 +66,7 @@ func calcBreakTime(block gamedata.Block, heldItemID int16, materials gamedata.Ma
 
 // blockDrops returns the item slots that should be dropped when a block is broken.
 // Returns nil if the tool can't harvest this block.
-func blockDrops(block gamedata.Block, heldItemID int16) []player.Slot {
+func blockDrops(block data.Block, heldItemID int16) []player.Slot {
 	if !canHarvest(block, heldItemID) {
 		return nil
 	}
@@ -79,7 +80,11 @@ func blockDrops(block gamedata.Block, heldItemID int16) []player.Slot {
 		if d.ID <= 0 {
 			continue
 		}
-		minC, maxC := d.MinCount, d.MaxCount
+		// The shared data models drop counts as floats, because the source
+		// data does. Every 1.8 count is integral, and the zero test below is
+		// on the values rather than on the HasMinCount/HasMaxCount flags so
+		// that this reads exactly as it did before the migration.
+		minC, maxC := int(d.MinCount), int(d.MaxCount)
 		// Most blocks don't specify minCount/maxCount in the data; default to 1.
 		if minC == 0 && maxC == 0 {
 			minC = 1
@@ -102,10 +107,10 @@ func blockDrops(block gamedata.Block, heldItemID int16) []player.Slot {
 }
 
 // lookupBlock finds a block by its state ID (stateID = blockID << 4 | metadata).
-func (c *Connection) lookupBlock(stateID int32) (gamedata.Block, bool) {
-	if c.gameData == nil || c.gameData.Blocks == nil {
-		return gamedata.Block{}, false
+func (c *Connection) lookupBlock(stateID int32) (data.Block, bool) {
+	if c.gameData == nil || c.gameData.Blocks() == nil {
+		return data.Block{}, false
 	}
-	blockID := int(stateID >> 4)
-	return c.gameData.Blocks.ByID(blockID)
+
+	return c.gameData.Blocks().ByID(data.BlockID(stateID >> 4))
 }

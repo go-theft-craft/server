@@ -783,9 +783,9 @@ func (c *Connection) matchCraftingRecipe() player.Slot {
 		return player.EmptySlot
 	}
 
-	if c.gameData == nil || c.gameData.Recipes == nil {
+	if c.gameData == nil || c.gameData.Recipes() == nil {
 		return player.EmptySlot
 	}
 
-	return matchRecipe2x2(c.craftingGrid, c.gameData.Recipes)
+	return matchRecipe2x2(c.craftingGrid, c.gameData.Recipes())
 }

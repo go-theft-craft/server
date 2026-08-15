@@ -1,8 +1,11 @@
 module github.com/go-theft-craft/server
 
-go 1.25.2
+go 1.26.6
 
-require github.com/hashicorp/go-getter v1.8.4
+require (
+	github.com/go-theft-craft/minecraft-protocol v0.1.0
+	github.com/hashicorp/go-getter v1.8.4
+)
 
 require (
 	cel.dev/expr v0.24.0 // indirect

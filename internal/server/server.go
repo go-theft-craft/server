@@ -7,11 +7,13 @@ import (
 	"net"
 	"time"
 
+	"github.com/go-theft-craft/minecraft-protocol/data"
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/conn"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
-	"github.com/go-theft-craft/server/pkg/gamedata"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
@@ -24,11 +26,15 @@ type Server struct {
 	world    *world.World
 	players  *player.Manager
 	storage  *storage.Storage
-	gameData *gamedata.GameData
+	gameData *data.Set
 }
 
 // New creates a new Server with the given config, logger, and storage.
-func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) *Server {
+//
+// It returns an error because the game data now comes from
+// minecraft-protocol, which builds its registries rather than handing back a
+// package-level value, and a server with no registries cannot serve.
+func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) (*Server, error) {
 	var generator gen.Generator
 	switch cfg.GeneratorType {
 	case config.GeneratorFlat:
@@ -37,7 +43,10 @@ func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) *Server {
 		generator = gen.NewDefaultGenerator(cfg.Seed)
 	}
 
-	gd := pkt.New()
+	gameData, err := v1_8.Data()
+	if err != nil {
+		return nil, fmt.Errorf("load java 1.8 game data: %w", err)
+	}
 
 	return &Server{
 		cfg:      cfg,
@@ -45,8 +54,8 @@ func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) *Server {
 		world:    world.NewWorld(generator),
 		players:  player.NewManager(cfg.ViewDistance),
 		storage:  store,
-		gameData: gd,
-	}
+		gameData: gameData,
+	}, nil
 }
 
 // Start begins listening for connections and blocks until the context is cancelled.
@@ -81,7 +90,8 @@ func (s *Server) Start(ctx context.Context) error {
 		}
 	}
 
-	s.log.Info("server started",
+	s.log.Info(
+		"server started",
 		"port", s.cfg.Port,
 		"onlineMode", s.cfg.OnlineMode,
 		"motd", s.cfg.MOTD,

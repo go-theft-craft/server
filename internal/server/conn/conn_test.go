@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
-	"github.com/go-theft-craft/server/pkg/gamedata"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 	"github.com/go-theft-craft/server/pkg/world"
@@ -67,7 +68,7 @@ func newHarnessWith(t *testing.T, configure func(*config.Config)) *harness {
 
 	clientEnd, serverEnd := net.Pipe()
 
-	gameData, err := gamedata.Load("pc-1.8")
+	gameData, err := v1_8.Data()
 	if err != nil {
 		t.Fatalf("load game data: %v", err)
 	}

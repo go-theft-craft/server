@@ -11,10 +11,11 @@ import (
 	"strings"
 	"time"
 
+	gamedata "github.com/go-theft-craft/minecraft-protocol/data"
+
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
-	"github.com/go-theft-craft/server/pkg/gamedata"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 	"github.com/go-theft-craft/server/pkg/world/gen"
@@ -527,7 +528,7 @@ func (c *Connection) handleBlockDig(data []byte) error {
 				heldItem := c.self.Inventory.HeldItem()
 				var materials gamedata.MaterialRegistry
 				if c.gameData != nil {
-					materials = c.gameData.Materials
+					materials = c.gameData.Materials()
 				}
 				breakTicks := calcBreakTime(block, heldItem.BlockID, materials)
 				if breakTicks == 0 {

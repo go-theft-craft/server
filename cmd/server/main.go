@@ -80,7 +80,13 @@ func main() {
 
 	// Released explicitly rather than deferred: the failure path below exits
 	// the process, and a deferred release would not run before it did.
-	srv := server.New(cfg, log, store)
+	srv, err := server.New(cfg, log, store)
+	if err != nil {
+		cancel()
+		log.Error("create server", "error", err)
+		os.Exit(1)
+	}
+
 	err = srv.Start(ctx)
 	cancel()
 

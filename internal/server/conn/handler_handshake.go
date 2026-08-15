@@ -17,7 +17,8 @@ func (c *Connection) handleHandshake(packetID int32, data []byte) error {
 		return fmt.Errorf("unmarshal handshake: %w", err)
 	}
 
-	c.log.Info("handshake received",
+	c.log.Info(
+		"handshake received",
 		"protocol", hs.ProtocolVersion,
 		"server", hs.ServerHost,
 		"port", hs.ServerPort,

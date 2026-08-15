@@ -91,13 +91,18 @@ func (c *Connection) handleEncryptionResponse(data []byte) error {
 		return fmt.Errorf("unmarshal encryption response: %w", err)
 	}
 
-	// Decrypt shared secret.
+	// Decrypt shared secret. The scheme is not a choice: Java Edition's
+	// encryption response is defined in terms of PKCS#1 v1.5, so OAEP would
+	// reject every real client. Task 7 replaces this whole path with
+	// login.Acceptor, which carries the same suppression in one place.
+	//nolint:staticcheck // SA1019: the wire format mandates PKCS#1 v1.5.
 	sharedSecret, err := rsa.DecryptPKCS1v15(rand.Reader, c.cfg.PrivateKey, resp.SharedSecret)
 	if err != nil {
 		return fmt.Errorf("decrypt shared secret: %w", err)
 	}
 
 	// Decrypt and verify token.
+	//nolint:staticcheck // SA1019: the wire format mandates PKCS#1 v1.5.
 	verifyToken, err := rsa.DecryptPKCS1v15(rand.Reader, c.cfg.PrivateKey, resp.VerifyToken)
 	if err != nil {
 		return fmt.Errorf("decrypt verify token: %w", err)

@@ -90,7 +90,14 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		return nil, fmt.Errorf("build protocol limits: %w", err)
 	}
 
-	stream, err := newStream(conn, limits)
+	legacyPing, err := newLegacyPingHook(cfg, players)
+	if err != nil {
+		cancel()
+
+		return nil, fmt.Errorf("build legacy ping hook: %w", err)
+	}
+
+	stream, err := newStream(conn, limits, protocol.WithPreFrameHook(legacyPing))
 	if err != nil {
 		cancel()
 
@@ -190,8 +197,32 @@ func (c *Connection) handleNextPacket() error {
 	}
 }
 
-// disconnect sends a disconnect packet and closes the connection.
+// disconnectTimeout bounds how long a graceful disconnect waits for the
+// client to accept the packet that explains it.
+const disconnectTimeout = 5 * time.Second
+
+// disconnect tells the client why the connection is ending, then ends it.
+//
+// Stream.Shutdown sends the disconnect packet the current state calls for —
+// login or play — drains the writes already accepted, and only then interrupts
+// the transport. The socket used to close with nothing on it, which a client
+// can only report as a lost connection.
 func (c *Connection) disconnect(reason string) {
 	c.log.Info("disconnecting", "reason", reason)
+
+	// Not c.ctx: a server-wide shutdown cancels it before this runs, and a
+	// cancelled context would abort the very write that carries the reason.
+	// The bound is what keeps a stalled client from holding the shutdown.
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(c.ctx), disconnectTimeout)
+	defer cancel()
+
+	if err := c.stream.Shutdown(ctx, reason); err != nil {
+		c.log.Debug("graceful shutdown failed", "error", err)
+	}
+
 	c.cancel()
 }
+
+// Disconnect ends this connection from outside its own goroutine, which is
+// what a shutting-down server does to every player still connected.
+func (c *Connection) Disconnect(reason string) { c.disconnect(reason) }

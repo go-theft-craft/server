@@ -5,15 +5,19 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
+	"unicode/utf16"
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
@@ -62,9 +66,24 @@ func newHarness(t *testing.T) *harness {
 	return newHarnessWith(t, nil)
 }
 
+// newRawHarness leaves the client end unread, for the one exchange that is not
+// framed packets at all. A drain goroutine would consume the legacy response
+// as though it were a frame.
+func newRawHarness(t *testing.T) *harness {
+	t.Helper()
+
+	return newHarnessOptions(t, nil, false)
+}
+
 // newHarnessWith builds a harness whose configuration is adjusted before the
 // connection starts. Adjusting it afterwards would race the Handle goroutine.
 func newHarnessWith(t *testing.T, configure func(*config.Config)) *harness {
+	t.Helper()
+
+	return newHarnessOptions(t, configure, true)
+}
+
+func newHarnessOptions(t *testing.T, configure func(*config.Config), drain bool) *harness {
 	t.Helper()
 
 	// No login in this file reaches the network. The production path calls
@@ -122,7 +141,9 @@ func newHarnessWith(t *testing.T, configure func(*config.Config)) *harness {
 		close(h.done)
 	}()
 
-	go h.drain()
+	if drain {
+		go h.drain()
+	}
 
 	// Registered last, so it runs first: the connection has to be finished
 	// before the seam restores above run, or the cleanup writes a package
@@ -296,18 +317,61 @@ func TestPingEchoesItsPayload(t *testing.T) {
 	}
 }
 
-// The legacy FE 01 probe is not a packet. Recording what the server does with
-// it today matters because Task 9 changes it deliberately, and the change has
-// to be visible as an edit to this expectation.
-func TestLegacyPingIsNotAnsweredToday(t *testing.T) {
-	h := newHarness(t)
+// The legacy FE 01 probe is not a packet, and until Task 9 the server read it
+// as a frame length and failed. This expectation was edited in the commit that
+// changed the behavior, which is the only way the change is visible in review.
+//
+// 0xFE 0x01 is what a 1.6 or older client sends before any handshake.
+func TestLegacyPingIsAnswered(t *testing.T) {
+	h := newRawHarness(t)
 
-	// 0xFE 0x01 is what a 1.6 client sends before any handshake. Read as a
-	// VarInt length it announces 254 bytes that never arrive.
 	h.sendRaw([]byte{0xFE, 0x01})
-	_ = h.client.Close()
 
-	h.expectClosed()
+	// The response is a kick packet: 0xFF, a UTF-16 unit count, then the
+	// fields separated by NUL.
+	header := make([]byte, 3)
+	if _, err := io.ReadFull(h.client, header); err != nil {
+		t.Fatalf("read legacy response header: %v", err)
+	}
+	if header[0] != 0xFF {
+		t.Fatalf("legacy response starts with %#x, want 0xFF", header[0])
+	}
+
+	units := int(binary.BigEndian.Uint16(header[1:3]))
+	body := make([]byte, 2*units)
+	if _, err := io.ReadFull(h.client, body); err != nil {
+		t.Fatalf("read legacy response body: %v", err)
+	}
+
+	decoded := make([]uint16, units)
+	for index := range decoded {
+		decoded[index] = binary.BigEndian.Uint16(body[2*index:])
+	}
+	fields := strings.Split(string(utf16.Decode(decoded)), "\x00")
+
+	defaults := config.DefaultConfig()
+	want := []string{
+		"\u00a71",
+		strconv.Itoa(int(pkt.ProtocolVersion)),
+		pkt.VersionName,
+		defaults.MOTD,
+		"0",
+		strconv.Itoa(defaults.MaxPlayers),
+	}
+	if len(fields) != len(want) {
+		t.Fatalf("legacy response has %d fields, want %d: %q", len(fields), len(want), fields)
+	}
+	for index := range want {
+		if fields[index] != want[index] {
+			t.Fatalf("legacy field %d = %q, want %q", index, fields[index], want[index])
+		}
+	}
+
+	// The connection ends after the response, as a legacy ping is not a
+	// session.
+	if _, err := h.client.Read(make([]byte, 1)); err == nil {
+		t.Fatal("the connection stayed open after a legacy ping")
+	}
 }
 
 func TestOfflineLoginReachesPlay(t *testing.T) {

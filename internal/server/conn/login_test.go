@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -254,5 +255,62 @@ func TestOnlineLoginRejectionDisconnects(t *testing.T) {
 	// server's verifier refuses and the client is told why.
 	if _, err := negotiator.Negotiate(t.Context(), client); !errors.Is(err, login.ErrLoginDisconnected) {
 		t.Fatalf("error = %v, want ErrLoginDisconnected", err)
+	}
+}
+
+// A kicked player is told why. Before Task 9 the socket simply closed, which a
+// client can only report as a lost connection.
+func TestDisconnectSendsAPlayDisconnectPacket(t *testing.T) {
+	client, connection := clientPair(t, func(settings *config.Config) {
+		settings.CompressionThreshold = -1
+	})
+
+	negotiateAgainstServer(t, client)
+
+	// Read the join sequence out of the way so the disconnect is the next
+	// packet the client sees rather than being queued behind chunks.
+	assertJoinSequence(t, client)
+	drainClient(t, client)
+
+	const reason = "Kicked for testing"
+
+	go connection.Disconnect(reason)
+
+	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	defer cancel()
+
+	for range 256 {
+		packet, err := client.Read(ctx)
+		if err != nil {
+			t.Fatalf("the client never received a disconnect: %v", err)
+		}
+
+		kick, ok := packet.Value.(*v1_8.PlayClientboundKickDisconnect)
+		if !ok {
+			continue
+		}
+		if !strings.Contains(kick.Reason, reason) {
+			t.Fatalf("kick reason = %q, want it to carry %q", kick.Reason, reason)
+		}
+
+		return
+	}
+
+	t.Fatal("no disconnect packet arrived")
+}
+
+// drainClient reads whatever is already queued, so the next read observes a
+// new packet rather than a backlog.
+func drainClient(t *testing.T, client *protocol.Stream) {
+	t.Helper()
+
+	for range 512 {
+		ctx, cancel := context.WithTimeout(t.Context(), 200*time.Millisecond)
+		_, err := client.Read(ctx)
+		cancel()
+
+		if err != nil {
+			return
+		}
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/go-theft-craft/minecraft-protocol/data"
@@ -27,6 +28,11 @@ type Server struct {
 	players  *player.Manager
 	storage  *storage.Storage
 	gameData *data.Set
+
+	// live tracks the connections that are still open, so a shutdown can
+	// tell each of them why it is ending rather than dropping its socket.
+	liveMu sync.Mutex
+	live   map[*conn.Connection]struct{}
 }
 
 // New creates a new Server with the given config, logger, and storage.
@@ -107,9 +113,11 @@ func (s *Server) Start(ctx context.Context) error {
 		go s.autoSave(ctx)
 	}
 
-	// Close listener when context is cancelled.
+	// On cancellation, disconnect everyone with a reason first, then stop
+	// accepting. A player sees a kick message instead of a dropped socket.
 	go func() {
 		<-ctx.Done()
+		s.disconnectAll("Server shutting down")
 		listener.Close()
 	}()
 
@@ -134,8 +142,62 @@ func (s *Server) Start(ctx context.Context) error {
 		}
 
 		connection.SaveAll = s.SaveAll
-		go connection.Handle()
+
+		s.track(connection)
+
+		go func() {
+			defer s.untrack(connection)
+
+			connection.Handle()
+		}()
 	}
+}
+
+// track registers a connection for the duration it is open.
+func (s *Server) track(connection *conn.Connection) {
+	s.liveMu.Lock()
+	defer s.liveMu.Unlock()
+
+	if s.live == nil {
+		s.live = make(map[*conn.Connection]struct{})
+	}
+	s.live[connection] = struct{}{}
+}
+
+func (s *Server) untrack(connection *conn.Connection) {
+	s.liveMu.Lock()
+	defer s.liveMu.Unlock()
+
+	delete(s.live, connection)
+}
+
+// disconnectAll tells every open connection why the server is stopping.
+func (s *Server) disconnectAll(reason string) {
+	s.liveMu.Lock()
+	connections := make([]*conn.Connection, 0, len(s.live))
+	for connection := range s.live {
+		connections = append(connections, connection)
+	}
+	s.liveMu.Unlock()
+
+	if len(connections) == 0 {
+		return
+	}
+
+	s.log.Info("disconnecting players", "count", len(connections), "reason", reason)
+
+	var group sync.WaitGroup
+	for _, connection := range connections {
+		group.Add(1)
+
+		go func() {
+			defer group.Done()
+
+			connection.Disconnect(reason)
+		}()
+	}
+
+	group.Wait()
 }
 
 // tickLoop runs the server tick at 20 TPS (50ms interval).

@@ -15,7 +15,11 @@ import (
 // The stream owns framing, compression, and — once the login installs it —
 // encryption. It is started by Handle rather than here, so construction stays
 // free of I/O and of goroutines.
-func newStream(conn net.Conn, limits protocol.Limits) (*protocol.Stream, error) {
+func newStream(
+	conn net.Conn,
+	limits protocol.Limits,
+	options ...protocol.StreamOption,
+) (*protocol.Stream, error) {
 	session, err := v1_8.Protocol().NewSession(protocol.RoleServer, limits)
 	if err != nil {
 		return nil, fmt.Errorf("create protocol session: %w", err)
@@ -25,7 +29,7 @@ func newStream(conn net.Conn, limits protocol.Limits) (*protocol.Stream, error) 
 		Reader:    conn,
 		Writer:    conn,
 		Interrupt: conn.Close,
-	})
+	}, options...)
 	if err != nil {
 		return nil, fmt.Errorf("create protocol stream: %w", err)
 	}

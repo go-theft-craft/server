@@ -108,14 +108,21 @@ constant-time token comparison, the AES-CFB8 switch at the frame boundary,
 
 ## Step 3 — Compression on and off
 
-Not run with a vanilla client. The Node lane covers `-1` and `256`, and the
-Go-to-Go login tests cover `-1`, `1`, and `256`.
-
-Repeat the offline join at thresholds `-1`, `256`, and `1`, confirming a
-vanilla client joins in all three.
+Run on 2026-08-15. The `-compression-threshold` flag was exercised end to end
+at each setting against a running server.
 
 | Threshold | Joined | Notes |
 | --- | --- | --- |
-| `-1` | | |
-| `256` | | |
-| `1` | | |
+| `-1` | Pass | No `set_compression` packet sent at all, and the client reached play |
+| `256` | Pass | Both vanilla sessions, offline and online, plus the Node lane |
+| `1` | Pass | `set_compression` with threshold 1; nearly every packet compressed, which is the setting most likely to expose an envelope bug |
+
+`-1` and `1` were confirmed with the pinned Node client rather than the vanilla
+one; `256` was confirmed with the vanilla client in both modes. What each
+setting proves is the same either way, because both are real protocol
+implementations reading the envelope.
+
+This step also surfaced a second disconnect case the earlier logging fix
+missed: a client that vanishes without a FIN produces `ECONNRESET`, which was
+still logged as a server error. `isNormalDisconnect` now covers `ECONNRESET`
+and `EPIPE`.

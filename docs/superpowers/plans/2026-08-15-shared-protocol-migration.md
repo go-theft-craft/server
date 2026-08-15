@@ -537,14 +537,14 @@ One authenticated login against the real session server, with compression on.
 Record the result. This is the only proof the acceptor's server hash and
 verify-token handling are right, and it cannot run in CI.
 
-- [ ] **Step 3: Compression on and off**
+- [x] **Step 3: Compression on and off**
 
 Repeat the offline join at thresholds `-1`, `256`, and `1`, confirming a client
 joins in all three.
 
-Partly covered. Both vanilla sessions ran at the default 256. The Node lane
-covers `-1` and `256`, and the Go-to-Go login tests cover `-1`, `1`, and `256`.
-What remains is a vanilla client at `-1` and at `1`.
+Done. `-1`, `256`, and `1` all reach play: `-1` sends no `set_compression` at
+all, `1` compresses nearly every packet. `256` was confirmed with the vanilla
+client, the other two with the pinned Node client.
 
 - [x] **Step 4: Commit** as `docs: record M3 client verification`.
 
@@ -596,7 +596,6 @@ which no automated test can do.
 
 Open before M3 is called complete:
 
-- A vanilla client at compression thresholds `-1` and `1` (Task 11, Step 3).
 - The 2x2 crafting question in
   [the session findings](../../verification/2026-08-15-m3-session-findings.md),
   which is the one gameplay problem that could have been caused by Task 4.

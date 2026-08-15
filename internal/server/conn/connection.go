@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net"
 	"sync"
+	"syscall"
 	"time"
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
@@ -214,6 +215,10 @@ func isNormalDisconnect(err error) bool {
 	return errors.Is(err, io.EOF) ||
 		errors.Is(err, net.ErrClosed) ||
 		errors.Is(err, io.ErrClosedPipe) ||
+		// A client that vanishes without a FIN — killed, crashed, or with its
+		// network dropped — is still a client leaving, not a server fault.
+		errors.Is(err, syscall.ECONNRESET) ||
+		errors.Is(err, syscall.EPIPE) ||
 		errors.Is(err, protocol.ErrStreamClosed) ||
 		errors.Is(err, protocol.ErrStreamClosing)
 }

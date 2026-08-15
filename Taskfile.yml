@@ -32,7 +32,7 @@ tasks:
     desc: Build service
     deps: [ deps, cleanup ]
     cmds:
-      - cmd: go build -ldflags="-w -s -X 'main.Version=1.0.0' -X 'main.Commit=$COMMIT_HASH' -X 'main.BuildTime=$BUILD_TIME'" -trimpath -mod vendor -o {{.BUILD_PATH}}/app .
+      - cmd: go build -ldflags="-w -s -X 'main.Version=1.0.0' -X 'main.Commit=$COMMIT_HASH' -X 'main.BuildTime=$BUILD_TIME'" -trimpath -mod vendor -o {{.BUILD_PATH}}/app ./cmd/server
         platforms: [linux/amd64,linux/arm64]
 
   deps:

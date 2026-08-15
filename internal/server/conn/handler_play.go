@@ -414,7 +414,13 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 	pitchAngle := player.DegreesToAngle(pitch)
 	eid := c.self.EntityID
 
-	if posChanged && lookChanged && player.DeltaFitsInByte(dx, dy, dz) {
+	// A move is sent relatively when the delta fits in a byte and absolutely
+	// when it does not, which is what keeps a teleport from being reported as
+	// a walk.
+	fitsRelative := player.DeltaFitsInByte(dx, dy, dz)
+
+	switch {
+	case posChanged && lookChanged && fitsRelative:
 		c.players.BroadcastToTrackers(&pkt.EntityMoveLook{
 			EntityID: eid,
 			DX:       int8(dx),
@@ -424,7 +430,8 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 			Pitch:    pitchAngle,
 			OnGround: onGround,
 		}, eid)
-	} else if posChanged && !lookChanged && player.DeltaFitsInByte(dx, dy, dz) {
+
+	case posChanged && !lookChanged && fitsRelative:
 		c.players.BroadcastToTrackers(&pkt.RelEntityMove{
 			EntityID: eid,
 			DX:       int8(dx),
@@ -432,7 +439,8 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 			DZ:       int8(dz),
 			OnGround: onGround,
 		}, eid)
-	} else if posChanged {
+
+	case posChanged:
 		c.players.BroadcastToTrackers(&pkt.EntityTeleport{
 			EntityID: eid,
 			X:        newFX,
@@ -653,11 +661,6 @@ func (c *Connection) findGroundLevel(x, startY, z int) int {
 		}
 	}
 	return 0
-}
-
-// playerGroundY returns the ground level (as float64) below the player's current position.
-func (c *Connection) playerGroundY(pos player.Position) float64 {
-	return float64(c.findGroundLevel(int(math.Floor(pos.X)), int(pos.Y), int(math.Floor(pos.Z))))
 }
 
 // groundAtFunc returns a callback that finds the ground level below a given (x, y, z)

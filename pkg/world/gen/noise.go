@@ -131,24 +131,26 @@ func (ng *NoiseGenerator) Noise3D(x, y, z float64) float64 {
 
 	var i1, j1, k1, i2, j2, k2 int
 	if x0 >= y0 {
-		if y0 >= z0 {
+		switch {
+		case y0 >= z0:
 			i1, j1, k1 = 1, 0, 0
 			i2, j2, k2 = 1, 1, 0
-		} else if x0 >= z0 {
+		case x0 >= z0:
 			i1, j1, k1 = 1, 0, 0
 			i2, j2, k2 = 1, 0, 1
-		} else {
+		default:
 			i1, j1, k1 = 0, 0, 1
 			i2, j2, k2 = 1, 0, 1
 		}
 	} else {
-		if y0 < z0 {
+		switch {
+		case y0 < z0:
 			i1, j1, k1 = 0, 0, 1
 			i2, j2, k2 = 0, 1, 1
-		} else if x0 < z0 {
+		case x0 < z0:
 			i1, j1, k1 = 0, 1, 0
 			i2, j2, k2 = 0, 1, 1
-		} else {
+		default:
 			i1, j1, k1 = 0, 1, 0
 			i2, j2, k2 = 1, 1, 0
 		}

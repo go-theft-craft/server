@@ -90,11 +90,9 @@ func checkShapedAt(grid [4]player.Slot, shape [][]gamedata.Ingredient, rowOff, c
 				if expected.Metadata >= 0 && int(gridSlot.ItemDamage) != expected.Metadata {
 					return false
 				}
-			} else {
+			} else if !gridSlot.IsEmpty() {
 				// This position should be empty.
-				if !gridSlot.IsEmpty() {
-					return false
-				}
+				return false
 			}
 		}
 	}

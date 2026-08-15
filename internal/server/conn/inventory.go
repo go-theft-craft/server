@@ -249,15 +249,18 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 		if c.cursorSlot.IsEmpty() && current.IsEmpty() {
 			return
 		}
-		if c.cursorSlot.IsEmpty() {
+		switch {
+		case c.cursorSlot.IsEmpty():
 			// Pick up entire stack.
 			c.cursorSlot = current
 			c.setWindowSlot(slot, player.EmptySlot)
-		} else if current.IsEmpty() {
+
+		case current.IsEmpty():
 			// Place entire cursor stack.
 			c.setWindowSlot(slot, c.cursorSlot)
 			c.cursorSlot = player.EmptySlot
-		} else if canStack(c.cursorSlot, current) {
+
+		case canStack(c.cursorSlot, current):
 			// Merge cursor into slot.
 			space := 64 - int(current.ItemCount)
 			if space <= 0 {
@@ -276,13 +279,15 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 				}
 				c.setWindowSlot(slot, current)
 			}
-		} else {
+
+		default:
 			// Swap cursor and slot.
 			c.setWindowSlot(slot, c.cursorSlot)
 			c.cursorSlot = current
 		}
 	} else { // Right click
-		if c.cursorSlot.IsEmpty() && !current.IsEmpty() {
+		switch {
+		case c.cursorSlot.IsEmpty() && !current.IsEmpty():
 			// Pick up half.
 			half := (current.ItemCount + 1) / 2
 			c.cursorSlot = player.Slot{BlockID: current.BlockID, ItemCount: half, ItemDamage: current.ItemDamage}
@@ -292,7 +297,8 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 			} else {
 				c.setWindowSlot(slot, current)
 			}
-		} else if !c.cursorSlot.IsEmpty() && current.IsEmpty() {
+
+		case !c.cursorSlot.IsEmpty() && current.IsEmpty():
 			// Place one from cursor.
 			placed := player.Slot{BlockID: c.cursorSlot.BlockID, ItemCount: 1, ItemDamage: c.cursorSlot.ItemDamage}
 			c.setWindowSlot(slot, placed)
@@ -300,7 +306,8 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 			if c.cursorSlot.ItemCount <= 0 {
 				c.cursorSlot = player.EmptySlot
 			}
-		} else if !c.cursorSlot.IsEmpty() && canStack(c.cursorSlot, current) && current.ItemCount < 64 {
+
+		case !c.cursorSlot.IsEmpty() && canStack(c.cursorSlot, current) && current.ItemCount < 64:
 			// Place one from cursor onto existing stack.
 			current.ItemCount++
 			c.setWindowSlot(slot, current)
@@ -308,7 +315,8 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 			if c.cursorSlot.ItemCount <= 0 {
 				c.cursorSlot = player.EmptySlot
 			}
-		} else if !c.cursorSlot.IsEmpty() && !current.IsEmpty() {
+
+		case !c.cursorSlot.IsEmpty() && !current.IsEmpty():
 			// Swap.
 			c.setWindowSlot(slot, c.cursorSlot)
 			c.cursorSlot = current

@@ -39,3 +39,4 @@ go.work.sum
 
 # Persistence data
 data/
+build/

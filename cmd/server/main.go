@@ -77,10 +77,14 @@ func main() {
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer cancel()
 
+	// Released explicitly rather than deferred: the failure path below exits
+	// the process, and a deferred release would not run before it did.
 	srv := server.New(cfg, log, store)
-	if err := srv.Start(ctx); err != nil {
+	err = srv.Start(ctx)
+	cancel()
+
+	if err != nil {
 		log.Error("server error", "error", err)
 		os.Exit(1)
 	}

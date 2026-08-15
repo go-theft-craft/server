@@ -4,7 +4,7 @@ import (
 	"math"
 	"sync"
 
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 )
 
 // SkinProperty holds a single Mojang skin/cape property.
@@ -42,12 +42,12 @@ type Player struct {
 	flying      bool    // currently flying (set by AbilitiesSB)
 	Height      float64 // 1.8 normal, 1.65 sneaking
 
-	WritePacket    func(mcnet.Packet) error
+	WritePacket    func(java.PacketValue) error
 	trackedPlayers map[int32]struct{}
 }
 
 // NewPlayer creates a new Player with its initial spawn position.
-func NewPlayer(entityID int32, uuid string, uuidBytes [16]byte, username string, props []SkinProperty, writePacket func(mcnet.Packet) error) *Player {
+func NewPlayer(entityID int32, uuid string, uuidBytes [16]byte, username string, props []SkinProperty, writePacket func(java.PacketValue) error) *Player {
 	spawnPos := Position{X: 0.5, Y: 4.0, Z: 0.5}
 	inv := NewInventory()
 	inv.DefaultLoadout()

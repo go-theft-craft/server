@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	protocol "github.com/go-theft-craft/minecraft-protocol"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // These fixtures are the bytes the server puts on the wire today. They are
@@ -80,11 +80,19 @@ func assertFixture(t *testing.T, name string, got []byte) {
 // encode renders one packet exactly as the server writes it, length prefix
 // and all. It goes through the same writer the connection uses, so a change
 // in framing shows up in every fixture rather than in none of them.
-func encode(t *testing.T, packet mcnet.Packet) []byte {
+func encode(t *testing.T, packet java.PacketValue) []byte {
 	t.Helper()
 
+	payload, err := java.Marshal(packet, testLimits())
+	if err != nil {
+		t.Fatalf("marshal %T: %v", packet, err)
+	}
+
 	var buf bytes.Buffer
-	if err := mcnet.WritePacket(&buf, packet); err != nil {
+	if err := java.WriteRawPacket(&buf, testLimits(), protocol.Packet{
+		ID:      packet.PacketID(),
+		Payload: payload,
+	}); err != nil {
 		t.Fatalf("encode %T: %v", packet, err)
 	}
 
@@ -97,7 +105,10 @@ func framed(t *testing.T, packet rawPacket) []byte {
 	t.Helper()
 
 	var buf bytes.Buffer
-	if err := mcnet.WriteRawPacket(&buf, packet.id, packet.data); err != nil {
+	if err := java.WriteRawPacket(&buf, testLimits(), protocol.Packet{
+		ID:      packet.id,
+		Payload: packet.data,
+	}); err != nil {
 		t.Fatalf("reframe packet %#x: %v", packet.id, err)
 	}
 
@@ -135,7 +146,7 @@ func TestByteParityEncryptionRequest(t *testing.T) {
 	request := h.expect(pkt.EncryptionBeginCB{}.PacketID())
 
 	var decoded pkt.EncryptionBeginCB
-	if err := mcnet.Unmarshal(request.data, &decoded); err != nil {
+	if err := java.Unmarshal(request.data, &decoded, testLimits()); err != nil {
 		t.Fatalf("unmarshal encryption request: %v", err)
 	}
 	if decoded.ServerID != "" {
@@ -175,7 +186,7 @@ func TestVerifyTokenIsFreshPerConnection(t *testing.T) {
 
 		var decoded pkt.EncryptionBeginCB
 		request := h.expect(pkt.EncryptionBeginCB{}.PacketID())
-		if err := mcnet.Unmarshal(request.data, &decoded); err != nil {
+		if err := java.Unmarshal(request.data, &decoded, testLimits()); err != nil {
 			t.Fatalf("unmarshal encryption request: %v", err)
 		}
 		tokens = append(tokens, decoded.VerifyToken)

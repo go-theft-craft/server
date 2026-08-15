@@ -11,11 +11,11 @@ import (
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
@@ -59,20 +59,20 @@ func (w *writtenPackets) len() int {
 // sentPackets collects packets from a player's WritePacket func.
 type sentPackets struct {
 	mu      sync.Mutex
-	packets []mcnet.Packet
+	packets []java.PacketValue
 }
 
-func (s *sentPackets) write(p mcnet.Packet) error {
+func (s *sentPackets) write(p java.PacketValue) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.packets = append(s.packets, p)
 	return nil
 }
 
-func (s *sentPackets) get() []mcnet.Packet {
+func (s *sentPackets) get() []java.PacketValue {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	cp := make([]mcnet.Packet, len(s.packets))
+	cp := make([]java.PacketValue, len(s.packets))
 	copy(cp, s.packets)
 	return cp
 }
@@ -131,7 +131,7 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 	written := &writtenPackets{}
 	go func() {
 		for {
-			if _, _, err := mcnet.ReadRawPacket(clientEnd); err != nil {
+			if _, err := java.ReadRawPacket(clientEnd, limits); err != nil {
 				return
 			}
 			written.add()

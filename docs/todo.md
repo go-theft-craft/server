@@ -1,3 +1,4 @@
 - [ ] have option to measure which player load server a lot 
 - [ ] have option to measure which npc/family/feature load server a lot 
 - [ ] trace when/how each item was created
+- [ ] create all vanilla cmds and add them to the command list, but stub them with a message saying "not implemented yet"

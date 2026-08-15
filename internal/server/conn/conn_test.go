@@ -23,7 +23,6 @@ import (
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
@@ -147,19 +146,26 @@ func (h *harness) drain() {
 	defer close(h.packets)
 
 	for {
-		id, data, err := mcnet.ReadRawPacket(h.client)
+		packet, err := java.ReadRawPacket(h.client, testLimits())
 		if err != nil {
 			return
 		}
-		h.packets <- rawPacket{id: id, data: data}
+		h.packets <- rawPacket{id: packet.ID, data: packet.Payload}
 	}
 }
 
 // send writes one serverbound packet.
-func (h *harness) send(packet mcnet.Packet) {
+func (h *harness) send(packet java.PacketValue) {
 	h.t.Helper()
 
-	if err := mcnet.WritePacket(h.client, packet); err != nil {
+	payload, err := java.Marshal(packet, testLimits())
+	if err != nil {
+		h.t.Fatalf("marshal %T: %v", packet, err)
+	}
+	if err := java.WriteRawPacket(h.client, testLimits(), protocol.Packet{
+		ID:      packet.PacketID(),
+		Payload: payload,
+	}); err != nil {
 		h.t.Fatalf("write %T: %v", packet, err)
 	}
 }
@@ -230,7 +236,7 @@ func TestStatusRequestAnswersWithTheServerDescription(t *testing.T) {
 	response := h.expect(pkt.ServerInfo{}.PacketID())
 
 	var info pkt.ServerInfo
-	if err := mcnet.Unmarshal(response.data, &info); err != nil {
+	if err := java.Unmarshal(response.data, &info, testLimits()); err != nil {
 		t.Fatalf("unmarshal status response: %v", err)
 	}
 
@@ -282,7 +288,7 @@ func TestPingEchoesItsPayload(t *testing.T) {
 	response := h.expect(pkt.PingCB{}.PacketID())
 
 	var pong pkt.PingCB
-	if err := mcnet.Unmarshal(response.data, &pong); err != nil {
+	if err := java.Unmarshal(response.data, &pong, testLimits()); err != nil {
 		t.Fatalf("unmarshal ping response: %v", err)
 	}
 	if pong.Time != sent {
@@ -313,7 +319,7 @@ func TestOfflineLoginReachesPlay(t *testing.T) {
 	success := h.expect(pkt.Success{}.PacketID())
 
 	var confirmed pkt.Success
-	if err := mcnet.Unmarshal(success.data, &confirmed); err != nil {
+	if err := java.Unmarshal(success.data, &confirmed, testLimits()); err != nil {
 		t.Fatalf("unmarshal login success: %v", err)
 	}
 	if confirmed.Username != "Tester" {
@@ -328,7 +334,7 @@ func TestOfflineLoginReachesPlay(t *testing.T) {
 	join := h.expect(pkt.Login{}.PacketID())
 
 	var joined pkt.Login
-	if err := mcnet.Unmarshal(join.data, &joined); err != nil {
+	if err := java.Unmarshal(join.data, &joined, testLimits()); err != nil {
 		t.Fatalf("unmarshal join game: %v", err)
 	}
 	if joined.LevelType == "" {
@@ -385,7 +391,7 @@ func TestOversizedFrameIsRefusedByName(t *testing.T) {
 	// A length prefix past the frame limit, with none of the body behind it.
 	// The stream must refuse it on the prefix alone rather than allocating.
 	var prefix bytes.Buffer
-	if _, err := mcnet.WriteVarInt(&prefix, int32(limits.FrameBytes())+1); err != nil {
+	if _, err := java.WriteVarInt(&prefix, int32(limits.FrameBytes())+1); err != nil {
 		t.Fatalf("encode length prefix: %v", err)
 	}
 	h.sendRaw(prefix.Bytes())
@@ -446,7 +452,7 @@ func TestConcurrentWritesProduceIntactFrames(t *testing.T) {
 		packet := h.expect(pkt.ChatCB{}.PacketID())
 
 		var chat pkt.ChatCB
-		if err := mcnet.Unmarshal(packet.data, &chat); err != nil {
+		if err := java.Unmarshal(packet.data, &chat, testLimits()); err != nil {
 			t.Fatalf("decode concurrent write: %v", err)
 		}
 		seen[chat.Message] = true
@@ -546,3 +552,75 @@ var testServerKey = sync.OnceValue(func() *rsa.PrivateKey {
 
 	return key
 })
+
+// testLimits is the default limit set, shared by every test in the package.
+var testLimits = sync.OnceValue(func() protocol.Limits {
+	limits, err := protocol.NewLimits()
+	if err != nil {
+		panic("build test limits: " + err.Error())
+	}
+
+	return limits
+})
+
+// Task 8 moved play decoding onto the shared reflect codec. The local structs
+// and their mc tags did not change, so the same bytes must produce the same
+// struct, and the failure modes must be the ones the old loop had.
+
+func TestPlayPacketDecodesIntoTheSameStruct(t *testing.T) {
+	sent := &pkt.PositionSB{X: 1.5, Y: 64, Z: -2.25, OnGround: true}
+
+	payload, err := java.Marshal(sent, testLimits())
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var received pkt.PositionSB
+	if err := java.Unmarshal(payload, &received, testLimits()); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+
+	if received != *sent {
+		t.Fatalf("round trip changed the packet: %+v, want %+v", received, *sent)
+	}
+}
+
+// A truncated packet names what failed rather than panicking.
+func TestTruncatedPlayPacketIsAnError(t *testing.T) {
+	payload, err := java.Marshal(&pkt.PositionSB{X: 1, Y: 2, Z: 3}, testLimits())
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var received pkt.PositionSB
+	err = java.Unmarshal(payload[:len(payload)-4], &received, testLimits())
+	if err == nil {
+		t.Fatal("a truncated payload decoded without error")
+	}
+}
+
+// An unknown play packet ID is ignored, exactly as it was before: the switch
+// has no case for it and the connection stays up.
+func TestUnknownPlayPacketIsIgnored(t *testing.T) {
+	h := newHarness(t)
+
+	h.handshake(2)
+	h.send(&pkt.LoginStart{Username: "Tester"})
+	h.expect(pkt.Success{}.PacketID())
+	h.expect(pkt.Login{}.PacketID())
+	drainUntilQuiet(t, h)
+
+	// 0x7F is serverbound-play in no version of protocol 47.
+	if err := java.WriteRawPacket(h.client, testLimits(), protocol.Packet{
+		ID:      0x7F,
+		Payload: []byte{0x01, 0x02},
+	}); err != nil {
+		t.Fatalf("write unknown packet: %v", err)
+	}
+
+	// The connection must still answer afterwards.
+	if err := h.conn.writePacket(&pkt.ChatCB{Message: `{"text":"still here"}`, Position: 0}); err != nil {
+		t.Fatalf("write after unknown packet: %v", err)
+	}
+	h.expect(pkt.ChatCB{}.PacketID())
+}

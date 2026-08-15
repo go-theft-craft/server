@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 )
 
 // Slot represents a Minecraft inventory slot.
@@ -17,7 +17,7 @@ type Slot struct {
 // readSlot reads a slot from the given reader.
 // If BlockID is -1, the slot is empty.
 func readSlot(r io.Reader) (Slot, error) {
-	blockID, err := mcnet.ReadI16(r)
+	blockID, err := java.ReadI16(r)
 	if err != nil {
 		return Slot{}, fmt.Errorf("read slot block id: %w", err)
 	}
@@ -26,18 +26,18 @@ func readSlot(r io.Reader) (Slot, error) {
 		return Slot{BlockID: -1}, nil
 	}
 
-	count, err := mcnet.ReadI8(r)
+	count, err := java.ReadI8(r)
 	if err != nil {
 		return Slot{}, fmt.Errorf("read slot count: %w", err)
 	}
 
-	damage, err := mcnet.ReadI16(r)
+	damage, err := java.ReadI16(r)
 	if err != nil {
 		return Slot{}, fmt.Errorf("read slot damage: %w", err)
 	}
 
 	// NBT data: read tag type byte. If 0x00, no NBT follows.
-	nbtTag, err := mcnet.ReadU8(r)
+	nbtTag, err := java.ReadU8(r)
 	if err != nil {
 		return Slot{}, fmt.Errorf("read slot nbt tag: %w", err)
 	}

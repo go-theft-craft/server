@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 )
 
 // BuildEquipmentPackets builds 5 EntityEquipment (0x04) raw data payloads:
@@ -33,7 +33,7 @@ func BuildSingleEquipment(entityID int32, equipSlot int16, slot Slot) []byte {
 
 func buildEquipmentData(entityID int32, equipSlot int16, slot Slot) []byte {
 	var buf bytes.Buffer
-	_, _ = mcnet.WriteVarInt(&buf, entityID)
+	_, _ = java.WriteVarInt(&buf, entityID)
 	_ = binary.Write(&buf, binary.BigEndian, equipSlot)
 	_ = WriteSlot(&buf, slot)
 	return buf.Bytes()

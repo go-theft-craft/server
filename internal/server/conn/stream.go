@@ -8,8 +8,6 @@ import (
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
-
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // newStream builds the managed stream one connection runs on.
@@ -85,7 +83,7 @@ func (c *Connection) readPacket(ctx context.Context) (protocol.Packet, error) {
 // marshals the local struct through the shared reflect codec — which reads the
 // same mc tags — and hands the stream a raw payload. The stream serializes
 // writes through its write pump, so this no longer takes a lock of its own.
-func (c *Connection) writePacket(p mcnet.Packet) error {
+func (c *Connection) writePacket(p java.PacketValue) error {
 	payload, err := java.Marshal(p, c.limits)
 	if err != nil {
 		return fmt.Errorf("marshal packet 0x%02X: %w", p.PacketID(), err)

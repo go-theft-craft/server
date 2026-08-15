@@ -7,8 +7,9 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
+
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // Manager tracks all connected players and handles entity visibility.
@@ -164,7 +165,7 @@ func (m *Manager) Remove(p *Player) {
 }
 
 // Broadcast sends a packet to all connected players.
-func (m *Manager) Broadcast(p mcnet.Packet) {
+func (m *Manager) Broadcast(p java.PacketValue) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	for _, pl := range m.players {
@@ -173,7 +174,7 @@ func (m *Manager) Broadcast(p mcnet.Packet) {
 }
 
 // BroadcastExcept sends a packet to all players except the one with excludeEntityID.
-func (m *Manager) BroadcastExcept(p mcnet.Packet, excludeEntityID int32) {
+func (m *Manager) BroadcastExcept(p java.PacketValue, excludeEntityID int32) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	for _, pl := range m.players {
@@ -184,7 +185,7 @@ func (m *Manager) BroadcastExcept(p mcnet.Packet, excludeEntityID int32) {
 }
 
 // BroadcastToTrackers sends a packet to all players tracking the given entity.
-func (m *Manager) BroadcastToTrackers(p mcnet.Packet, entityID int32) {
+func (m *Manager) BroadcastToTrackers(p java.PacketValue, entityID int32) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	for _, pl := range m.players {
@@ -326,7 +327,7 @@ func (m *Manager) spawnPlayerFor(viewer, target *Player) {
 // buildEntityMetadataData prepends the entity ID (varint) to raw metadata bytes.
 func buildEntityMetadataData(entityID int32, metadata []byte) []byte {
 	var buf bytes.Buffer
-	_, _ = mcnet.WriteVarInt(&buf, entityID)
+	_, _ = java.WriteVarInt(&buf, entityID)
 	buf.Write(metadata)
 	return buf.Bytes()
 }
@@ -335,7 +336,7 @@ func buildEntityMetadataData(entityID int32, metadata []byte) []byte {
 func buildSpawnNamedEntity(p *Player, pos Position) []byte {
 	var buf bytes.Buffer
 
-	_, _ = mcnet.WriteVarInt(&buf, p.EntityID)
+	_, _ = java.WriteVarInt(&buf, p.EntityID)
 	buf.Write(p.UUIDBytes[:])
 	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(pos.X))
 	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(pos.Y))
@@ -361,26 +362,26 @@ func buildSpawnNamedEntity(p *Player, pos Position) []byte {
 func buildPlayerInfoAdd(p *Player) []byte {
 	var buf bytes.Buffer
 
-	_, _ = mcnet.WriteVarInt(&buf, 0) // action: Add Player
-	_, _ = mcnet.WriteVarInt(&buf, 1) // count: 1
+	_, _ = java.WriteVarInt(&buf, 0) // action: Add Player
+	_, _ = java.WriteVarInt(&buf, 1) // count: 1
 	buf.Write(p.UUIDBytes[:])
-	_, _ = mcnet.WriteString(&buf, p.Username)
+	_, _ = java.WriteString(&buf, wireLimits(), p.Username)
 
-	_, _ = mcnet.WriteVarInt(&buf, int32(len(p.Properties)))
+	_, _ = java.WriteVarInt(&buf, int32(len(p.Properties)))
 	for _, prop := range p.Properties {
-		_, _ = mcnet.WriteString(&buf, prop.Name)
-		_, _ = mcnet.WriteString(&buf, prop.Value)
+		_, _ = java.WriteString(&buf, wireLimits(), prop.Name)
+		_, _ = java.WriteString(&buf, wireLimits(), prop.Value)
 		if prop.Signature != "" {
 			buf.WriteByte(1)
-			_, _ = mcnet.WriteString(&buf, prop.Signature)
+			_, _ = java.WriteString(&buf, wireLimits(), prop.Signature)
 		} else {
 			buf.WriteByte(0)
 		}
 	}
 
-	_, _ = mcnet.WriteVarInt(&buf, int32(p.GetGameMode())) // gamemode
-	_, _ = mcnet.WriteVarInt(&buf, 0)                      // ping
-	buf.WriteByte(0)                                       // no display name
+	_, _ = java.WriteVarInt(&buf, int32(p.GetGameMode())) // gamemode
+	_, _ = java.WriteVarInt(&buf, 0)                      // ping
+	buf.WriteByte(0)                                      // no display name
 
 	return buf.Bytes()
 }
@@ -389,10 +390,10 @@ func buildPlayerInfoAdd(p *Player) []byte {
 func (m *Manager) BroadcastGameMode(p *Player) {
 	var buf bytes.Buffer
 
-	_, _ = mcnet.WriteVarInt(&buf, 1) // action: Update Gamemode
-	_, _ = mcnet.WriteVarInt(&buf, 1) // count: 1
+	_, _ = java.WriteVarInt(&buf, 1) // action: Update Gamemode
+	_, _ = java.WriteVarInt(&buf, 1) // count: 1
 	buf.Write(p.UUIDBytes[:])
-	_, _ = mcnet.WriteVarInt(&buf, int32(p.GetGameMode()))
+	_, _ = java.WriteVarInt(&buf, int32(p.GetGameMode()))
 
 	data := buf.Bytes()
 	m.Broadcast(&pkt.PlayerInfo{Data: data})
@@ -402,8 +403,8 @@ func (m *Manager) BroadcastGameMode(p *Player) {
 func buildPlayerInfoRemove(p *Player) []byte {
 	var buf bytes.Buffer
 
-	_, _ = mcnet.WriteVarInt(&buf, 4) // action: Remove Player
-	_, _ = mcnet.WriteVarInt(&buf, 1) // count: 1
+	_, _ = java.WriteVarInt(&buf, 4) // action: Remove Player
+	_, _ = java.WriteVarInt(&buf, 1) // count: 1
 	buf.Write(p.UUIDBytes[:])
 
 	return buf.Bytes()
@@ -413,9 +414,9 @@ func buildPlayerInfoRemove(p *Player) []byte {
 func buildDestroyEntities(ids []int32) []byte {
 	var buf bytes.Buffer
 
-	_, _ = mcnet.WriteVarInt(&buf, int32(len(ids)))
+	_, _ = java.WriteVarInt(&buf, int32(len(ids)))
 	for _, id := range ids {
-		_, _ = mcnet.WriteVarInt(&buf, id)
+		_, _ = java.WriteVarInt(&buf, id)
 	}
 
 	return buf.Bytes()

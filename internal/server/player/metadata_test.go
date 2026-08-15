@@ -3,8 +3,9 @@ package player
 import (
 	"testing"
 
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
+
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 func TestBuildEntityMetadataDefault(t *testing.T) {
@@ -93,7 +94,7 @@ func TestBuildSpawnMetadata(t *testing.T) {
 
 func newTestPlayerSimple() *Player {
 	uuid := [16]byte{0x01}
-	return NewPlayer(1, "test-uuid", uuid, "testplayer", nil, func(p mcnet.Packet) error {
+	return NewPlayer(1, "test-uuid", uuid, "testplayer", nil, func(p java.PacketValue) error {
 		return nil
 	})
 }

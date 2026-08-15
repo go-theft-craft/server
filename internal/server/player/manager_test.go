@@ -4,27 +4,28 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
+
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // packetCollector records packets sent to a player.
 type packetCollector struct {
 	mu      sync.Mutex
-	packets []mcnet.Packet
+	packets []java.PacketValue
 }
 
-func (pc *packetCollector) writePacket(p mcnet.Packet) error {
+func (pc *packetCollector) writePacket(p java.PacketValue) error {
 	pc.mu.Lock()
 	defer pc.mu.Unlock()
 	pc.packets = append(pc.packets, p)
 	return nil
 }
 
-func (pc *packetCollector) get() []mcnet.Packet {
+func (pc *packetCollector) get() []java.PacketValue {
 	pc.mu.Lock()
 	defer pc.mu.Unlock()
-	cp := make([]mcnet.Packet, len(pc.packets))
+	cp := make([]java.PacketValue, len(pc.packets))
 	copy(cp, pc.packets)
 	return cp
 }

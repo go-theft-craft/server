@@ -4,27 +4,28 @@ import (
 	"bytes"
 	"strings"
 
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
+
 	"github.com/go-theft-craft/server/internal/server/player"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // handleTabComplete processes a TabComplete (0x14) packet and sends completions back.
 func (c *Connection) handleTabComplete(data []byte) error {
 	r := bytes.NewReader(data)
 
-	text, err := mcnet.ReadString(r)
+	text, err := java.ReadString(r, c.limits)
 	if err != nil {
 		return err
 	}
 
-	hasPosition, err := mcnet.ReadBool(r)
+	hasPosition, err := java.ReadBool(r)
 	if err != nil {
 		return err
 	}
 	if hasPosition {
 		// Consume the looked-at block position (i64), we don't use it.
-		if _, err := mcnet.ReadI64(r); err != nil {
+		if _, err := java.ReadI64(r); err != nil {
 			return err
 		}
 	}
@@ -128,9 +129,9 @@ func filterStrings(partial string, options []string) []string {
 
 func (c *Connection) sendTabCompleteResponse(matches []string) error {
 	var buf bytes.Buffer
-	_, _ = mcnet.WriteVarInt(&buf, int32(len(matches)))
+	_, _ = java.WriteVarInt(&buf, int32(len(matches)))
 	for _, m := range matches {
-		_, _ = mcnet.WriteString(&buf, m)
+		_, _ = java.WriteString(&buf, c.limits, m)
 	}
 	return c.writePacket(&pkt.TabCompleteCB{Data: buf.Bytes()})
 }

@@ -5,8 +5,9 @@ import (
 	"encoding/binary"
 	"math"
 
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
+
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // ItemEntity represents a dropped item in the world.
@@ -225,7 +226,7 @@ func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64) {
 func buildSpawnEntityDataAtRest(ie *ItemEntity) []byte {
 	var buf bytes.Buffer
 
-	_, _ = mcnet.WriteVarInt(&buf, ie.EntityID)
+	_, _ = java.WriteVarInt(&buf, ie.EntityID)
 	_ = binary.Write(&buf, binary.BigEndian, int8(2)) // type: item stack
 	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(ie.X))
 	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(ie.Y))
@@ -242,7 +243,7 @@ func buildSpawnEntityDataAtRest(ie *ItemEntity) []byte {
 func buildSpawnEntityDataAt(ie *ItemEntity, spawnX, spawnY, spawnZ float64) []byte {
 	var buf bytes.Buffer
 
-	_, _ = mcnet.WriteVarInt(&buf, ie.EntityID)
+	_, _ = java.WriteVarInt(&buf, ie.EntityID)
 	_ = binary.Write(&buf, binary.BigEndian, int8(2)) // type: item stack
 	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(spawnX))
 	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(spawnY))

@@ -5,9 +5,10 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
+
 	"github.com/go-theft-craft/server/internal/server/player"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 )
 
 // Player inventory window (window 0) slot layout.
@@ -68,27 +69,27 @@ func (c *Connection) sendSetSlot(windowID int8, slotIndex int16, slot player.Slo
 func (c *Connection) handleWindowClick(data []byte) error {
 	r := bytes.NewReader(data)
 
-	windowID, err := mcnet.ReadU8(r)
+	windowID, err := java.ReadU8(r)
 	if err != nil {
 		return fmt.Errorf("read window id: %w", err)
 	}
 
-	slotIndex, err := mcnet.ReadI16(r)
+	slotIndex, err := java.ReadI16(r)
 	if err != nil {
 		return fmt.Errorf("read slot: %w", err)
 	}
 
-	button, err := mcnet.ReadI8(r)
+	button, err := java.ReadI8(r)
 	if err != nil {
 		return fmt.Errorf("read button: %w", err)
 	}
 
-	actionID, err := mcnet.ReadI16(r)
+	actionID, err := java.ReadI16(r)
 	if err != nil {
 		return fmt.Errorf("read action id: %w", err)
 	}
 
-	mode, _, err := mcnet.ReadVarInt(r)
+	mode, _, err := java.ReadVarInt(r)
 	if err != nil {
 		return fmt.Errorf("read mode: %w", err)
 	}
@@ -638,7 +639,7 @@ func (c *Connection) handleDoubleClick(_ int16) {
 func (c *Connection) handleCreativeSlot(data []byte) error {
 	r := bytes.NewReader(data)
 
-	slotIndex, err := mcnet.ReadI16(r)
+	slotIndex, err := java.ReadI16(r)
 	if err != nil {
 		return fmt.Errorf("read creative slot index: %w", err)
 	}
@@ -674,7 +675,7 @@ func (c *Connection) handleCreativeSlot(data []byte) error {
 // handleCloseWindow processes a CloseWindow (0x0D) packet.
 func (c *Connection) handleCloseWindow(data []byte) error {
 	r := bytes.NewReader(data)
-	if _, err := mcnet.ReadU8(r); err != nil {
+	if _, err := java.ReadU8(r); err != nil {
 		return fmt.Errorf("read close window id: %w", err)
 	}
 

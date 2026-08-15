@@ -18,7 +18,6 @@ import (
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
-	mcnet "github.com/go-theft-craft/server/pkg/protocol"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
@@ -91,7 +90,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 
 	// 2. Spawn Position
 	if err := c.writePacket(&pkt.SpawnPosition{
-		Location: mcnet.EncodePosition(0, spawnY, 0),
+		Location: java.EncodePosition(0, spawnY, 0),
 	}); err != nil {
 		return fmt.Errorf("write spawn position: %w", err)
 	}
@@ -209,7 +208,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 	switch packetID {
 	case pkt.KeepAliveSB{}.PacketID():
 		var p pkt.KeepAliveSB
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal keep alive: %w", err)
 		}
 		c.mu.Lock()
@@ -220,7 +219,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 
 	case pkt.ChatSB{}.PacketID():
 		var p pkt.ChatSB
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal chat: %w", err)
 		}
 		c.log.Info("chat", "message", p.Message)
@@ -244,21 +243,21 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 
 	case pkt.PositionSB{}.PacketID():
 		var p pkt.PositionSB
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal player position: %w", err)
 		}
 		c.handlePositionUpdate(p.X, p.Y, p.Z, 0, 0, p.OnGround, true, false)
 
 	case pkt.Look{}.PacketID():
 		var p pkt.Look
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal player look: %w", err)
 		}
 		c.handleLookUpdate(p.Yaw, p.Pitch, p.OnGround)
 
 	case pkt.PositionLook{}.PacketID():
 		var p pkt.PositionLook
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal player position and look: %w", err)
 		}
 		c.handlePositionUpdate(p.X, p.Y, p.Z, p.Yaw, p.Pitch, p.OnGround, true, true)
@@ -271,7 +270,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 
 	case pkt.HeldItemSlotSB{}.PacketID():
 		var p pkt.HeldItemSlotSB
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal held item slot: %w", err)
 		}
 		if p.SlotID < 0 || p.SlotID > 8 {
@@ -290,7 +289,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 
 	case pkt.EntityAction{}.PacketID():
 		var p pkt.EntityAction
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal entity action: %w", err)
 		}
 		switch p.ActionID {
@@ -328,16 +327,16 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 
 	case pkt.UpdateSignSB{}.PacketID():
 		var p pkt.UpdateSignSB
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal update sign: %w", err)
 		}
-		x, y, z := mcnet.DecodePosition(p.Location)
+		x, y, z := java.DecodePosition(p.Location)
 		c.log.Info("update sign", "x", x, "y", y, "z", z,
 			"line1", p.Text1, "line2", p.Text2, "line3", p.Text3, "line4", p.Text4)
 
 	case pkt.AbilitiesSB{}.PacketID():
 		var p pkt.AbilitiesSB
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal abilities sb: %w", err)
 		}
 		c.handleAbilitiesUpdate(p)
@@ -347,7 +346,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 
 	case pkt.Settings{}.PacketID():
 		var p pkt.Settings
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal client settings: %w", err)
 		}
 		c.log.Info("client settings", "locale", p.Locale, "viewDistance", p.ViewDistance)
@@ -362,7 +361,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 
 	case pkt.Spectate{}.PacketID():
 		var p pkt.Spectate
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal spectate: %w", err)
 		}
 		if c.self.GetGameMode() != packet.GameModeSpectator {
@@ -377,7 +376,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 
 	case pkt.ResourcePackReceive{}.PacketID():
 		var p pkt.ResourcePackReceive
-		if err := mcnet.Unmarshal(data, &p); err != nil {
+		if err := java.Unmarshal(data, &p, c.limits); err != nil {
 			return fmt.Errorf("unmarshal resource pack status: %w", err)
 		}
 		c.log.Info("resource pack status", "hash", p.Hash, "result", p.Result)
@@ -506,16 +505,16 @@ func (c *Connection) handleLookUpdate(yaw, pitch float32, onGround bool) {
 func (c *Connection) handleBlockDig(data []byte) error {
 	r := bytes.NewReader(data)
 
-	status, _, err := mcnet.ReadVarInt(r)
+	status, _, err := java.ReadVarInt(r)
 	if err != nil {
 		return fmt.Errorf("read dig status: %w", err)
 	}
 
-	posVal, err := mcnet.ReadI64(r)
+	posVal, err := java.ReadI64(r)
 	if err != nil {
 		return fmt.Errorf("read dig position: %w", err)
 	}
-	x, y, z := mcnet.DecodePosition(posVal)
+	x, y, z := java.DecodePosition(posVal)
 
 	switch status {
 	case 0: // Started digging
@@ -677,12 +676,12 @@ func (c *Connection) groundAtFunc() func(x, y, z int) float64 {
 func (c *Connection) handleBlockPlace(data []byte) error {
 	r := bytes.NewReader(data)
 
-	posVal, err := mcnet.ReadI64(r)
+	posVal, err := java.ReadI64(r)
 	if err != nil {
 		return fmt.Errorf("read place position: %w", err)
 	}
 
-	face, err := mcnet.ReadI8(r)
+	face, err := java.ReadI8(r)
 	if err != nil {
 		return fmt.Errorf("read place face: %w", err)
 	}
@@ -693,13 +692,13 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 	}
 
 	// Read cursor position (3 x u8) - we don't use these but must consume them.
-	if _, err := mcnet.ReadU8(r); err != nil {
+	if _, err := java.ReadU8(r); err != nil {
 		return fmt.Errorf("read cursor x: %w", err)
 	}
-	if _, err := mcnet.ReadU8(r); err != nil {
+	if _, err := java.ReadU8(r); err != nil {
 		return fmt.Errorf("read cursor y: %w", err)
 	}
-	if _, err := mcnet.ReadU8(r); err != nil {
+	if _, err := java.ReadU8(r); err != nil {
 		return fmt.Errorf("read cursor z: %w", err)
 	}
 
@@ -722,7 +721,7 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 		return nil
 	}
 
-	x, y, z := mcnet.DecodePosition(posVal)
+	x, y, z := java.DecodePosition(posVal)
 
 	// Compute target position from face direction.
 	switch face {
@@ -746,7 +745,7 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 	c.world.SetBlock(x, y, z, stateID)
 
 	blockChange := &pkt.BlockChange{
-		Location: mcnet.EncodePosition(x, y, z),
+		Location: java.EncodePosition(x, y, z),
 		Type:     stateID,
 	}
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
@@ -912,7 +911,7 @@ func buildSprintParticles(x, y, z float64, blockState int32) []byte {
 	_ = binary.Write(&buf, binary.BigEndian, float32(0.5)) // offset Z
 	_ = binary.Write(&buf, binary.BigEndian, float32(0.0)) // speed
 	_ = binary.Write(&buf, binary.BigEndian, int32(5))     // count
-	_, _ = mcnet.WriteVarInt(&buf, blockState)             // block state data
+	_, _ = java.WriteVarInt(&buf, blockState)              // block state data
 
 	return buf.Bytes()
 }
@@ -922,25 +921,25 @@ func buildSprintParticles(x, y, z float64, blockState int32) []byte {
 func (c *Connection) handleUseEntity(data []byte) error {
 	r := bytes.NewReader(data)
 
-	targetID, _, err := mcnet.ReadVarInt(r)
+	targetID, _, err := java.ReadVarInt(r)
 	if err != nil {
 		return fmt.Errorf("read use entity target: %w", err)
 	}
 
-	mouse, _, err := mcnet.ReadVarInt(r)
+	mouse, _, err := java.ReadVarInt(r)
 	if err != nil {
 		return fmt.Errorf("read use entity mouse: %w", err)
 	}
 
 	// mouse=2 (interact at) has 3 extra floats for the hit position.
 	if mouse == 2 {
-		if _, err := mcnet.ReadF32(r); err != nil {
+		if _, err := java.ReadF32(r); err != nil {
 			return fmt.Errorf("read use entity target x: %w", err)
 		}
-		if _, err := mcnet.ReadF32(r); err != nil {
+		if _, err := java.ReadF32(r); err != nil {
 			return fmt.Errorf("read use entity target y: %w", err)
 		}
-		if _, err := mcnet.ReadF32(r); err != nil {
+		if _, err := java.ReadF32(r); err != nil {
 			return fmt.Errorf("read use entity target z: %w", err)
 		}
 	}
@@ -1079,7 +1078,7 @@ func (c *Connection) handleRespawn() error {
 // handleCustomPayload processes a CustomPayload (0x17) plugin channel packet.
 func (c *Connection) handleCustomPayload(data []byte) error {
 	var p pkt.CustomPayloadSB
-	if err := mcnet.Unmarshal(data, &p); err != nil {
+	if err := java.Unmarshal(data, &p, c.limits); err != nil {
 		return fmt.Errorf("unmarshal custom payload: %w", err)
 	}
 

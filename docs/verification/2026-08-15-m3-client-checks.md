@@ -1,14 +1,12 @@
 # M3 client verification
 
-Status: **offline session run, no decode failures. Online mode still unrun.**
+Status: **offline and online sessions both run against a real 1.8.9 client, with no decode failures.**
 
 M3 migrated the server's connection onto `minecraft-protocol`. Every automated
-gate passes, including a pinned Node client that reaches play. The checks below
-need a real Minecraft client, and two of them need a real Mojang account, so
-they cannot run in CI and have not been run yet.
+gate passes, and the checks below were run by hand with the real game client on
+2026-08-15, because they cannot run in CI.
 
-Until they are, M3 is implemented but not verified. The plan is explicit about
-why they matter: every play packet is now decoded twice, and the generated
+The plan is explicit about why they matter: every play packet is now decoded twice, and the generated
 decode is strict where the old loop was not, so a serverbound packet whose
 generated model is wrong becomes a disconnect. A real client is what finds
 those.
@@ -84,18 +82,27 @@ stopped matching when M3 moved the connection onto the stream.
 
 ## Step 2 — Vanilla client, online mode
 
-Not run. Needs an account that owns the game.
+Run on 2026-08-15. One authenticated login against the real Mojang session
+server, with encryption and compression both active.
 
-One authenticated login against the real session server, with compression on.
 This is the only proof that the acceptor's server hash and verify-token
 handling are right: every automated test stubs the session server, and a hash
 that is wrong in the same way on both sides of a loopback test still passes it.
+The same argument sank the CFB8 cipher in M2, where two Go peers agreed with
+each other and with no real implementation.
 
 | Field | Value |
 | --- | --- |
-| Client build | |
-| Result | |
-| Compression threshold | |
+| Client build | Vanilla 1.8.9, `brand="\avanilla"` |
+| Result | Pass — reached play, join sequence completed |
+| Account UUID | Mojang-issued, distinct from the offline derivation, which is what proves the session server answered |
+| Compression threshold | 256 (default) |
+| Errors logged | None |
+
+What this exercised end to end: the encryption request carrying the server's
+public key, the client's encrypted session key and verify token, the
+constant-time token comparison, the AES-CFB8 switch at the frame boundary,
+`java.ComputeServerHash`, and the `hasJoined` call behind `login.Verifier`.
 
 ## Step 3 — Compression on and off
 

@@ -1,15 +1,21 @@
 package conn
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net"
+	"sync"
 	"testing"
 	"time"
 
+	protocol "github.com/go-theft-craft/minecraft-protocol"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
@@ -80,7 +86,7 @@ func newHarnessWith(t *testing.T, configure func(*config.Config)) *harness {
 		configure(settings)
 	}
 
-	connection := NewConnection(
+	connection, err := NewConnection(
 		ctx,
 		serverEnd,
 		settings,
@@ -90,6 +96,9 @@ func newHarnessWith(t *testing.T, configure func(*config.Config)) *harness {
 		nil,
 		gameData,
 	)
+	if err != nil {
+		t.Fatalf("NewConnection: %v", err)
+	}
 
 	h := &harness{
 		t:       t,
@@ -349,5 +358,107 @@ func TestClosingTheClientEndsTheConnection(t *testing.T) {
 	case <-h.done:
 	case <-time.After(5 * time.Second):
 		t.Fatal("Handle did not return after the client disconnected")
+	}
+}
+
+// The stream replaced the blocking read loop in Task 5. These describe what
+// the transport now guarantees that the old io.ReadWriter did not.
+
+func TestOversizedFrameIsRefusedByName(t *testing.T) {
+	h := newHarness(t)
+
+	limits, err := protocol.NewLimits()
+	if err != nil {
+		t.Fatalf("limits: %v", err)
+	}
+
+	// A length prefix past the frame limit, with none of the body behind it.
+	// The stream must refuse it on the prefix alone rather than allocating.
+	var prefix bytes.Buffer
+	if _, err := mcnet.WriteVarInt(&prefix, int32(limits.FrameBytes())+1); err != nil {
+		t.Fatalf("encode length prefix: %v", err)
+	}
+	h.sendRaw(prefix.Bytes())
+
+	h.expectClosed()
+
+	if err := h.conn.stream.Wait(); !errors.Is(err, java.ErrFrameTooLarge) {
+		t.Fatalf("stream error = %v, want ErrFrameTooLarge", err)
+	}
+}
+
+// writePacket no longer takes a lock; the stream's write pump serializes.
+// Two writers must still produce two intact frames rather than interleaved
+// halves of both.
+func TestConcurrentWritesProduceIntactFrames(t *testing.T) {
+	h := newHarness(t)
+
+	h.handshake(2)
+	h.send(&pkt.LoginStart{Username: "Tester"})
+	h.expect(pkt.Success{}.PacketID())
+	h.expect(pkt.Login{}.PacketID())
+
+	// Drain the rest of the join sequence so the two writes below are the
+	// only ones left to observe.
+	drainUntilQuiet(t, h)
+
+	const writers = 8
+
+	var wg sync.WaitGroup
+	errs := make(chan error, writers)
+
+	for index := range writers {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			errs <- h.conn.writePacket(&pkt.ChatCB{
+				Message:  fmt.Sprintf(`{"text":"writer %d"}`, index),
+				Position: 0,
+			})
+		}()
+	}
+
+	wg.Wait()
+	close(errs)
+
+	for err := range errs {
+		if err != nil {
+			t.Fatalf("concurrent write: %v", err)
+		}
+	}
+
+	// Every frame must decode cleanly. An interleaved write would produce a
+	// body that is not a valid chat packet.
+	seen := make(map[string]bool, writers)
+	for range writers {
+		packet := h.expect(pkt.ChatCB{}.PacketID())
+
+		var chat pkt.ChatCB
+		if err := mcnet.Unmarshal(packet.data, &chat); err != nil {
+			t.Fatalf("decode concurrent write: %v", err)
+		}
+		seen[chat.Message] = true
+	}
+
+	if len(seen) != writers {
+		t.Fatalf("received %d distinct messages, want %d", len(seen), writers)
+	}
+}
+
+// drainUntilQuiet consumes packets until none arrives for a short while.
+func drainUntilQuiet(t *testing.T, h *harness) {
+	t.Helper()
+
+	for {
+		select {
+		case _, ok := <-h.packets:
+			if !ok {
+				t.Fatal("connection closed while draining")
+			}
+		case <-time.After(300 * time.Millisecond):
+			return
+		}
 	}
 }

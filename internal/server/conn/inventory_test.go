@@ -86,8 +86,10 @@ func TestSetGetProtocolSlot_Armor(t *testing.T) {
 
 // --- Click Mode Tests ---
 
-func newInventoryTestConn() *Connection {
-	c, _, _ := newTestConn("Alice")
+func newInventoryTestConn(t *testing.T) *Connection {
+	t.Helper()
+
+	c, _, _, _ := newTestConnWithCapture(t, "Alice")
 	// Clear default loadout for clean tests.
 	for i := 0; i < 36; i++ {
 		c.self.Inventory.SetSlot(i, player.EmptySlot)
@@ -99,7 +101,7 @@ func newInventoryTestConn() *Connection {
 }
 
 func TestNormalClick_PickupAndPlace(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 
 	// Put stone in hotbar slot 0 (proto 36).
 	c.setWindowSlot(36, stone(32))
@@ -124,7 +126,7 @@ func TestNormalClick_PickupAndPlace(t *testing.T) {
 }
 
 func TestNormalClick_Swap(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(36, stone(10))
 	c.cursorSlot = dirt(5)
 
@@ -139,7 +141,7 @@ func TestNormalClick_Swap(t *testing.T) {
 }
 
 func TestNormalClick_Merge(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(36, stone(10))
 	c.cursorSlot = stone(20)
 
@@ -154,7 +156,7 @@ func TestNormalClick_Merge(t *testing.T) {
 }
 
 func TestNormalClick_RightHalfPickup(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(36, stone(10))
 
 	// Right-click to pick up half.
@@ -168,7 +170,7 @@ func TestNormalClick_RightHalfPickup(t *testing.T) {
 }
 
 func TestNormalClick_RightPlaceOne(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.cursorSlot = stone(10)
 
 	// Right-click on empty slot: place one.
@@ -182,7 +184,7 @@ func TestNormalClick_RightPlaceOne(t *testing.T) {
 }
 
 func TestShiftClick_HotbarToMain(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(36, stone(10)) // hotbar
 
 	c.handleShiftClick(36, 0)
@@ -203,7 +205,7 @@ func TestShiftClick_HotbarToMain(t *testing.T) {
 }
 
 func TestShiftClick_MainToHotbar(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(9, stone(10)) // main
 
 	c.handleShiftClick(9, 0)
@@ -224,7 +226,7 @@ func TestShiftClick_MainToHotbar(t *testing.T) {
 }
 
 func TestNumberKey_Swap(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(9, stone(10)) // main inv slot
 	c.setWindowSlot(36, dirt(5))  // hotbar 0
 
@@ -239,7 +241,7 @@ func TestNumberKey_Swap(t *testing.T) {
 }
 
 func TestMiddleClick_CreativeClone(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(36, stone(1))
 
 	c.handleMiddleClick(36)
@@ -249,7 +251,7 @@ func TestMiddleClick_CreativeClone(t *testing.T) {
 }
 
 func TestDropClick_DropOne(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(36, stone(10))
 
 	c.handleDropClick(36, 0) // Q key, drop one
@@ -259,7 +261,7 @@ func TestDropClick_DropOne(t *testing.T) {
 }
 
 func TestDropClick_DropStack(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(36, stone(10))
 
 	c.handleDropClick(36, 1) // Ctrl+Q, drop stack
@@ -269,7 +271,7 @@ func TestDropClick_DropStack(t *testing.T) {
 }
 
 func TestDoubleClick_Collect(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.setWindowSlot(36, stone(10))
 	c.setWindowSlot(37, stone(20))
 	c.setWindowSlot(9, stone(5))
@@ -283,22 +285,21 @@ func TestDoubleClick_Collect(t *testing.T) {
 }
 
 func TestWindowItems_NonZero(t *testing.T) {
-	c := newInventoryTestConn()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
 	c.setWindowSlot(36, sword())
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	written.reset()
 
 	err := c.sendWindowItems()
 	if err != nil {
 		t.Fatalf("sendWindowItems error: %v", err)
 	}
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected WindowItems packet, got nothing")
 	}
 }
 
 func TestCloseWindow_ReturnsCraftingItems(t *testing.T) {
-	c := newInventoryTestConn()
+	c := newInventoryTestConn(t)
 	c.craftingGrid[0] = stone(5)
 	c.craftingGrid[1] = dirt(3)
 

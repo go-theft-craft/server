@@ -27,15 +27,14 @@ func (c *Connection) handleHandshake(packetID int32, data []byte) error {
 
 	switch hs.NextState {
 	case 1:
-		c.state = StateStatus
+		return c.setState(StateStatus)
 	case 2:
 		if hs.ProtocolVersion != pkt.ProtocolVersion {
 			c.log.Warn("unsupported protocol version", "version", hs.ProtocolVersion)
 		}
-		c.state = StateLogin
+
+		return c.setState(StateLogin)
 	default:
 		return fmt.Errorf("invalid next state: %d", hs.NextState)
 	}
-
-	return nil
 }

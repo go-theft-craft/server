@@ -125,7 +125,14 @@ func (s *Server) Start(ctx context.Context) error {
 			continue
 		}
 
-		connection := conn.NewConnection(ctx, c, s.cfg, s.log, s.world, s.players, s.storage, s.gameData)
+		connection, err := conn.NewConnection(ctx, c, s.cfg, s.log, s.world, s.players, s.storage, s.gameData)
+		if err != nil {
+			s.log.Error("create connection", "error", err, "addr", c.RemoteAddr().String())
+			_ = c.Close()
+
+			continue
+		}
+
 		connection.SaveAll = s.SaveAll
 		go connection.Handle()
 	}

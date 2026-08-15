@@ -58,7 +58,10 @@ func (c *Connection) handleOfflineLogin(username string) error {
 		}
 	}
 
-	c.state = StatePlay
+	if err := c.setState(StatePlay); err != nil {
+		return err
+	}
+
 	return c.startPlay(username, uuidStr, skinProps)
 }
 
@@ -153,7 +156,10 @@ func (c *Connection) handleEncryptionResponse(data []byte) error {
 		}
 	}
 
-	c.state = StatePlay
+	if err := c.setState(StatePlay); err != nil {
+		return err
+	}
+
 	return c.startPlay(profile.Name, uuidStr, skinProps)
 }
 

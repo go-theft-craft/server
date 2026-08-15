@@ -1,10 +1,16 @@
 package conn
 
 import (
-	"bytes"
+	"context"
+	"log/slog"
+	"net"
 	"strings"
 	"sync"
 	"testing"
+	"time"
+
+	protocol "github.com/go-theft-craft/minecraft-protocol"
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
@@ -14,18 +20,40 @@ import (
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
-// packetRecorder captures packets written via mcnet.WritePacket.
-// It records the raw packet ID and data for each write.
-type packetRecorder struct {
-	mu  sync.Mutex
-	buf bytes.Buffer
+// writtenPackets counts the packets a connection put on the wire. The
+// connection writes through a managed stream now, so a test observes it by
+// reading the other end rather than by holding the writer.
+type writtenPackets struct {
+	mu    sync.Mutex
+	count int
 }
 
-func (r *packetRecorder) Read(p []byte) (int, error) { return 0, nil }
-func (r *packetRecorder) Write(p []byte) (int, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return r.buf.Write(p)
+func (w *writtenPackets) add() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.count++
+}
+
+func (w *writtenPackets) reset() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.count = 0
+}
+
+// len reports how many packets arrived, waiting briefly for writes that are
+// still in the stream's write pump.
+func (w *writtenPackets) len() int {
+	for range 100 {
+		w.mu.Lock()
+		count := w.count
+		w.mu.Unlock()
+		if count > 0 {
+			return count
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+
+	return 0
 }
 
 // sentPackets collects packets from a player's WritePacket func.
@@ -57,7 +85,18 @@ func (s *sentPackets) reset() {
 
 // newTestConn creates a minimal Connection suitable for testing commands.
 // The returned sentPackets captures packets sent to the connection's player.
-func newTestConn(username string) (*Connection, *sentPackets, *player.Manager) {
+func newTestConn(t *testing.T, username string) (*Connection, *sentPackets, *player.Manager) {
+	t.Helper()
+
+	c, sp, m, _ := newTestConnWithCapture(t, username)
+
+	return c, sp, m
+}
+
+// newTestConnWithCapture also returns what the connection wrote to the client.
+func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPackets, *player.Manager, *writtenPackets) {
+	t.Helper()
+
 	m := player.NewManager(8)
 	sp := &sentPackets{}
 	eid := m.AllocateEntityID()
@@ -67,10 +106,52 @@ func newTestConn(username string) (*Connection, *sentPackets, *player.Manager) {
 	m.Add(p)
 
 	w := world.NewWorld(gen.NewFlatGenerator(0))
-	rec := &packetRecorder{}
+
+	clientEnd, serverEnd := net.Pipe()
+
+	limits, err := protocol.NewLimits()
+	if err != nil {
+		t.Fatalf("limits: %v", err)
+	}
+	stream, err := newStream(serverEnd, limits)
+	if err != nil {
+		t.Fatalf("stream: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	if err := stream.Start(ctx); err != nil {
+		t.Fatalf("start stream: %v", err)
+	}
+	// These tests exercise play-state behavior, so both the session and the
+	// connection start there.
+	if err := stream.SetState(ctx, v1_8.StatePlay); err != nil {
+		t.Fatalf("set play state: %v", err)
+	}
+
+	written := &writtenPackets{}
+	go func() {
+		for {
+			if _, _, err := mcnet.ReadRawPacket(clientEnd); err != nil {
+				return
+			}
+			written.add()
+		}
+	}()
+
+	t.Cleanup(func() {
+		_ = clientEnd.Close()
+		cancel()
+		_ = stream.Close()
+	})
 
 	c := &Connection{
-		rw:             rec,
+		conn:           serverEnd,
+		stream:         stream,
+		limits:         limits,
+		ctx:            ctx,
+		cancel:         cancel,
+		state:          StatePlay,
+		log:            slog.New(slog.DiscardHandler),
 		cfg:            config.DefaultConfig(),
 		self:           p,
 		players:        m,
@@ -81,51 +162,48 @@ func newTestConn(username string) (*Connection, *sentPackets, *player.Manager) {
 		craftingOutput: player.EmptySlot,
 		craftingGrid:   [4]player.Slot{player.EmptySlot, player.EmptySlot, player.EmptySlot, player.EmptySlot},
 	}
-	return c, sp, m
+
+	return c, sp, m, written
 }
 
 func TestHandleCommand_NonSlash(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
+	c, _, _ := newTestConn(t, "Alice")
 	if c.handleCommand("hello world") {
 		t.Error("expected false for non-slash message")
 	}
 }
 
 func TestHandleCommand_SlashDetected(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
+	c, _, _ := newTestConn(t, "Alice")
 	if !c.handleCommand("/anything") {
 		t.Error("expected true for slash-prefixed message")
 	}
 }
 
 func TestHandleCommand_UnknownCommand(t *testing.T) {
-	c, sp, _ := newTestConn("Alice")
+	c, sp, _ := newTestConn(t, "Alice")
 	sp.reset()
 
 	c.handleCommand("/nosuchcmd")
 
-	// The player should receive an error message via writePacket (goes to rw),
-	// not via sp (which is the player's WritePacket func).
-	// Since writePacket goes to c.rw (packetRecorder), we check that too.
-	// But the command calls sendErrorMsg → writePacket → c.rw.
-	// We can't easily parse the raw bytes, so just verify it returned true above.
+	// The player receives the error through writePacket, which goes to the
+	// client, not through sp, which is the player's own WritePacket func.
 }
 
 func TestCmdHelp(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
+	written.reset()
 
 	c.handleCommand("/help")
 
-	// help writes multiple ChatCB packets to c.rw
-	if rec.buf.Len() == 0 {
+	// help writes multiple ChatCB packets to the client.
+	if written.len() == 0 {
 		t.Error("expected help output, got nothing")
 	}
 }
 
 func TestCmdList(t *testing.T) {
-	c, _, m := newTestConn("Alice")
+	c, _, m, written := newTestConnWithCapture(t, "Alice")
 
 	// Add another player.
 	sp2 := &sentPackets{}
@@ -135,21 +213,19 @@ func TestCmdList(t *testing.T) {
 	p2.SetPosition(0.5, 4, 0.5, 0, 0, true)
 	m.Add(p2)
 
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	written.reset()
 
 	c.handleCommand("/list")
 
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected list output, got nothing")
 	}
 }
 
 func TestCmdTp_Coordinates(t *testing.T) {
-	c, sp, _ := newTestConn("Alice")
+	c, sp, _, written := newTestConnWithCapture(t, "Alice")
 	sp.reset()
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	written.reset()
 
 	c.handleCommand("/tp 100 10 100")
 
@@ -161,7 +237,7 @@ func TestCmdTp_Coordinates(t *testing.T) {
 }
 
 func TestCmdTp_Player(t *testing.T) {
-	c, _, m := newTestConn("Alice")
+	c, _, m := newTestConn(t, "Alice")
 
 	// Add target player at 50,20,50.
 	sp2 := &sentPackets{}
@@ -180,56 +256,52 @@ func TestCmdTp_Player(t *testing.T) {
 }
 
 func TestCmdTp_PlayerNotFound(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
+	written.reset()
 
 	c.handleCommand("/tp NoOne")
 
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected error message for missing player")
 	}
 }
 
 func TestCmdTp_BadCoordinates(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
+	written.reset()
 
 	c.handleCommand("/tp abc def ghi")
 
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected error message for bad coordinates")
 	}
 }
 
 func TestCmdGamemode(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
+	written.reset()
 
 	c.handleCommand("/gamemode survival")
 
 	// Should have written GameStateChange + AbilitiesCB + ChatCB to rw.
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected gamemode packets, got nothing")
 	}
 }
 
 func TestCmdGamemode_Invalid(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
+	written.reset()
 
 	c.handleCommand("/gamemode invalid")
 
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected error message for invalid gamemode")
 	}
 }
 
 func TestCmdTime(t *testing.T) {
-	c, sp, m := newTestConn("Alice")
+	c, sp, m := newTestConn(t, "Alice")
 
 	// Add another player to verify broadcast.
 	sp2 := &sentPackets{}
@@ -274,20 +346,19 @@ func TestCmdTime(t *testing.T) {
 }
 
 func TestCmdKill(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
+	written.reset()
 
 	c.handleCommand("/kill")
 
 	// Should have written UpdateHealth + ChatCB.
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected kill packets, got nothing")
 	}
 }
 
 func TestCmdSay(t *testing.T) {
-	c, sp, _ := newTestConn("Alice")
+	c, sp, _ := newTestConn(t, "Alice")
 	sp.reset()
 
 	c.handleCommand("/say hello everyone")
@@ -308,7 +379,7 @@ func TestCmdSay(t *testing.T) {
 }
 
 func TestCmdMe(t *testing.T) {
-	c, sp, _ := newTestConn("Alice")
+	c, sp, _ := newTestConn(t, "Alice")
 	sp.reset()
 
 	c.handleCommand("/me waves")
@@ -328,38 +399,35 @@ func TestCmdMe(t *testing.T) {
 }
 
 func TestCmdSeed(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
+	written.reset()
 
 	c.handleCommand("/seed")
 
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected seed output, got nothing")
 	}
 }
 
 func TestCmdSay_Empty(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
+	written.reset()
 
 	c.handleCommand("/say")
 
 	// Should get error message.
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected error for empty /say")
 	}
 }
 
 func TestCmdTime_BadUsage(t *testing.T) {
-	c, _, _ := newTestConn("Alice")
-	rec := c.rw.(*packetRecorder)
-	rec.buf.Reset()
+	c, _, _, written := newTestConnWithCapture(t, "Alice")
+	written.reset()
 
 	c.handleCommand("/time")
 
-	if rec.buf.Len() == 0 {
+	if written.len() == 0 {
 		t.Error("expected error for bad /time usage")
 	}
 }

@@ -13,9 +13,9 @@ import (
 
 func (c *Connection) handleLogin(packetID int32, data []byte) error {
 	switch packetID {
-	case 0x00: // LoginStart
+	case pkt.LoginStart{}.PacketID():
 		return c.handleLoginStart(data)
-	case 0x01: // EncryptionResponse
+	case pkt.EncryptionBeginSB{}.PacketID():
 		return c.handleEncryptionResponse(data)
 	default:
 		return fmt.Errorf("unexpected login packet 0x%02X", packetID)

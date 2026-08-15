@@ -30,7 +30,7 @@ type statusDesc struct {
 
 func (c *Connection) handleStatus(packetID int32, data []byte) error {
 	switch packetID {
-	case 0x00: // Status Request
+	case pkt.PingStart{}.PacketID(): // Status Request
 		resp := statusResponse{
 			Version: statusVersion{
 				Name:     pkt.VersionName,
@@ -54,7 +54,7 @@ func (c *Connection) handleStatus(packetID int32, data []byte) error {
 			Response: string(jsonBytes),
 		})
 
-	case 0x01: // Ping
+	case pkt.PingSB{}.PacketID():
 		var ping pkt.PingSB
 		if err := mcnet.Unmarshal(data, &ping); err != nil {
 			return fmt.Errorf("unmarshal ping: %w", err)

@@ -111,7 +111,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		Z:     posZ,
 		Yaw:   posYaw,
 		Pitch: posPitch,
-		Flags: 0x00, // all absolute
+		Flags: packet.PositionAbsolute,
 	}); err != nil {
 		return fmt.Errorf("write position and look: %w", err)
 	}
@@ -205,7 +205,7 @@ func (c *Connection) keepAliveLoop() {
 
 func (c *Connection) handlePlay(packetID int32, data []byte) error {
 	switch packetID {
-	case 0x00: // KeepAlive
+	case pkt.KeepAliveSB{}.PacketID():
 		var p pkt.KeepAliveSB
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal keep alive: %w", err)
@@ -216,7 +216,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		}
 		c.mu.Unlock()
 
-	case 0x01: // Chat Message
+	case pkt.ChatSB{}.PacketID():
 		var p pkt.ChatSB
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal chat: %w", err)
@@ -234,40 +234,40 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 			Position: 0,
 		})
 
-	case 0x02: // Use Entity
+	case pkt.UseEntity{}.PacketID():
 		return c.handleUseEntity(data)
 
-	case 0x03: // Player (ground state)
+	case pkt.Flying{}.PacketID(): // Player (ground state)
 		// heartbeat, ignore
 
-	case 0x04: // Player Position
+	case pkt.PositionSB{}.PacketID():
 		var p pkt.PositionSB
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal player position: %w", err)
 		}
 		c.handlePositionUpdate(p.X, p.Y, p.Z, 0, 0, p.OnGround, true, false)
 
-	case 0x05: // Player Look
+	case pkt.Look{}.PacketID():
 		var p pkt.Look
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal player look: %w", err)
 		}
 		c.handleLookUpdate(p.Yaw, p.Pitch, p.OnGround)
 
-	case 0x06: // Player Position And Look
+	case pkt.PositionLook{}.PacketID():
 		var p pkt.PositionLook
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal player position and look: %w", err)
 		}
 		c.handlePositionUpdate(p.X, p.Y, p.Z, p.Yaw, p.Pitch, p.OnGround, true, true)
 
-	case 0x07: // Block Dig
+	case pkt.BlockDig{}.PacketID():
 		return c.handleBlockDig(data)
 
-	case 0x08: // Block Place
+	case pkt.BlockPlace{}.PacketID():
 		return c.handleBlockPlace(data)
 
-	case 0x09: // Held Item Change
+	case pkt.HeldItemSlotSB{}.PacketID():
 		var p pkt.HeldItemSlotSB
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal held item slot: %w", err)
@@ -280,13 +280,13 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		eqData := player.BuildSingleEquipment(c.self.EntityID, 0, heldItem)
 		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: eqData}, c.self.EntityID)
 
-	case 0x0A: // Animation (arm swing)
+	case pkt.ArmAnimation{}.PacketID():
 		c.players.BroadcastToTrackers(&pkt.Animation{
 			EntityID:  c.self.EntityID,
 			Animation: 0, // swing arm
 		}, c.self.EntityID)
 
-	case 0x0B: // Entity Action
+	case pkt.EntityAction{}.PacketID():
 		var p pkt.EntityAction
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal entity action: %w", err)
@@ -306,25 +306,25 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 			c.players.BroadcastEntityMetadata(c.self)
 		}
 
-	case 0x0C: // Steer Vehicle — no vehicle support, ignore
+	case pkt.SteerVehicle{}.PacketID(): // Steer Vehicle — no vehicle support, ignore
 		// consume and discard
 
-	case 0x0D: // Close Window
+	case pkt.CloseWindowSB{}.PacketID():
 		return c.handleCloseWindow(data)
 
-	case 0x0E: // Window Click
+	case pkt.WindowClick{}.PacketID():
 		return c.handleWindowClick(data)
 
-	case 0x0F: // Transaction
+	case pkt.TransactionSB{}.PacketID():
 		return c.handleTransaction(data)
 
-	case 0x10: // Set Creative Slot
+	case pkt.SetCreativeSlot{}.PacketID():
 		return c.handleCreativeSlot(data)
 
-	case 0x11: // Enchant Item — no enchanting support, ignore
+	case pkt.EnchantItem{}.PacketID(): // Enchant Item — no enchanting support, ignore
 		// consume and discard
 
-	case 0x12: // Update Sign
+	case pkt.UpdateSignSB{}.PacketID():
 		var p pkt.UpdateSignSB
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal update sign: %w", err)
@@ -333,17 +333,17 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		c.log.Info("update sign", "x", x, "y", y, "z", z,
 			"line1", p.Text1, "line2", p.Text2, "line3", p.Text3, "line4", p.Text4)
 
-	case 0x13: // Player Abilities (SB)
+	case pkt.AbilitiesSB{}.PacketID():
 		var p pkt.AbilitiesSB
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal abilities sb: %w", err)
 		}
 		c.handleAbilitiesUpdate(p)
 
-	case 0x14: // Tab Complete
+	case pkt.TabCompleteSB{}.PacketID():
 		return c.handleTabComplete(data)
 
-	case 0x15: // Client Settings
+	case pkt.Settings{}.PacketID():
 		var p pkt.Settings
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal client settings: %w", err)
@@ -352,13 +352,13 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		c.self.SetSkinParts(p.SkinParts)
 		c.players.BroadcastEntityMetadata(c.self)
 
-	case 0x16: // Client Status (respawn / stats request)
+	case pkt.ClientCommand{}.PacketID(): // Client Status (respawn / stats request)
 		return c.handleRespawn()
 
-	case 0x17: // Custom Payload (plugin channel)
+	case pkt.CustomPayloadSB{}.PacketID():
 		return c.handleCustomPayload(data)
 
-	case 0x18: // Spectate
+	case pkt.Spectate{}.PacketID():
 		var p pkt.Spectate
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal spectate: %w", err)
@@ -373,7 +373,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 			c.teleportSelf(pos.X, pos.Y, pos.Z)
 		}
 
-	case 0x19: // Resource Pack Status
+	case pkt.ResourcePackReceive{}.PacketID():
 		var p pkt.ResourcePackReceive
 		if err := mcnet.Unmarshal(data, &p); err != nil {
 			return fmt.Errorf("unmarshal resource pack status: %w", err)
@@ -876,7 +876,7 @@ func (c *Connection) clampToWorldBounds(x, y, z float64, yaw, pitch float32) (fl
 			Z:     clampedZ,
 			Yaw:   yaw,
 			Pitch: pitch,
-			Flags: 0x00,
+			Flags: packet.PositionAbsolute,
 		})
 	}
 
@@ -1043,7 +1043,7 @@ func (c *Connection) handleRespawn() error {
 		Z:     0.5,
 		Yaw:   0,
 		Pitch: 0,
-		Flags: 0x00,
+		Flags: packet.PositionAbsolute,
 	}); err != nil {
 		return fmt.Errorf("write respawn position: %w", err)
 	}

@@ -90,7 +90,7 @@ func (c *Connection) teleportSelf(x, y, z float64) {
 		Z:     z,
 		Yaw:   pos.Yaw,
 		Pitch: pos.Pitch,
-		Flags: 0x00,
+		Flags: packet.PositionAbsolute,
 	})
 
 	c.players.BroadcastToTrackers(&pkt.EntityTeleport{

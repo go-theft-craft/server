@@ -10,8 +10,9 @@ client checks existed to test.
 
 They are recorded here rather than fixed in M3, because the milestone's rule is
 to add newly discovered work to a later milestone instead of silently expanding
-the active one. Each entry says what was ruled out and how, so whoever picks it
-up does not repeat the elimination.
+the active one. All three belong to M6 and M9, and finding 2 is named in M6's
+checklist in the master plan. Each entry says what was ruled out and how, so
+whoever picks it up does not repeat the elimination.
 
 ## 1. The crafting table does not work
 
@@ -26,8 +27,12 @@ the shift-click and result-slot behavior that goes with them.
 
 ## 2. Inventory crafting works only partially
 
-**Status:** open. **May be an M3 regression** and should be checked before M3 is
-called complete.
+**Status:** open, owned by M6. **May be an M3 regression.**
+
+M3 closed on its own scope — the connection path — with every gate green and
+both client checks passed. This is game logic reading migrated data, so it
+carries into M6, which finishes the consumer migration and is required to
+settle it. It is listed there in the master plan rather than left here alone.
 
 Task 4 moved the recipe registry from the server's own generated data to
 `minecraft-protocol/data`. The matcher treats a negative ingredient metadata as

@@ -207,21 +207,21 @@ Two things found while implementing:
 **Interfaces:**
 - Produces: no production code. This task describes what the server does today so the migration can prove it still does it.
 
-- [ ] **Step 1: Build the harness against the old code**
+- [x] **Step 1: Build the harness against the old code**
 
 A test that drives a `Connection` over `net.Pipe` with a scripted client:
 handshake into status, status request, ping, and a legacy-ping attempt; and
 handshake into login, offline login start, through to the first play packet.
 Assert the packet IDs and payload bytes the server writes.
 
-- [ ] **Step 2: Capture the fixtures**
+- [x] **Step 2: Capture the fixtures**
 
 Write the exact bytes for the status response, ping response, login success,
 encryption request, and both disconnect forms into `testdata`. Record the
 current legacy-ping behavior too — today that is a framing error, and the
 fixture should say so, because Task 9 changes it deliberately.
 
-- [ ] **Step 3: Run and verify they pass**
+- [x] **Step 3: Run and verify they pass**
 
 ```bash
 devbox run -- task test -- ./internal/server/conn/...
@@ -230,7 +230,7 @@ devbox run -- task test -- ./internal/server/conn/...
 Expected: green against the unmigrated server. A failure here is a bug that
 predates this plan; fix or record it before continuing.
 
-- [ ] **Step 4: Commit** as `test(conn): pin the current connection behavior`.
+- [x] **Step 4: Commit** as `test(conn): pin the current connection behavior`.
 
 ---
 
@@ -248,7 +248,7 @@ predates this plan; fix or record it before continuing.
 **Interfaces:**
 - Produces: `data.Set` in place of `gamedata.GameData`, from `v1_8.Data()`.
 
-- [ ] **Step 1: Add the dependency**
+- [x] **Step 1: Add the dependency**
 
 ```go
 require github.com/go-theft-craft/minecraft-protocol v0.0.0
@@ -256,20 +256,20 @@ require github.com/go-theft-craft/minecraft-protocol v0.0.0
 replace github.com/go-theft-craft/minecraft-protocol => ../minecraft-protocol
 ```
 
-- [ ] **Step 2: Swap the registries**
+- [x] **Step 2: Swap the registries**
 
 Eighteen call sites. Rename `gamedata.GameData` to `data.Set` and source it from
 `v1_8.Data()`. Where a registry accessor's name or return type differs, adapt
 the caller; do not add a compatibility shim, because a shim would survive into
 M6.
 
-- [ ] **Step 3: Keep the packet structs**
+- [x] **Step 3: Keep the packet structs**
 
 `pkg/gamedata/versions/pc_1_8/packets.go` and its `protocol.go` stay, with a
 package comment stating that they are the last local wire types and that M6
 deletes them. Reduce `cmd/codegen` to packet generation only.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 ```bash
 devbox run -- task deps
@@ -282,7 +282,7 @@ Expected: everything passes, gameplay tests unchanged, and
 `grep -rn 'server/pkg/gamedata' --include='*.go' .` matches only the retained
 packet package.
 
-- [ ] **Step 5: Commit** as `refactor(data): source game data from minecraft-protocol`.
+- [x] **Step 5: Commit** as `refactor(data): source game data from minecraft-protocol`.
 
 ### Task 5: The stream replaces the read loop
 
@@ -296,7 +296,7 @@ packet package.
 **Interfaces:**
 - Produces: `Connection.stream *protocol.Stream`; `writePacket` with an unchanged signature; `readPacket(ctx) (protocol.Packet, error)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Extend the Task 3 harness: the connection reads and writes through a stream; a
 frame above the configured limit is refused with a named error rather than an
@@ -304,9 +304,9 @@ frame above the configured limit is refused with a named error rather than an
 interleaving; closing the client end unblocks `Handle` and runs its deferred
 save exactly once.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `NewConnection` builds `protocol.NewStream(session, transport)` with limits from
 config. `Handle` starts it and loops on `Stream.Read`. `writePacket` becomes:
@@ -329,7 +329,7 @@ func (c *Connection) writePacket(p mcnet.Packet) error {
 Delete the mutex: `Stream.Write` serializes through the write pump. Delete
 `enableEncryption` and both cipher files.
 
-- [ ] **Step 4: Verify the fixtures still match**
+- [x] **Step 4: Verify the fixtures still match**
 
 ```bash
 devbox run -- task test -- ./internal/server/conn/...
@@ -338,7 +338,7 @@ devbox run -- task test -- ./internal/server/conn/...
 Expected: every byte-parity fixture from Task 3 still passes. The state machine
 still routes by `c.state` at this point; only the transport changed.
 
-- [ ] **Step 5: Commit** as `refactor(conn): run connections on the managed stream`.
+- [x] **Step 5: Commit** as `refactor(conn): run connections on the managed stream`.
 
 ### Task 6: Handshake, status, and ping on generated packets
 
@@ -350,23 +350,23 @@ still routes by `c.state` at this point; only the transport changed.
 **Interfaces:**
 - Produces: handlers that switch on generated values and let the session own state transitions.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 The handshake's next-state field drives the session transition rather than
 `c.state`; an invalid next state disconnects with a reason instead of returning
 a bare error; the status response JSON is byte-identical to the fixture; a ping
 echoes its payload; a status request in the wrong state is refused.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Use `HandshakingServerboundSetProtocol`, `StatusClientboundServerInfo`,
 `StatusServerboundPing`, and `StatusClientboundPing`. Let the session propose
 the handshake transition and the stream commit it; delete the local `State` enum
 once nothing reads it.
 
-- [ ] **Step 4: Commit** as `feat(conn): serve handshake and status from generated packets`.
+- [x] **Step 4: Commit** as `feat(conn): serve handshake and status from generated packets`.
 
 ### Task 7: Login through the acceptor
 
@@ -379,7 +379,7 @@ once nothing reads it.
 **Interfaces:**
 - Produces: `mojangVerifier` implementing `login.Verifier`; `config.CompressionThreshold`; a login handler that delegates to `login.Acceptor`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Offline login reaches play and writes the fixture's login-success bytes; online
 login with a stub verifier reaches play with the cipher installed; a verifier
@@ -387,9 +387,9 @@ error disconnects with a readable reason; the skin fetch failing does not fail
 the login; the profile's UUID formatting is unchanged from the old path,
 asserted against a known username.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `handleLogin` calls `Accept` and then `startPlay` with the returned profile.
 Move the Mojang call into `verifier.go` behind `login.Verifier`, keeping its
@@ -399,12 +399,12 @@ local RSA handling; both now live in `wire/java`.
 Add `CompressionThreshold` to config, defaulting to 256, and pass it to the
 acceptor. `-1` disables compression.
 
-- [ ] **Step 4: Verify compression end to end**
+- [x] **Step 4: Verify compression end to end**
 
 Add a test that logs in with the threshold at 16, then exchanges a packet above
 and a packet below it, asserting both arrive intact.
 
-- [ ] **Step 5: Commit** as `feat(conn): accept logins through the shared acceptor`.
+- [x] **Step 5: Commit** as `feat(conn): accept logins through the shared acceptor`.
 
 ### Task 8: Play on raw payloads
 
@@ -417,21 +417,21 @@ and a packet below it, asserting both arrive intact.
 **Interfaces:**
 - Produces: play handlers reading `Packet.Payload` through `java.Unmarshal`, with their local structs unchanged.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 A play packet decodes into the same local struct as before, from the same bytes;
 an unknown play packet ID is ignored exactly as it is today; a truncated play
 packet produces an error naming the packet rather than a panic.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
-- [ ] **Step 3: Migrate the call sites**
+- [x] **Step 3: Migrate the call sites**
 
 `mcnet.Unmarshal(data, &p)` becomes `java.Unmarshal(packet.Payload, &p, limits)`
 and `mcnet.Marshal` becomes `java.Marshal`. The structs and the `mc` tags do not
 change, because the shared reflect codec reads the same tag.
 
-- [ ] **Step 4: Delete the local wire package**
+- [x] **Step 4: Delete the local wire package**
 
 ```bash
 rg -n 'server/pkg/protocol' --glob '*.go'
@@ -439,7 +439,7 @@ rg -n 'server/pkg/protocol' --glob '*.go'
 
 Expected: no matches. Then delete `pkg/protocol/`.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 ```bash
 devbox run -- task lint
@@ -447,7 +447,7 @@ devbox run -- task test
 devbox run -- task build
 ```
 
-- [ ] **Step 6: Commit** as `refactor(conn): decode play packets with the shared codec`.
+- [x] **Step 6: Commit** as `refactor(conn): decode play packets with the shared codec`.
 
 ### Task 9: Legacy ping and graceful disconnect
 
@@ -460,7 +460,7 @@ devbox run -- task build
 **Interfaces:**
 - Produces: a `PreFrameHook` answering `FE 01`; `disconnect` built on `Stream.Shutdown`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 A legacy `FE 01` probe receives a well-formed legacy response and the connection
 closes cleanly — replacing the Task 3 fixture that recorded a framing error, with
@@ -469,15 +469,15 @@ kicked player receives a login-state or play-state disconnect packet, matching
 the current state, before the socket closes. Server shutdown disconnects every
 connected player with a reason rather than dropping sockets.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Install the pre-frame hook with the legacy response format. Replace
 `disconnect`'s body with `Stream.Shutdown(ctx, reason)`. In `server.go`, shut
 connections down on context cancellation before closing the listener.
 
-- [ ] **Step 4: Commit** as `feat(conn): answer legacy pings and disconnect gracefully`.
+- [x] **Step 4: Commit** as `feat(conn): answer legacy pings and disconnect gracefully`.
 
 ---
 
@@ -494,25 +494,25 @@ connections down on context cancellation before closing the listener.
 **Interfaces:**
 - Produces: `task test:interop`, a loopback-only Node client harness.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Start the Go server on an ephemeral loopback port, run the pinned Node client at
 1.8.8 in offline mode, and assert it reaches play and receives a chunk. Run it
 twice: once with compression disabled and once at threshold 256. The harness
 binds and dials loopback only, and never contacts a session server.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 ```bash
 devbox run -- task test:interop
 ```
 
-- [ ] **Step 3: Implement and pin**
+- [x] **Step 3: Implement and pin**
 
 Pin `minecraft-protocol` at 1.66.2, the same version `minecraft-protocol`'s own
 lane uses, so the two repositories agree on what they are testing against.
 
-- [ ] **Step 4: Commit** as `test(interop): verify the server against the pinned Node client`.
+- [x] **Step 4: Commit** as `test(interop): verify the server against the pinned Node client`.
 
 ### Task 11: Real clients, recorded
 
@@ -551,31 +551,31 @@ joins in all three.
 **Files:**
 - Modify: `server/README.md`, `server/CLAUDE.md`, `../headless-minecraft/MASTER_PLAN.md`, `../minecraft-protocol/CHANGELOG.md`
 
-- [ ] **Step 1: Fix the stale guidance**
+- [x] **Step 1: Fix the stale guidance**
 
 `server/CLAUDE.md` currently claims `internal/` is empty and the build is
 vendored. Neither is true. Rewrite the architecture and commands sections to
 match the repository, and document that the protocol and game data come from
 `minecraft-protocol`.
 
-- [ ] **Step 2: Record the milestone**
+- [x] **Step 2: Record the milestone**
 
 `MASTER_PLAN.md`: M3 complete, with what the real-client sessions found — every
 mis-modelled packet fixed in `minecraft-protocol`, and the online-mode login
 result.
 
-- [ ] **Step 3: Run every gate**
+- [x] **Step 3: Run every gate**
 
 ```bash
 cd ../minecraft-protocol && devbox run -- task verify
 cd ../server && devbox run -- task lint && devbox run -- task test && devbox run -- task test:interop && devbox run -- task build
 ```
 
-- [ ] **Step 4: Inspect final scope**
+- [x] **Step 4: Inspect final scope**
 
 `git status --short` in both repositories. Confirm: `pkg/protocol` and the
 server's cipher files are gone; `pkg/gamedata` retains only the packet structs;
 no play packet uses a generated type; `minecraft-protocol`'s `go.mod` still has
 no `require` block.
 
-- [ ] **Step 5: Commit** as `docs: record the shared protocol migration`.
+- [x] **Step 5: Commit** as `docs: record the shared protocol migration`.

@@ -155,7 +155,8 @@ func runClient(t *testing.T, port int, username string) []clientEvent {
 	ctx, cancel := context.WithTimeout(context.Background(), clientTimeout)
 	defer cancel()
 
-	command := exec.CommandContext(ctx, node, filepath.Join(root, "client.mjs"),
+	command := exec.CommandContext(
+		ctx, node, filepath.Join(root, "client.mjs"),
 		"--port", strconv.Itoa(port),
 		"--username", username,
 	)

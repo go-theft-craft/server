@@ -2,3 +2,7 @@
 - [ ] have option to measure which npc/family/feature load server a lot 
 - [ ] trace when/how each item was created
 - [ ] create all vanilla cmds and add them to the command list, but stub them with a message saying "not implemented yet"
+- [ ] server must support multiple savings format vanilla + other/custom, do research which format is best fit. saving should not freeze, maybe we should do snapshot saving
+- [ ] world generation must be able to generate different types of worlds with option to customize world generation parameters or create custom worlds, do we need to create separate repo?
+- [ ] create a system to track and log server performance metrics, such as CPU usage, memory usage, and network traffic
+- 

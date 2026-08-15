@@ -4,8 +4,12 @@ A Minecraft 1.8.9 (protocol 47) server implementation in Go.
 
 ## Features
 
+- **Shared protocol** — framing, compression, encryption, and the login sequence come from [`minecraft-protocol`](https://github.com/go-theft-craft/minecraft-protocol)
 - **Offline mode** — UUID v3 login, no encryption
 - **Online mode** — RSA/AES-CFB8 encryption, Mojang session authentication
+- **Compression** — negotiated during login, threshold configurable with `-compression-threshold` (default 256, `-1` disables)
+- **Legacy server list** — answers the `FE 01` ping that 1.6 and older clients send
+- **Graceful disconnect** — kicked players and a shutting-down server send a reason before the socket closes
 - **Procedural world generation** — Perlin noise terrain with 11 biomes, caves, ores, and trees
 - **Flat world generator** — Classic bedrock/stone/grass layers
 - **Dynamic chunk loading** — View-distance-based loading/unloading with optional world boundary
@@ -21,11 +25,12 @@ A Minecraft 1.8.9 (protocol 47) server implementation in Go.
 - **Smart pre-generation** — Skips world pre-generation on restart if already saved
 - **KeepAlive** — 30-second timeout enforcement
 - **Server list** — MOTD, player count, version info
-- **Codegen** — Generates Go types from PrismarineJS minecraft-data JSON schemas
+- **Codegen** — Generates the play packet structs from PrismarineJS minecraft-data JSON schemas; every game-data registry comes from `minecraft-protocol` instead
+- **Interoperability lane** — `task test:interop` logs a pinned Node `minecraft-protocol` client into the server over loopback
 
 ## Prerequisites
 
-- [Devbox](https://www.jetify.com/devbox) (provides Go 1.24, gofumpt, golangci-lint, go-task, etc.)
+- [Devbox](https://www.jetify.com/devbox) (provides Go 1.26.6, gofumpt, golangci-lint, go-task, etc.)
 
 ## Getting Started
 

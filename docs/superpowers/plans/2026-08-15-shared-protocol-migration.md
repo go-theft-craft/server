@@ -521,7 +521,7 @@ lane uses, so the two repositories agree on what they are testing against.
 **Files:**
 - Create: `docs/verification/2026-08-15-m3-client-checks.md`
 
-- [ ] **Step 1: Vanilla client, offline mode**
+- [x] **Step 1: Vanilla client, offline mode**
 
 Connect a real 1.8.9 client and run a full session: join, move, break a block,
 place a block, open a chest, move an item, chat, take damage, die, respawn,
@@ -531,7 +531,7 @@ Any generated-codec decode failure is a bug in `minecraft-protocol`: record the
 packet, fix the codec there, add a byte fixture, and re-run. Do not relax the
 check in `server`.
 
-- [ ] **Step 2: Vanilla client, online mode**
+- [x] **Step 2: Vanilla client, online mode**
 
 One authenticated login against the real session server, with compression on.
 Record the result. This is the only proof the acceptor's server hash and
@@ -542,7 +542,11 @@ verify-token handling are right, and it cannot run in CI.
 Repeat the offline join at thresholds `-1`, `256`, and `1`, confirming a client
 joins in all three.
 
-- [ ] **Step 4: Commit** as `docs: record M3 client verification`.
+Partly covered. Both vanilla sessions ran at the default 256. The Node lane
+covers `-1` and `256`, and the Go-to-Go login tests cover `-1`, `1`, and `256`.
+What remains is a vanilla client at `-1` and at `1`.
+
+- [x] **Step 4: Commit** as `docs: record M3 client verification`.
 
 ### Task 12: Documentation and milestone records
 
@@ -579,3 +583,24 @@ no play packet uses a generated type; `minecraft-protocol`'s `go.mod` still has
 no `require` block.
 
 - [x] **Step 5: Commit** as `docs: record the shared protocol migration`.
+
+---
+
+## Outcome
+
+Tasks 1 through 12 are implemented. Both vanilla client sessions ran on
+2026-08-15 with **zero decode errors** — no generated codec rejected a packet
+the real 1.8.9 client sent, in offline or online mode. The online login proved
+the server hash and verify-token handling against the real session server,
+which no automated test can do.
+
+Open before M3 is called complete:
+
+- A vanilla client at compression thresholds `-1` and `1` (Task 11, Step 3).
+- The 2x2 crafting question in
+  [the session findings](../../verification/2026-08-15-m3-session-findings.md),
+  which is the one gameplay problem that could have been caused by Task 4.
+
+Two defects were found by running the server rather than by testing it: normal
+disconnects logged at ERROR, fixed in this milestone; and a survival block
+duplication whose cause is not the migrated drop data, recorded for later.

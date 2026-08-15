@@ -43,6 +43,11 @@ type mojangProfile struct {
 	Properties []mojangProperty `json:"properties"`
 }
 
+// verifyMojang is the seam the login handler calls, for the same reason
+// fetchSkin is one: an online-mode login must be drivable without a session
+// server. Production never replaces it.
+var verifyMojang = verifyWithMojang
+
 // verifyWithMojang checks the player's session with the Mojang session server.
 func verifyWithMojang(ctx context.Context, username, serverHash string) (*mojangProfile, error) {
 	url := fmt.Sprintf("https://sessionserver.mojang.com/session/minecraft/hasJoined?username=%s&serverId=%s",
@@ -72,6 +77,10 @@ func verifyWithMojang(ctx context.Context, username, serverHash string) (*mojang
 	}
 	return &profile, nil
 }
+
+// fetchSkin is the seam the connection calls. It is a variable so a test can
+// drive a login without reaching the network; production never replaces it.
+var fetchSkin = fetchSkinByUsername
 
 // fetchSkinByUsername looks up a Mojang account by username and returns its
 // signed skin/cape properties. Returns (nil, nil) if the username does not

@@ -51,7 +51,7 @@ func (c *Connection) handleOfflineLogin(username string) error {
 	}
 
 	var skinProps []player.SkinProperty
-	if props, err := fetchSkinByUsername(c.ctx, username); err == nil && props != nil {
+	if props, err := fetchSkin(c.ctx, username); err == nil && props != nil {
 		skinProps = make([]player.SkinProperty, len(props))
 		for i, p := range props {
 			skinProps[i] = player.SkinProperty{Name: p.Name, Value: p.Value, Signature: p.Signature}
@@ -120,7 +120,7 @@ func (c *Connection) handleEncryptionResponse(data []byte) error {
 
 	// Verify with Mojang.
 	serverHash := minecraftSHA1HexDigest("", sharedSecret, c.cfg.PublicKeyDER)
-	profile, err := verifyWithMojang(c.ctx, c.loginUsername, serverHash)
+	profile, err := verifyMojang(c.ctx, c.loginUsername, serverHash)
 	if err != nil {
 		reason := `{"text":"Failed to verify with Mojang."}`
 		_ = c.writePacket(&pkt.Disconnect{Reason: reason})

@@ -174,14 +174,14 @@ func (c *Connection) handleNextPacket() error {
 		return err
 	}
 
-	// Handlers still take the raw payload. The session decoded the packet as
-	// well, and Task 6 hands the status and login handlers that decoded value;
-	// play keeps its local structs until M6.
+	// Handshake and status read the value the session decoded. Play still
+	// takes the raw payload and decodes it into the local structs; M6 moves
+	// those to generated types too.
 	switch c.state {
 	case StateHandshake:
-		return c.handleHandshake(packet.ID, packet.Payload)
+		return c.handleHandshake(packet)
 	case StateStatus:
-		return c.handleStatus(packet.ID, packet.Payload)
+		return c.handleStatus(packet)
 	case StateLogin:
 		return c.handleLogin(packet.ID, packet.Payload)
 	case StatePlay:

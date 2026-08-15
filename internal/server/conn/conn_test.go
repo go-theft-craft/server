@@ -462,3 +462,53 @@ func drainUntilQuiet(t *testing.T, h *harness) {
 		}
 	}
 }
+
+// Task 6 moved handshake and status onto generated packets. The session now
+// owns the transition: it commits the handshake's next state before the
+// connection ever sees the packet.
+func TestHandshakeTransitionsTheSession(t *testing.T) {
+	cases := []struct {
+		name      string
+		nextState int32
+		want      protocol.State
+	}{
+		{name: "status", nextState: 1, want: v1_8.StateStatus},
+		{name: "login", nextState: 2, want: v1_8.StateLogin},
+	}
+
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			h := newHarness(t)
+			h.handshake(testCase.nextState)
+
+			// Drive one more exchange so the handshake is known to have been
+			// processed before the state is read.
+			if testCase.nextState == 1 {
+				h.send(&pkt.PingStart{})
+				h.expect(pkt.ServerInfo{}.PacketID())
+			} else {
+				h.send(&pkt.LoginStart{Username: "Tester"})
+				h.expect(pkt.Success{}.PacketID())
+				// Join Game is written in the play state, so receiving it
+				// means the session has finished moving there.
+				h.expect(pkt.Login{}.PacketID())
+			}
+
+			snapshot, err := h.conn.stream.Snapshot(t.Context())
+			if err != nil {
+				t.Fatalf("snapshot: %v", err)
+			}
+
+			// A login carries straight on into play. Task 7 puts the login
+			// packets themselves onto generated values, at which point the
+			// session proposes that move too rather than being told.
+			want := testCase.want
+			if testCase.nextState == 2 {
+				want = v1_8.StatePlay
+			}
+			if snapshot.State != want {
+				t.Fatalf("session state = %q, want %q", snapshot.State, want)
+			}
+		})
+	}
+}

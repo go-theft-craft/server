@@ -55,6 +55,25 @@ func (c *Connection) streamState() protocol.State {
 	}
 }
 
+// writeValue sends one clientbound packet as a generated value.
+//
+// The session encodes it and, where the packet implies one, proposes the state
+// or pipeline transition that goes with it. writePacket cannot do that: it
+// hands over a raw payload, which the session has nothing to inspect.
+func (c *Connection) writeValue(value packetValue) error {
+	return c.stream.Write(c.ctx, protocol.Packet{
+		State:     c.streamState(),
+		Direction: protocol.DirectionClientbound,
+		ID:        value.PacketID(),
+		Value:     value,
+	})
+}
+
+// packetValue is what both packet families have in common.
+type packetValue interface {
+	PacketID() int32
+}
+
 // setState moves the connection and its session to the same state.
 //
 // The session proposes a transition of its own when it decodes or encodes a

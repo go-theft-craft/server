@@ -44,9 +44,17 @@ used `-1`, every recipe accepting a variant — planks from any log, torches fro
 any coal — silently stops matching, while exact-metadata recipes keep working.
 That is the shape of "works partially".
 
-**Not yet checked.** The comparison to run is one wildcard recipe in
-`git show 948a256~1:pkg/gamedata/versions/pc_1_8/recipes.go` against what
-`v1_8.Data().Recipes()` returns today.
+**Partly checked, not settled.** The two datasets carry very different numbers
+of `Metadata: -1` entries — 3609 in the old generated recipes, 956 in the
+shared ones. That is suggestive but not conclusive: the old generator most
+likely padded *empty* shape cells with `{ID: 0, Metadata: -1}` where the shared
+data uses `0`, and the matcher ignores the metadata of an empty cell anyway
+because of its `expected.ID > 0` guard.
+
+What still has to be compared is a cell with `ID > 0` that accepts any
+variant — planks from any log is the clearest case — in both datasets. If the
+shared data gives that ingredient `Metadata: 0`, the matcher demands an exact
+variant and the recipe stops matching.
 
 **Coverage gap either way:** no test exercises `matchRecipe2x2` against the real
 registry. The existing tests build recipe structs by hand, so the data

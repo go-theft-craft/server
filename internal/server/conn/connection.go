@@ -2,6 +2,7 @@ package conn
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -161,10 +162,14 @@ func (c *Connection) Handle() {
 			if c.ctx.Err() != nil {
 				return
 			}
-			if err == io.EOF {
+			if isNormalDisconnect(err) {
+				c.log.Info("client disconnected", "state", c.state)
+
 				return
 			}
+
 			c.log.Error("handling packet", "state", c.state, "error", err)
+
 			return
 		}
 	}
@@ -195,6 +200,22 @@ func (c *Connection) handleNextPacket() error {
 	default:
 		return fmt.Errorf("unknown state: %d", c.state)
 	}
+}
+
+// isNormalDisconnect reports whether an error is a client going away rather
+// than a fault worth logging as one.
+//
+// The stream wraps the transport's EOF rather than returning it, so an
+// equality test against io.EOF stopped matching when the connection moved onto
+// it, and every player who quit was logged as an error. A stream that is
+// closed or closing is the same event seen from the write side: the peer left
+// while the server was mid-send.
+func isNormalDisconnect(err error) bool {
+	return errors.Is(err, io.EOF) ||
+		errors.Is(err, net.ErrClosed) ||
+		errors.Is(err, io.ErrClosedPipe) ||
+		errors.Is(err, protocol.ErrStreamClosed) ||
+		errors.Is(err, protocol.ErrStreamClosing)
 }
 
 // disconnectTimeout bounds how long a graceful disconnect waits for the

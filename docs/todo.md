@@ -5,4 +5,4 @@
 - [ ] server must support multiple savings format vanilla + other/custom, do research which format is best fit. saving should not freeze, maybe we should do snapshot saving
 - [ ] world generation must be able to generate different types of worlds with option to customize world generation parameters or create custom worlds, do we need to create separate repo?
 - [ ] create a system to track and log server performance metrics, such as CPU usage, memory usage, and network traffic
-- 
+- [ ] do research on how to load chunk data from disk efficiently and how to optimize chunk loading and unloading. how to calculate chunk loading and unloading time for each player. Server may have overlapping chunks and they can make changes in same chunk.

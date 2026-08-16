@@ -3,7 +3,7 @@ package world
 import (
 	"encoding/binary"
 
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 )
 
 const (
@@ -13,7 +13,7 @@ const (
 )
 
 // EncodeChunk encodes a ChunkData into a MapChunk packet, applying any block overrides.
-func (w *World) EncodeChunk(cx, cz int) pkt.MapChunk {
+func (w *World) EncodeChunk(cx, cz int) v1_8.PlayClientboundMapChunk {
 	chunk := w.GetOrGenerateChunk(cx, cz)
 
 	// Determine which sections are non-nil.
@@ -80,7 +80,7 @@ func (w *World) EncodeChunk(cx, cz int) pkt.MapChunk {
 	// Biome data.
 	data = append(data, chunk.Biomes[:]...)
 
-	return pkt.MapChunk{
+	return v1_8.PlayClientboundMapChunk{
 		X:         int32(cx),
 		Z:         int32(cz),
 		GroundUp:  true,

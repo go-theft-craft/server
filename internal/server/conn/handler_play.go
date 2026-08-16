@@ -804,7 +804,7 @@ func (c *Connection) sendInitialChunks() error {
 
 	for _, pos := range chunks {
 		chunk := c.world.EncodeChunk(pos.X, pos.Z)
-		if err := c.writeMarshalled(&chunk); err != nil {
+		if err := c.send(&chunk); err != nil {
 			return err
 		}
 		c.loadedChunks[pos] = struct{}{}
@@ -827,7 +827,7 @@ func (c *Connection) updateLoadedChunks(newCX, newCZ int) {
 				continue
 			}
 			chunk := c.world.EncodeChunk(cx, cz)
-			if err := c.writeMarshalled(&chunk); err != nil {
+			if err := c.send(&chunk); err != nil {
 				c.log.Error("send chunk", "cx", cx, "cz", cz, "error", err)
 				return
 			}

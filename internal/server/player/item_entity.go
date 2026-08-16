@@ -1,14 +1,9 @@
 package player
 
 import (
-	"bytes"
-	"encoding/binary"
 	"math"
 
-	"github.com/go-theft-craft/minecraft-protocol/wire/java"
-
-	"github.com/go-theft-craft/server/internal/server/protocolinfo"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 )
 
 // ItemEntity represents a dropped item in the world.
@@ -56,15 +51,15 @@ func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, 
 	// Build SpawnEntity using the original throw position so the client
 	// animates the arc from the player's hand. The stored X/Y/Z (landing)
 	// is only used server-side for pickup distance checks.
-	spawnData := buildSpawnEntityDataAt(ie, x, y, z)
-	metaData := buildItemMetadata(ie)
+	spawn := spawnItemEntityValue(ie, x, y, z, true)
+	meta := itemMetadataPacket(ie)
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	for _, pl := range m.players {
-		_ = pl.WritePacket(&pkt.SpawnEntity{Data: spawnData})
-		_ = pl.WritePacket(&pkt.EntityMetadata{Data: buildEntityMetadataData(entityID, metaData)})
+		_ = pl.WritePacket(spawn)
+		_ = pl.WritePacket(meta)
 	}
 }
 
@@ -83,10 +78,10 @@ func (m *Manager) cleanupExpiredItems(currentTick int64) {
 	m.itemMu.Unlock()
 
 	if len(expired) > 0 {
-		destroyData := buildDestroyEntities(expired)
+		destroy := &v1_8.PlayClientboundEntityDestroy{EntityIds: expired}
 		m.mu.RLock()
 		for _, pl := range m.players {
-			_ = pl.WritePacket(&pkt.EntityDestroy{Data: destroyData})
+			_ = pl.WritePacket(destroy)
 		}
 		m.mu.RUnlock()
 	}
@@ -163,18 +158,19 @@ func (m *Manager) TryPickupItems(p *Player) int {
 	defer m.mu.RUnlock()
 
 	for _, ci := range collectPackets {
+		collect := &v1_8.PlayClientboundCollect{
+			CollectedEntityID: ci.collectedEID,
+			CollectorEntityID: ci.collectorEID,
+		}
 		for _, pl := range m.players {
-			_ = pl.WritePacket(&pkt.Collect{
-				CollectedEntityID: ci.collectedEID,
-				CollectorEntityID: ci.collectorEID,
-			})
+			_ = pl.WritePacket(collect)
 		}
 	}
 
 	if len(toRemove) > 0 {
-		destroyData := buildDestroyEntities(toRemove)
+		destroy := &v1_8.PlayClientboundEntityDestroy{EntityIds: toRemove}
 		for _, pl := range m.players {
-			_ = pl.WritePacket(&pkt.EntityDestroy{Data: destroyData})
+			_ = pl.WritePacket(destroy)
 		}
 	}
 
@@ -209,54 +205,40 @@ func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64) {
 	m.itemMu.Unlock()
 
 	// Visual spawn at block height; stored X/Y/Z at ground level for pickup.
-	spawnData := buildSpawnEntityDataAt(ie, x, spawnY, z)
-	metaData := buildItemMetadata(ie)
+	spawn := spawnItemEntityValue(ie, x, spawnY, z, true)
+	meta := itemMetadataPacket(ie)
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	for _, pl := range m.players {
-		_ = pl.WritePacket(&pkt.SpawnEntity{Data: spawnData})
-		_ = pl.WritePacket(&pkt.EntityMetadata{Data: buildEntityMetadataData(entityID, metaData)})
+		_ = pl.WritePacket(spawn)
+		_ = pl.WritePacket(meta)
 	}
 }
 
-// buildSpawnEntityDataAtRest encodes a SpawnEntity packet for an item entity
-// at its stored resting position with data field = 0 (no velocity follows).
-// Used for sending existing items to late-joining players.
-func buildSpawnEntityDataAtRest(ie *ItemEntity) []byte {
-	var buf bytes.Buffer
-
-	_, _ = java.WriteVarInt(&buf, ie.EntityID)
-	_ = binary.Write(&buf, binary.BigEndian, int8(2)) // type: item stack
-	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(ie.X))
-	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(ie.Y))
-	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(ie.Z))
-	_ = binary.Write(&buf, binary.BigEndian, int8(0))  // pitch
-	_ = binary.Write(&buf, binary.BigEndian, int8(0))  // yaw
-	_ = binary.Write(&buf, binary.BigEndian, int32(0)) // data field 0 → no velocity follows
-
-	return buf.Bytes()
-}
-
-// buildSpawnEntityDataAt encodes the SpawnEntity (0x0E) data for an item entity
-// at the given visual spawn position. Object type 2 = item stack.
-func buildSpawnEntityDataAt(ie *ItemEntity, spawnX, spawnY, spawnZ float64) []byte {
-	var buf bytes.Buffer
-
-	_, _ = java.WriteVarInt(&buf, ie.EntityID)
-	_ = binary.Write(&buf, binary.BigEndian, int8(2)) // type: item stack
-	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(spawnX))
-	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(spawnY))
-	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(spawnZ))
-	_ = binary.Write(&buf, binary.BigEndian, int8(0))  // pitch
-	_ = binary.Write(&buf, binary.BigEndian, int8(0))  // yaw
-	_ = binary.Write(&buf, binary.BigEndian, int32(1)) // data field (non-zero → velocity follows)
-	_ = binary.Write(&buf, binary.BigEndian, ie.VelX)
-	_ = binary.Write(&buf, binary.BigEndian, ie.VelY)
-	_ = binary.Write(&buf, binary.BigEndian, ie.VelZ)
-
-	return buf.Bytes()
+// spawnItemEntityValue builds the SpawnEntity (0x0E) packet for an item entity
+// (object type 2 = item stack) at the given visual position. When withVelocity
+// is true the object-data int is 1 and the velocity short triple follows; when
+// false it is 0 and no velocity follows (used for late-joining players seeing an
+// item at rest).
+func spawnItemEntityValue(ie *ItemEntity, spawnX, spawnY, spawnZ float64, withVelocity bool) *v1_8.PlayClientboundSpawnEntity {
+	spawn := &v1_8.PlayClientboundSpawnEntity{
+		EntityID: ie.EntityID,
+		Type:     2, // item stack
+		X:        FixedPoint(spawnX),
+		Y:        FixedPoint(spawnY),
+		Z:        FixedPoint(spawnZ),
+		Pitch:    0,
+		Yaw:      0,
+	}
+	if withVelocity {
+		spawn.IntField = 1
+		spawn.ObjectData.Default.VelocityX = ie.VelX
+		spawn.ObjectData.Default.VelocityY = ie.VelY
+		spawn.ObjectData.Default.VelocityZ = ie.VelZ
+	}
+	return spawn
 }
 
 // estimateLanding approximates where an item entity will land by simulating
@@ -299,15 +281,22 @@ func estimateLanding(x, y, z float64, velX, velY, velZ int16, groundAt func(x, y
 	return px, py, pz
 }
 
-// buildItemMetadata builds entity metadata for an item entity.
-// Index 10 (type 5 = slot) contains the item data.
-func buildItemMetadata(ie *ItemEntity) []byte {
-	var buf bytes.Buffer
+// itemMetadataPacket builds the EntityMetadata packet for an item entity.
+func itemMetadataPacket(ie *ItemEntity) *v1_8.PlayClientboundEntityMetadata {
+	return &v1_8.PlayClientboundEntityMetadata{
+		EntityID: ie.EntityID,
+		Metadata: itemMetadataValue(ie),
+	}
+}
 
-	// Index 10, type 5 (slot)
-	buf.WriteByte((10 & 0x1F) | (metaTypeSlot << 5))
-	_ = WriteSlot(&buf, ie.Item)
-	buf.WriteByte(protocolinfo.MetadataEnd)
-
-	return buf.Bytes()
+// itemMetadataValue builds the entity metadata for an item entity.
+// Index 10 (type 5 = slot) carries the item stack.
+func itemMetadataValue(ie *ItemEntity) v1_8.EntityMetadata {
+	return v1_8.EntityMetadata{{
+		AnonymousBitField1: v1_8.EntityMetadataItemAnonymousBitField1Bits{
+			Type: metaTypeSlot,
+			Key:  10,
+		},
+		Value: v1_8.EntityMetadataItemValueSwitch{Case5: toGeneratedSlot(ie.Item)},
+	}}
 }

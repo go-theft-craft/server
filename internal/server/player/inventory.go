@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"io"
 	"sync"
+
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 )
 
 // Slot represents a Minecraft inventory slot.
@@ -11,6 +13,21 @@ type Slot struct {
 	BlockID    int16 // -1 = empty
 	ItemCount  int8
 	ItemDamage int16
+}
+
+// toGeneratedSlot converts a Slot to the generated protocol 47 Slot value.
+//
+// It mirrors WriteSlot's wire shape: for an empty slot (BlockID -1) the
+// generated Slot.Encode writes only the block ID, and for a present item it
+// writes count, damage, and — with NBTData nil — the single-byte no-NBT
+// sentinel WriteSlot emits by hand.
+func toGeneratedSlot(s Slot) v1_8.Slot {
+	slot := v1_8.Slot{BlockID: s.BlockID}
+	if s.BlockID != -1 {
+		slot.AnonymousSwitch1.Default.ItemCount = s.ItemCount
+		slot.AnonymousSwitch1.Default.ItemDamage = s.ItemDamage
+	}
+	return slot
 }
 
 // EmptySlot is a convenience value for an empty slot.

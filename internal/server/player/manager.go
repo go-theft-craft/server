@@ -1,15 +1,12 @@
 package player
 
 import (
-	"bytes"
-	"encoding/binary"
 	"strings"
 	"sync"
 	"sync/atomic"
 
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
-
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
 // Manager tracks all connected players and handles entity visibility.
@@ -65,7 +62,7 @@ func (m *Manager) resyncPositions() {
 
 	for _, p := range m.players {
 		pos := p.GetPosition()
-		tp := &pkt.EntityTeleport{
+		tp := &v1_8.PlayClientboundEntityTeleport{
 			EntityID: p.EntityID,
 			X:        FixedPoint(pos.X),
 			Y:        FixedPoint(pos.Y),
@@ -90,11 +87,11 @@ func (m *Manager) Add(p *Player) {
 	m.players[p.EntityID] = p
 	m.byUUID[p.UUID] = p.EntityID
 
-	newPlayerInfo := buildPlayerInfoAdd(p)
+	newPlayerInfo := playerInfoAdd(p)
 	cx, cz := p.ChunkX(), p.ChunkZ()
 
 	// Send the player their own PlayerInfo so the client knows its skin for the inventory.
-	_ = p.WritePacket(&pkt.PlayerInfo{Data: newPlayerInfo})
+	_ = p.WritePacket(newPlayerInfo)
 
 	for _, other := range m.players {
 		if other.EntityID == p.EntityID {
@@ -102,10 +99,10 @@ func (m *Manager) Add(p *Player) {
 		}
 
 		// Send existing player's info to the new player.
-		_ = p.WritePacket(&pkt.PlayerInfo{Data: buildPlayerInfoAdd(other)})
+		_ = p.WritePacket(playerInfoAdd(other))
 
 		// Send new player's info to existing players.
-		_ = other.WritePacket(&pkt.PlayerInfo{Data: newPlayerInfo})
+		_ = other.WritePacket(newPlayerInfo)
 
 		// Check view distance for entity spawning.
 		ocx, ocz := other.ChunkX(), other.ChunkZ()
@@ -121,25 +118,23 @@ func (m *Manager) Add(p *Player) {
 
 	// Send existing item entities to the new player.
 	type itemSnapshot struct {
-		spawnData []byte
-		metaData  []byte
-		entityID  int32
+		spawn *v1_8.PlayClientboundSpawnEntity
+		meta  *v1_8.PlayClientboundEntityMetadata
 	}
 
 	m.itemMu.Lock()
 	items := make([]itemSnapshot, 0, len(m.itemEntities))
 	for _, ie := range m.itemEntities {
 		items = append(items, itemSnapshot{
-			spawnData: buildSpawnEntityDataAtRest(ie),
-			metaData:  buildItemMetadata(ie),
-			entityID:  ie.EntityID,
+			spawn: spawnItemEntityValue(ie, ie.X, ie.Y, ie.Z, false),
+			meta:  itemMetadataPacket(ie),
 		})
 	}
 	m.itemMu.Unlock()
 
 	for _, it := range items {
-		_ = p.WritePacket(&pkt.SpawnEntity{Data: it.spawnData})
-		_ = p.WritePacket(&pkt.EntityMetadata{Data: buildEntityMetadataData(it.entityID, it.metaData)})
+		_ = p.WritePacket(it.spawn)
+		_ = p.WritePacket(it.meta)
 	}
 }
 
@@ -151,14 +146,13 @@ func (m *Manager) Remove(p *Player) {
 	delete(m.players, p.EntityID)
 	delete(m.byUUID, p.UUID)
 
-	removeInfo := buildPlayerInfoRemove(p)
-	destroyData := buildDestroyEntities([]int32{p.EntityID})
+	removeInfo := playerInfoRemove(p)
 
 	for _, other := range m.players {
-		_ = other.WritePacket(&pkt.PlayerInfo{Data: removeInfo})
+		_ = other.WritePacket(removeInfo)
 
 		if other.IsTracking(p.EntityID) {
-			_ = other.WritePacket(&pkt.EntityDestroy{Data: destroyData})
+			_ = other.WritePacket(&v1_8.PlayClientboundEntityDestroy{EntityIds: []int32{p.EntityID}})
 			other.Untrack(p.EntityID)
 		}
 	}
@@ -222,13 +216,11 @@ func (m *Manager) UpdateTracking(moved *Player) {
 			}
 		} else if !inRange && otherTracksMoved {
 			// Leave range: destroy for each other.
-			destroyMoved := buildDestroyEntities([]int32{moved.EntityID})
-			_ = other.WritePacket(&pkt.EntityDestroy{Data: destroyMoved})
+			_ = other.WritePacket(&v1_8.PlayClientboundEntityDestroy{EntityIds: []int32{moved.EntityID}})
 			other.Untrack(moved.EntityID)
 
 			if movedTracksOther {
-				destroyOther := buildDestroyEntities([]int32{other.EntityID})
-				_ = moved.WritePacket(&pkt.EntityDestroy{Data: destroyOther})
+				_ = moved.WritePacket(&v1_8.PlayClientboundEntityDestroy{EntityIds: []int32{other.EntityID}})
 				moved.Untrack(other.EntityID)
 			}
 		}
@@ -237,9 +229,9 @@ func (m *Manager) UpdateTracking(moved *Player) {
 
 // BroadcastEntityMetadata sends an EntityMetadata packet to all trackers of the given player.
 func (m *Manager) BroadcastEntityMetadata(p *Player) {
-	metaData := BuildEntityMetadata(p)
-	m.BroadcastToTrackers(&pkt.EntityMetadata{
-		Data: buildEntityMetadataData(p.EntityID, metaData),
+	m.BroadcastToTrackers(&v1_8.PlayClientboundEntityMetadata{
+		EntityID: p.EntityID,
+		Metadata: BuildEntityMetadata(p),
 	}, p.EntityID)
 }
 
@@ -294,15 +286,14 @@ func (m *Manager) ForEach(fn func(*Player)) {
 func (m *Manager) spawnPlayerFor(viewer, target *Player) {
 	pos := target.GetPosition()
 
-	spawnData := buildSpawnNamedEntity(target, pos)
-	_ = viewer.WritePacket(&pkt.NamedEntitySpawn{Data: spawnData})
+	_ = viewer.WritePacket(namedEntitySpawnValue(target, pos))
 
-	_ = viewer.WritePacket(&pkt.EntityHeadRotation{
+	_ = viewer.WritePacket(&v1_8.PlayClientboundEntityHeadRotation{
 		EntityID: target.EntityID,
 		HeadYaw:  DegreesToAngle(pos.Yaw),
 	})
 
-	_ = viewer.WritePacket(&pkt.EntityTeleport{
+	_ = viewer.WritePacket(&v1_8.PlayClientboundEntityTeleport{
 		EntityID: target.EntityID,
 		X:        FixedPoint(pos.X),
 		Y:        FixedPoint(pos.Y),
@@ -313,111 +304,93 @@ func (m *Manager) spawnPlayerFor(viewer, target *Player) {
 	})
 
 	// Send entity metadata (flags + skin parts).
-	metaData := BuildEntityMetadata(target)
-	_ = viewer.WritePacket(&pkt.EntityMetadata{Data: buildEntityMetadataData(target.EntityID, metaData)})
+	_ = viewer.WritePacket(&v1_8.PlayClientboundEntityMetadata{
+		EntityID: target.EntityID,
+		Metadata: BuildEntityMetadata(target),
+	})
 
 	// Send 5 equipment packets (held item + 4 armor slots).
-	for _, eqData := range BuildEquipmentPackets(target.EntityID, target.Inventory) {
-		_ = viewer.WritePacket(&pkt.EntityEquipment{Data: eqData})
+	eqs := BuildEquipmentValues(target.EntityID, target.Inventory)
+	for i := range eqs {
+		_ = viewer.WritePacket(&eqs[i])
 	}
 
 	viewer.Track(target.EntityID)
 }
 
-// buildEntityMetadataData prepends the entity ID (varint) to raw metadata bytes.
-func buildEntityMetadataData(entityID int32, metadata []byte) []byte {
-	var buf bytes.Buffer
-	_, _ = java.WriteVarInt(&buf, entityID)
-	buf.Write(metadata)
-	return buf.Bytes()
-}
-
-// buildSpawnNamedEntity encodes the SpawnNamedEntity data fields.
-func buildSpawnNamedEntity(p *Player, pos Position) []byte {
-	var buf bytes.Buffer
-
-	_, _ = java.WriteVarInt(&buf, p.EntityID)
-	buf.Write(p.UUIDBytes[:])
-	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(pos.X))
-	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(pos.Y))
-	_ = binary.Write(&buf, binary.BigEndian, FixedPoint(pos.Z))
-	buf.WriteByte(byte(DegreesToAngle(pos.Yaw)))
-	buf.WriteByte(byte(DegreesToAngle(pos.Pitch)))
-
-	// Current item in hand.
-	heldItem := p.Inventory.HeldItem()
-	if heldItem.IsEmpty() {
-		_ = binary.Write(&buf, binary.BigEndian, int16(0))
-	} else {
-		_ = binary.Write(&buf, binary.BigEndian, heldItem.BlockID)
+// namedEntitySpawnValue builds the NamedEntitySpawn packet for a player.
+func namedEntitySpawnValue(p *Player, pos Position) *v1_8.PlayClientboundNamedEntitySpawn {
+	// Current item in hand: the block ID, or 0 when the hand is empty.
+	var currentItem int16
+	if heldItem := p.Inventory.HeldItem(); !heldItem.IsEmpty() {
+		currentItem = heldItem.BlockID
 	}
 
-	// Entity metadata (flags + skin parts + terminator).
-	buf.Write(BuildSpawnMetadata(p))
-
-	return buf.Bytes()
+	return &v1_8.PlayClientboundNamedEntitySpawn{
+		EntityID:    p.EntityID,
+		PlayerUUID:  java.UUID(p.UUIDBytes),
+		X:           FixedPoint(pos.X),
+		Y:           FixedPoint(pos.Y),
+		Z:           FixedPoint(pos.Z),
+		Yaw:         DegreesToAngle(pos.Yaw),
+		Pitch:       DegreesToAngle(pos.Pitch),
+		CurrentItem: currentItem,
+		Metadata:    BuildSpawnMetadata(p),
+	}
 }
 
-// buildPlayerInfoAdd builds a PlayerInfo packet data with action=0 (Add Player).
-func buildPlayerInfoAdd(p *Player) []byte {
-	var buf bytes.Buffer
-
-	_, _ = java.WriteVarInt(&buf, 0) // action: Add Player
-	_, _ = java.WriteVarInt(&buf, 1) // count: 1
-	buf.Write(p.UUIDBytes[:])
-	_, _ = java.WriteString(&buf, wireLimits(), p.Username)
-
-	_, _ = java.WriteVarInt(&buf, int32(len(p.Properties)))
+// playerInfoAdd builds a PlayerInfo packet with action=add_player for a player.
+func playerInfoAdd(p *Player) *v1_8.PlayClientboundPlayerInfo {
+	props := make([]v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1SwitchAddPlayerPropertiesItem, 0, len(p.Properties))
 	for _, prop := range p.Properties {
-		_, _ = java.WriteString(&buf, wireLimits(), prop.Name)
-		_, _ = java.WriteString(&buf, wireLimits(), prop.Value)
-		if prop.Signature != "" {
-			buf.WriteByte(1)
-			_, _ = java.WriteString(&buf, wireLimits(), prop.Signature)
-		} else {
-			buf.WriteByte(0)
+		item := v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1SwitchAddPlayerPropertiesItem{
+			Name:  prop.Name,
+			Value: prop.Value,
 		}
+		if prop.Signature != "" {
+			sig := prop.Signature
+			item.Signature = &sig
+		}
+		props = append(props, item)
 	}
 
-	_, _ = java.WriteVarInt(&buf, int32(p.GetGameMode())) // gamemode
-	_, _ = java.WriteVarInt(&buf, 0)                      // ping
-	buf.WriteByte(0)                                      // no display name
-
-	return buf.Bytes()
+	return &v1_8.PlayClientboundPlayerInfo{
+		Action: "add_player",
+		Data: []v1_8.PlayClientboundPlayerInfoDataItem{{
+			UUID: java.UUID(p.UUIDBytes),
+			AnonymousSwitch1: v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1Switch{
+				AddPlayer: v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1SwitchAddPlayer{
+					Name:       p.Username,
+					Properties: props,
+					Gamemode:   int32(p.GetGameMode()),
+					Ping:       0,
+				},
+			},
+		}},
+	}
 }
 
-// BroadcastGameMode sends a PlayerInfo Update Gamemode packet to all players.
+// BroadcastGameMode sends a PlayerInfo update_game_mode packet to all players.
 func (m *Manager) BroadcastGameMode(p *Player) {
-	var buf bytes.Buffer
-
-	_, _ = java.WriteVarInt(&buf, 1) // action: Update Gamemode
-	_, _ = java.WriteVarInt(&buf, 1) // count: 1
-	buf.Write(p.UUIDBytes[:])
-	_, _ = java.WriteVarInt(&buf, int32(p.GetGameMode()))
-
-	data := buf.Bytes()
-	m.Broadcast(&pkt.PlayerInfo{Data: data})
+	m.Broadcast(&v1_8.PlayClientboundPlayerInfo{
+		Action: "update_game_mode",
+		Data: []v1_8.PlayClientboundPlayerInfoDataItem{{
+			UUID: java.UUID(p.UUIDBytes),
+			AnonymousSwitch1: v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1Switch{
+				UpdateGameMode: v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1SwitchUpdateGameMode{
+					Gamemode: int32(p.GetGameMode()),
+				},
+			},
+		}},
+	})
 }
 
-// buildPlayerInfoRemove builds a PlayerInfo packet data with action=4 (Remove Player).
-func buildPlayerInfoRemove(p *Player) []byte {
-	var buf bytes.Buffer
-
-	_, _ = java.WriteVarInt(&buf, 4) // action: Remove Player
-	_, _ = java.WriteVarInt(&buf, 1) // count: 1
-	buf.Write(p.UUIDBytes[:])
-
-	return buf.Bytes()
-}
-
-// buildDestroyEntities encodes the DestroyEntities data fields.
-func buildDestroyEntities(ids []int32) []byte {
-	var buf bytes.Buffer
-
-	_, _ = java.WriteVarInt(&buf, int32(len(ids)))
-	for _, id := range ids {
-		_, _ = java.WriteVarInt(&buf, id)
+// playerInfoRemove builds a PlayerInfo packet with action=remove_player.
+func playerInfoRemove(p *Player) *v1_8.PlayClientboundPlayerInfo {
+	return &v1_8.PlayClientboundPlayerInfo{
+		Action: "remove_player",
+		Data: []v1_8.PlayClientboundPlayerInfoDataItem{{
+			UUID: java.UUID(p.UUIDBytes),
+		}},
 	}
-
-	return buf.Bytes()
 }

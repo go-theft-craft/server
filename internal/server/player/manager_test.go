@@ -4,9 +4,8 @@ import (
 	"sync"
 	"testing"
 
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
-
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
 // packetCollector records packets sent to a player.
@@ -105,7 +104,7 @@ func TestBroadcast(t *testing.T) {
 	pc1.reset()
 	pc2.reset()
 
-	m.Broadcast(&pkt.ChatCB{Message: `{"text":"hello"}`, Position: 0})
+	m.Broadcast(&v1_8.PlayClientboundChat{Message: `{"text":"hello"}`, Position: 0})
 
 	if len(pc1.get()) != 1 {
 		t.Errorf("p1 expected 1 packet, got %d", len(pc1.get()))
@@ -126,7 +125,7 @@ func TestBroadcastExcept(t *testing.T) {
 	pc1.reset()
 	pc2.reset()
 
-	m.BroadcastExcept(&pkt.ChatCB{Message: `{"text":"hello"}`, Position: 0}, p1.EntityID)
+	m.BroadcastExcept(&v1_8.PlayClientboundChat{Message: `{"text":"hello"}`, Position: 0}, p1.EntityID)
 
 	if len(pc1.get()) != 0 {
 		t.Errorf("p1 (excluded) expected 0 packets, got %d", len(pc1.get()))
@@ -147,13 +146,13 @@ func TestPlayerInfoOnAdd(t *testing.T) {
 	m.Add(p2)
 
 	// p1 should receive p2's PlayerInfo
-	p1InfoCount := pc1.countByType(pkt.PlayerInfo{}.PacketID())
+	p1InfoCount := pc1.countByType(v1_8.PlayClientboundPlayerInfo{}.PacketID())
 	if p1InfoCount < 1 {
 		t.Errorf("p1 expected at least 1 PlayerInfo, got %d", p1InfoCount)
 	}
 
 	// p2 should receive p1's PlayerInfo
-	p2InfoCount := pc2.countByType(pkt.PlayerInfo{}.PacketID())
+	p2InfoCount := pc2.countByType(v1_8.PlayClientboundPlayerInfo{}.PacketID())
 	if p2InfoCount < 1 {
 		t.Errorf("p2 expected at least 1 PlayerInfo, got %d", p2InfoCount)
 	}
@@ -170,7 +169,7 @@ func TestSpawnSendsEquipmentPackets(t *testing.T) {
 	m.Add(p2)
 
 	// p1 should receive 5 EntityEquipment packets for p2 (held item + 4 armor slots).
-	eqCount := pc1.countByType(pkt.EntityEquipment{}.PacketID())
+	eqCount := pc1.countByType(v1_8.PlayClientboundEntityEquipment{}.PacketID())
 	if eqCount != 5 {
 		t.Errorf("expected 5 EntityEquipment packets, got %d", eqCount)
 	}
@@ -187,7 +186,7 @@ func TestSpawnSendsEntityMetadata(t *testing.T) {
 	m.Add(p2)
 
 	// p1 should receive at least 1 EntityMetadata packet for p2.
-	metaCount := pc1.countByType(pkt.EntityMetadata{}.PacketID())
+	metaCount := pc1.countByType(v1_8.PlayClientboundEntityMetadata{}.PacketID())
 	if metaCount < 1 {
 		t.Errorf("expected at least 1 EntityMetadata packet, got %d", metaCount)
 	}
@@ -205,7 +204,7 @@ func TestPlayerInfoOnRemove(t *testing.T) {
 	m.Remove(p2)
 
 	// p1 should receive PlayerInfo (remove) for p2.
-	p1InfoCount := pc1.countByType(pkt.PlayerInfo{}.PacketID())
+	p1InfoCount := pc1.countByType(v1_8.PlayClientboundPlayerInfo{}.PacketID())
 	if p1InfoCount < 1 {
 		t.Errorf("p1 expected at least 1 PlayerInfo(remove), got %d", p1InfoCount)
 	}

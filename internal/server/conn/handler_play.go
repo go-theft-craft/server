@@ -26,7 +26,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 
 	uuidBytes := parseUUID(uuid)
 	entityID := c.players.AllocateEntityID()
-	c.self = player.NewPlayer(entityID, uuid, uuidBytes, username, skinProps, c.writeMarshalled)
+	c.self = player.NewPlayer(entityID, uuid, uuidBytes, username, skinProps, c.writePlayerPacket)
 
 	// Try to load saved player data.
 	var savedData *storage.PlayerData

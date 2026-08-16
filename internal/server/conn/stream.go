@@ -103,6 +103,30 @@ func (c *Connection) writePacket(p protocol.Packet) error {
 	return c.stream.Write(c.ctx, p)
 }
 
+// writePlayerPacket is the writer a Player is handed (see player.NewPlayer).
+//
+// A Player's packets arrive from two places while the migration is in flight:
+// manager.go and item_entity.go now build generated v1_8 values, whereas the
+// still-pc_1_8 handlers (handler_play.go, inventory.go, commands.go) hand the
+// manager's broadcast methods pc_1_8 structs. Those broadcasts fan out through
+// this same closure, so it routes by value type: a generated value carries an
+// Encode method and goes through send (the session encodes and can inspect it),
+// a pc_1_8 struct has only mc tags and goes through the reflective shim.
+//
+// Sending a generated value through the reflective path would silently emit an
+// empty body (a generated type carries no mc tags), and sending a pc_1_8 struct
+// through send fails loudly (the session rejects an unregistered value), so the
+// split has to be made here rather than left to the caller. Task 6 retypes the
+// remaining handlers onto send directly; once nothing hands this a pc_1_8
+// struct, the dispatch collapses to send and this method goes away with the
+// shim.
+func (c *Connection) writePlayerPacket(v java.PacketValue) error {
+	if _, generated := v.(interface{ Encode(*java.Buffer) error }); generated {
+		return c.send(v)
+	}
+	return c.writeMarshalled(v)
+}
+
 // writeMarshalled marshals a not-yet-migrated pc_1_8 packet struct through the
 // shared reflect codec and writes it as a raw payload.
 //

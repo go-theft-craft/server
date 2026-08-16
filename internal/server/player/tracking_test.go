@@ -3,7 +3,7 @@ package player
 import (
 	"testing"
 
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 )
 
 func TestEntityTrackingOnJoin(t *testing.T) {
@@ -24,10 +24,10 @@ func TestEntityTrackingOnJoin(t *testing.T) {
 	}
 
 	// Both should have received SpawnNamedEntity.
-	if pc1.countByType(pkt.NamedEntitySpawn{}.PacketID()) < 1 {
+	if pc1.countByType(v1_8.PlayClientboundNamedEntitySpawn{}.PacketID()) < 1 {
 		t.Error("p1 should have received NamedEntitySpawn for p2")
 	}
-	if pc2.countByType(pkt.NamedEntitySpawn{}.PacketID()) < 1 {
+	if pc2.countByType(v1_8.PlayClientboundNamedEntitySpawn{}.PacketID()) < 1 {
 		t.Error("p2 should have received NamedEntitySpawn for p1")
 	}
 }
@@ -71,7 +71,7 @@ func TestEntityTrackingEnterRange(t *testing.T) {
 		t.Error("p1 should now be tracking p2 after p2 moved into range")
 	}
 
-	if pc1.countByType(pkt.NamedEntitySpawn{}.PacketID()) < 1 {
+	if pc1.countByType(v1_8.PlayClientboundNamedEntitySpawn{}.PacketID()) < 1 {
 		t.Error("p1 should have received NamedEntitySpawn after p2 entered range")
 	}
 }
@@ -98,7 +98,7 @@ func TestEntityTrackingLeaveRange(t *testing.T) {
 		t.Error("p1 should no longer track p2 after p2 moved out of range")
 	}
 
-	if pc1.countByType(pkt.EntityDestroy{}.PacketID()) < 1 {
+	if pc1.countByType(v1_8.PlayClientboundEntityDestroy{}.PacketID()) < 1 {
 		t.Error("p1 should have received EntityDestroy after p2 left range")
 	}
 }

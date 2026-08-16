@@ -297,6 +297,50 @@ func TestStatusRequestAnswersWithTheServerDescription(t *testing.T) {
 	}
 }
 
+// TestPlayerInfoIsWrittenAsAGeneratedValue guards the writer flip: player
+// packets now route by value type, and a generated value must reach send rather
+// than the reflective shim. The shim marshals by mc struct tags, which a
+// generated type does not carry, so it would encode an empty body. A non-empty,
+// correctly framed add_player PlayerInfo from the join sequence proves the
+// generated value reached send and encoded through the session.
+func TestPlayerInfoIsWrittenAsAGeneratedValue(t *testing.T) {
+	h := newHarness(t)
+
+	h.handshake(2)
+	h.send(&pkt.LoginStart{Username: "Tester"})
+	h.expect(pkt.Success{}.PacketID())
+
+	info := readUntil(t, h, v1_8.PlayClientboundPlayerInfo{}.PacketID())
+	if len(info.data) < 2 {
+		t.Fatalf("PlayerInfo body has %d bytes; a generated value on the reflective path encodes empty", len(info.data))
+	}
+	// action = add_player (0x00), number of entries = 1 (0x01).
+	if info.data[0] != 0x00 || info.data[1] != 0x01 {
+		t.Fatalf("PlayerInfo add framing = % x, want prefix 00 01", info.data[:2])
+	}
+}
+
+// readUntil consumes packets until one with the given ID arrives.
+func readUntil(t *testing.T, h *harness, id int32) rawPacket {
+	t.Helper()
+
+	for {
+		select {
+		case packet, ok := <-h.packets:
+			if !ok {
+				t.Fatalf("connection closed while waiting for packet %#x", id)
+			}
+			if packet.id == id {
+				return packet
+			}
+		case <-time.After(5 * time.Second):
+			t.Fatalf("timed out waiting for packet %#x", id)
+
+			return rawPacket{}
+		}
+	}
+}
+
 func TestPingEchoesItsPayload(t *testing.T) {
 	h := newHarness(t)
 

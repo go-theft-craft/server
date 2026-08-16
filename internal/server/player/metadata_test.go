@@ -3,15 +3,35 @@ package player
 import (
 	"testing"
 
+	protocol "github.com/go-theft-craft/minecraft-protocol"
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 )
 
+// encodeMetadata encodes an EntityMetadata to its 1.8 wire bytes so the tests
+// can assert the byte layout the server used to build by hand.
+func encodeMetadata(t *testing.T, md v1_8.EntityMetadata) []byte {
+	t.Helper()
+	limits, err := protocol.NewLimits()
+	if err != nil {
+		t.Fatalf("build limits: %v", err)
+	}
+	buf, err := java.NewWriteBuffer(limits)
+	if err != nil {
+		t.Fatalf("new write buffer: %v", err)
+	}
+	if err := md.Encode(buf); err != nil {
+		t.Fatalf("encode metadata: %v", err)
+	}
+	return buf.Bytes()
+}
+
 func TestBuildEntityMetadataDefault(t *testing.T) {
 	p := newTestPlayerSimple()
 
-	data := BuildEntityMetadata(p)
+	data := encodeMetadata(t, BuildEntityMetadata(p))
 
 	// Expect: index 0 type byte (header=0x00), value=0x00,
 	//         index 10 type byte (header=0x0A), value=0x00,
@@ -47,7 +67,7 @@ func TestBuildEntityMetadataWithFlags(t *testing.T) {
 	p.SetSneaking(true)
 	p.SetSkinParts(0xFF)
 
-	data := BuildEntityMetadata(p)
+	data := encodeMetadata(t, BuildEntityMetadata(p))
 
 	if len(data) != 5 {
 		t.Fatalf("expected 5 bytes, got %d", len(data))
@@ -68,7 +88,7 @@ func TestBuildEntityMetadataSprinting(t *testing.T) {
 	p := newTestPlayerSimple()
 	p.SetSprinting(true)
 
-	data := BuildEntityMetadata(p)
+	data := encodeMetadata(t, BuildEntityMetadata(p))
 
 	// entityFlags should have bit 3 set (0x08 = sprinting)
 	if data[1] != 0x08 {
@@ -78,10 +98,10 @@ func TestBuildEntityMetadataSprinting(t *testing.T) {
 
 func TestBuildSpawnMetadata(t *testing.T) {
 	p := newTestPlayerSimple()
-	data := BuildSpawnMetadata(p)
+	data := encodeMetadata(t, BuildSpawnMetadata(p))
 
 	// Should be identical to BuildEntityMetadata.
-	expected := BuildEntityMetadata(p)
+	expected := encodeMetadata(t, BuildEntityMetadata(p))
 	if len(data) != len(expected) {
 		t.Fatalf("spawn metadata length %d != entity metadata length %d", len(data), len(expected))
 	}

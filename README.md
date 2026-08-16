@@ -25,7 +25,7 @@ A Minecraft 1.8.9 (protocol 47) server implementation in Go.
 - **Smart pre-generation** — Skips world pre-generation on restart if already saved
 - **KeepAlive** — 30-second timeout enforcement
 - **Server list** — MOTD, player count, version info
-- **Codegen** — Generates the play packet structs from PrismarineJS minecraft-data JSON schemas; every game-data registry comes from `minecraft-protocol` instead
+- **Generated wire types** — every packet, codec, and game-data registry comes from [`minecraft-protocol`](https://github.com/go-theft-craft/minecraft-protocol); the server owns no wire code and runs no code generation of its own
 - **Interoperability lane** — `task test:interop` logs a pinned Node `minecraft-protocol` client into the server over loopback
 
 ## Prerequisites
@@ -82,6 +82,8 @@ Connect with a Minecraft 1.8.x client to `localhost:25565`.
 |---------|-------------|
 | `devbox run -- task server` | Run the server |
 | `devbox run -- task test` | Run all tests with coverage |
+| `devbox run -- task test:race` | Run all tests under the race detector |
+| `devbox run -- task test:interop` | Loopback interop lane against the pinned Node client |
 | `devbox run -- task fmt` | Format code (gci + gofumpt) |
 | `devbox run -- task lint` | Run golangci-lint |
 | `devbox run -- task build` | Build binary to `build/app` |
@@ -102,51 +104,43 @@ devbox run -- go test -mod vendor -run TestName ./path/to/package/...
 graph TB
     subgraph CLI["Command-Line Tools"]
         SERVER["cmd/server<br/>Entry point"]
-        DMD["cmd/dmd<br/>Data downloader"]
-        CODEGEN["cmd/codegen<br/>Code generator"]
     end
 
-    subgraph External["External"]
-        PRISMARINE["PrismarineJS<br/>minecraft-data<br/>(GitHub)"]
-    end
-
-    subgraph Data["Data Layer"]
-        SCHEME["scheme/<br/>pc-1.8/<br/>JSON schemas"]
-        TEMPLATES["Go templates"]
-    end
-
-    subgraph GameData["internal/gamedata"]
-        FACADE["GameData facade"]
-        REGISTRIES["Registries<br/>(ByID, ByName, All)"]
-        VERSIONS["versions/pc_1_8/<br/>(generated)"]
+    subgraph Protocol["minecraft-protocol (v0.1.0, vendored)"]
+        STREAM["protocol.Stream<br/>Managed framing,<br/>compression, encryption"]
+        WIRE["wire/java<br/>VarInt/VarLong,<br/>Marshal/Unmarshal"]
+        LOGIN["login<br/>Acceptor, offline UUID,<br/>server hash"]
+        GENV18["generated/java/v1_8<br/>Packet codecs +<br/>game-data registries"]
     end
 
     subgraph Server["internal/server"]
         CONFIG["config<br/>Port, MOTD, online-mode,<br/>max-players, view-dist"]
-        CONN["conn<br/>Connection state machine,<br/>encryption, packet handlers"]
-        NET["net<br/>VarInt/VarLong encoding,<br/>Marshal/Unmarshal,<br/>Packet Read/Write"]
+        CONN["conn<br/>Connection state machine,<br/>encryption, packet handlers,<br/>commands, crafting, mining"]
+        PACKET["packet<br/>Protocol 47 constants<br/>(gamemode, dimension,<br/>ability, position flags)"]
+        PROTOINFO["protocolinfo<br/>Protocol number, advertised<br/>version, metadata terminator"]
         PLAYER["player<br/>Player state, inventory,<br/>entity tracking, broadcasts"]
-        WORLD["world<br/>Chunk cache, block overrides,<br/>dynamic loading"]
-        GEN["world/gen<br/>FlatGenerator,<br/>DefaultGenerator<br/>(noise, biomes, caves,<br/>ores, trees)"]
         STORAGE["storage<br/>JSON + Anvil persistence"]
     end
 
-    DMD -->|fetches| PRISMARINE
-    PRISMARINE -->|JSON| SCHEME
-    CODEGEN -->|reads| SCHEME
-    CODEGEN -->|reads| TEMPLATES
-    CODEGEN -->|generates| VERSIONS
-    VERSIONS --> FACADE
-    REGISTRIES --> FACADE
+    subgraph World["pkg/world"]
+        WORLD["world<br/>Chunk cache, block overrides,<br/>dynamic loading"]
+        GEN["gen<br/>FlatGenerator,<br/>DefaultGenerator<br/>(noise, biomes, caves,<br/>ores, trees)"]
+        ANVIL["anvil / nbt<br/>Region file persistence"]
+    end
 
     SERVER --> CONFIG
     SERVER --> CONN
-    CONN --> NET
+    SERVER --> STORAGE
+    CONN --> STREAM
+    CONN --> WIRE
+    CONN --> LOGIN
+    CONN --> GENV18
+    CONN --> PACKET
+    CONN --> PROTOINFO
     CONN --> PLAYER
     CONN --> WORLD
     WORLD --> GEN
-    SERVER --> STORAGE
-    CONN -.->|packet structs| FACADE
+    WORLD --> ANVIL
 ```
 
 ### Connection Lifecycle
@@ -256,23 +250,26 @@ graph LR
 ```
 cmd/
   server/          Minecraft server entry point
-  dmd/             Minecraft Data Downloader (PrismarineJS fetcher)
-  codegen/         Code generator (JSON schemas -> Go types)
 internal/
   server/
     config/        Server configuration and CLI flags
-    conn/          Connection state machine, encryption, packet handlers, commands
-    net/           Protocol I/O (VarInt, packets, marshaling)
-    packet/        Packet type definitions (handshake, status, login, play)
+    conn/          Connection state machine, encryption, packet handlers, commands, crafting, mining
+    packet/        Protocol 47 constants (gamemode, dimension, ability, position flags)
+    protocolinfo/  Protocol number, advertised version name, metadata terminator
     player/        Player state, inventory, entity tracking, broadcasts
-    world/         World state, chunk cache, dynamic loading
-      gen/         World generators (default, flat, noise, biomes, caves, ores)
     storage/       File persistence (JSON) for world and player data
-  gamedata/        Domain types, registries, version loader
-    versions/      Generated version-specific data (via codegen)
-scheme/            Downloaded Minecraft data JSON files
-vendor/            Vendored Go dependencies
+pkg/
+  world/           World state, chunk cache, dynamic loading
+    gen/           World generators (default, flat, noise, biomes, caves, ores)
+    anvil/         Anvil region file reader/writer
+    nbt/           NBT encoding for persistence
+interop/           Loopback interoperability lane (pinned Node minecraft-protocol client)
+vendor/            Vendored Go dependencies (packets, codecs, and game data from minecraft-protocol)
 ```
+
+All wire types, codecs, and game-data registries come from the vendored
+`minecraft-protocol` module; the server owns no packet structs and runs no code
+generation.
 
 ## Chat Commands
 

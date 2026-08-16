@@ -129,6 +129,14 @@ encode: ((x & 0x3FFFFFF) << 38) | ((y & 0xFFF) << 26) | (z & 0x3FFFFFF)
 - [PrismarineJS/minecraft-data](https://github.com/PrismarineJS/minecraft-data) — Machine-readable protocol definitions
 
 ## Local Data
-- Protocol definitions: `scheme/pc-1.8/protocol.json`
-- Generated packet data: `internal/gamedata/versions/pc_1_8/protocol.go`
-- Domain types: `internal/gamedata/protocol.go`
+
+The server owns no wire code and runs no code generation. Every packet, codec,
+and game-data registry comes from the vendored `minecraft-protocol` module:
+
+- Generated protocol 47 packets and codecs: `github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8`
+- Game-data registries (blocks, items, recipes, etc.): `github.com/go-theft-craft/minecraft-protocol/data`
+- Wire primitives (VarInt, `Marshal`/`Unmarshal`): `github.com/go-theft-craft/minecraft-protocol/wire/java`
+- Managed framing, compression, and encryption: `github.com/go-theft-craft/minecraft-protocol` (`protocol.Stream`)
+
+Server-local protocol 47 constants that have no generated counterpart live in
+`internal/server/protocolinfo` and `internal/server/packet`.

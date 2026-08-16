@@ -26,6 +26,7 @@ import (
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
+	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
@@ -241,7 +242,7 @@ func (h *harness) handshake(nextState int32) {
 	h.t.Helper()
 
 	h.send(&pkt.SetProtocol{
-		ProtocolVersion: pkt.ProtocolVersion,
+		ProtocolVersion: protocolinfo.ProtocolVersion,
 		ServerHost:      "localhost",
 		ServerPort:      25565,
 		NextState:       nextState,
@@ -279,11 +280,11 @@ func TestStatusRequestAnswersWithTheServerDescription(t *testing.T) {
 	}
 
 	defaults := config.DefaultConfig()
-	if described.Version.Protocol != int(pkt.ProtocolVersion) {
-		t.Fatalf("protocol = %d, want %d", described.Version.Protocol, pkt.ProtocolVersion)
+	if described.Version.Protocol != int(protocolinfo.ProtocolVersion) {
+		t.Fatalf("protocol = %d, want %d", described.Version.Protocol, protocolinfo.ProtocolVersion)
 	}
-	if described.Version.Name != pkt.VersionName {
-		t.Fatalf("version name = %q, want %q", described.Version.Name, pkt.VersionName)
+	if described.Version.Name != protocolinfo.VersionName {
+		t.Fatalf("version name = %q, want %q", described.Version.Name, protocolinfo.VersionName)
 	}
 	if described.Players.Max != defaults.MaxPlayers {
 		t.Fatalf("max players = %d, want %d", described.Players.Max, defaults.MaxPlayers)
@@ -352,8 +353,8 @@ func TestLegacyPingIsAnswered(t *testing.T) {
 	defaults := config.DefaultConfig()
 	want := []string{
 		"\u00a71",
-		strconv.Itoa(int(pkt.ProtocolVersion)),
-		pkt.VersionName,
+		strconv.Itoa(int(protocolinfo.ProtocolVersion)),
+		protocolinfo.VersionName,
 		defaults.MOTD,
 		"0",
 		strconv.Itoa(defaults.MaxPlayers),

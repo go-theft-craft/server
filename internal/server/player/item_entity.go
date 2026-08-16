@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
+	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
@@ -306,7 +307,7 @@ func buildItemMetadata(ie *ItemEntity) []byte {
 	// Index 10, type 5 (slot)
 	buf.WriteByte((10 & 0x1F) | (metaTypeSlot << 5))
 	_ = WriteSlot(&buf, ie.Item)
-	buf.WriteByte(pkt.MetadataEnd)
+	buf.WriteByte(protocolinfo.MetadataEnd)
 
 	return buf.Bytes()
 }

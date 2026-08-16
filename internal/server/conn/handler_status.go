@@ -7,7 +7,7 @@ import (
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 )
 
 type statusResponse struct {
@@ -53,8 +53,8 @@ func (c *Connection) handleStatus(packet protocol.Packet) error {
 func (c *Connection) writeServerInfo() error {
 	response := statusResponse{
 		Version: statusVersion{
-			Name:     pkt.VersionName,
-			Protocol: int(pkt.ProtocolVersion),
+			Name:     protocolinfo.VersionName,
+			Protocol: int(protocolinfo.ProtocolVersion),
 		},
 		Players: statusPlayers{
 			Max:    c.cfg.MaxPlayers,

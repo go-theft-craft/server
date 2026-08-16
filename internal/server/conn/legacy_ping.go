@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 )
 
 // newLegacyPingHook answers the `FE 01` probe a 1.6 or older client sends
@@ -24,8 +24,8 @@ import (
 func newLegacyPingHook(cfg *config.Config, players *player.Manager) (protocol.PreFrameHook, error) {
 	return java.NewLegacyPingHook(func(context.Context, java.LegacyPing) (java.LegacyStatus, error) {
 		return java.LegacyStatus{
-			ProtocolVersion: pkt.ProtocolVersion,
-			Version:         pkt.VersionName,
+			ProtocolVersion: protocolinfo.ProtocolVersion,
+			Version:         protocolinfo.VersionName,
 			MOTD:            cfg.MOTD,
 			OnlinePlayers:   players.PlayerCount(),
 			MaxPlayers:      cfg.MaxPlayers,

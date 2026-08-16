@@ -6,7 +6,7 @@ import (
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 )
 
 // The two next-state values a handshake may carry.
@@ -43,7 +43,7 @@ func (c *Connection) handleHandshake(packet protocol.Packet) error {
 	case handshakeNextStatus:
 		c.state = StateStatus
 	case handshakeNextLogin:
-		if handshake.ProtocolVersion != pkt.ProtocolVersion {
+		if handshake.ProtocolVersion != protocolinfo.ProtocolVersion {
 			c.log.Warn("unsupported protocol version", "version", handshake.ProtocolVersion)
 		}
 

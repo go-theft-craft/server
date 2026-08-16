@@ -3,7 +3,7 @@ package player
 import (
 	"bytes"
 
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 )
 
 // Metadata type IDs for MC 1.8 entity metadata format.
@@ -29,7 +29,7 @@ func BuildEntityMetadata(p *Player) []byte {
 
 	writeMetaByte(&buf, 0, p.GetEntityFlags())
 	writeMetaByte(&buf, 10, p.GetSkinParts())
-	buf.WriteByte(pkt.MetadataEnd)
+	buf.WriteByte(protocolinfo.MetadataEnd)
 
 	return buf.Bytes()
 }

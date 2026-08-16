@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
+	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 )
 
 func TestBuildEntityMetadataDefault(t *testing.T) {
@@ -37,7 +37,7 @@ func TestBuildEntityMetadataDefault(t *testing.T) {
 	}
 
 	// Terminator
-	if data[4] != pkt.MetadataEnd {
+	if data[4] != protocolinfo.MetadataEnd {
 		t.Errorf("expected terminator 0x7F, got %02X", data[4])
 	}
 }

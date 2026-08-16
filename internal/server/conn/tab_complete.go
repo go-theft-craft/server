@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"strings"
 
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/player"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
 // handleTabComplete processes a TabComplete (0x14) packet and sends completions back.
@@ -128,10 +128,5 @@ func filterStrings(partial string, options []string) []string {
 }
 
 func (c *Connection) sendTabCompleteResponse(matches []string) error {
-	var buf bytes.Buffer
-	_, _ = java.WriteVarInt(&buf, int32(len(matches)))
-	for _, m := range matches {
-		_, _ = java.WriteString(&buf, c.limits, m)
-	}
-	return c.writeMarshalled(&pkt.TabCompleteCB{Data: buf.Bytes()})
+	return c.send(&v1_8.PlayClientboundTabComplete{Matches: matches})
 }

@@ -78,9 +78,8 @@ func (c *Connection) syncState(ctx context.Context) error {
 //
 // The session encodes the value and, where the packet implies one, proposes
 // the state or pipeline transition that goes with it. A raw payload gives the
-// session nothing to inspect and so proposes nothing — which is why M3 left
-// play on raw payloads and mirrored the state locally. This is the call sites
-// migrate onto (Stage C), one area at a time.
+// session nothing to inspect and so proposes nothing. Every clientbound call
+// site now sends a generated value through here.
 func (c *Connection) send(value packetValue) error {
 	return c.writePacket(protocol.Packet{
 		State:     c.streamState(),
@@ -122,47 +121,10 @@ func (c *Connection) writePacket(p protocol.Packet) error {
 
 // writePlayerPacket is the writer a Player is handed (see player.NewPlayer).
 //
-// A Player's packets arrive from two places while the migration is in flight:
-// manager.go and item_entity.go now build generated v1_8 values, whereas the
-// still-pc_1_8 handlers (handler_play.go, inventory.go, commands.go) hand the
-// manager's broadcast methods pc_1_8 structs. Those broadcasts fan out through
-// this same closure, so it routes by value type: a generated value carries an
-// Encode method and goes through send (the session encodes and can inspect it),
-// a pc_1_8 struct has only mc tags and goes through the reflective shim.
-//
-// Sending a generated value through the reflective path would silently emit an
-// empty body (a generated type carries no mc tags), and sending a pc_1_8 struct
-// through send fails loudly (the session rejects an unregistered value), so the
-// split has to be made here rather than left to the caller. Task 6 retypes the
-// remaining handlers onto send directly; once nothing hands this a pc_1_8
-// struct, the dispatch collapses to send and this method goes away with the
-// shim.
+// Every clientbound packet a Player emits — its own and the manager's
+// broadcasts that fan out through this same closure — is a generated v1_8
+// value now, so this hands each straight to send, where the session encodes it
+// and can inspect it for a state or pipeline transition.
 func (c *Connection) writePlayerPacket(v java.PacketValue) error {
-	if _, generated := v.(interface{ Encode(*java.Buffer) error }); generated {
-		return c.send(v)
-	}
-	return c.writeMarshalled(v)
-}
-
-// writeMarshalled marshals a not-yet-migrated pc_1_8 packet struct through the
-// shared reflect codec and writes it as a raw payload.
-//
-// It is the transitional path for the call sites that still hand a pc_1_8
-// struct rather than a generated value. Stage C retypes each of them onto
-// send(&v1_8.…), and Task 8 deletes this together with the pc_1_8 package it
-// marshals. The bytes it produces are identical to what writePacket produced
-// before this task, so the byte-parity fixtures are unaffected while the
-// migration is in flight.
-func (c *Connection) writeMarshalled(p java.PacketValue) error {
-	payload, err := java.Marshal(p, c.limits)
-	if err != nil {
-		return fmt.Errorf("marshal packet 0x%02X: %w", p.PacketID(), err)
-	}
-
-	return c.writePacket(protocol.Packet{
-		State:     c.streamState(),
-		Direction: protocol.DirectionClientbound,
-		ID:        p.PacketID(),
-		Payload:   payload,
-	})
+	return c.send(v)
 }

@@ -15,7 +15,6 @@ import (
 	"github.com/go-theft-craft/server/internal/server/conn"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
@@ -225,7 +224,7 @@ func (s *Server) tick(tickCount int) {
 
 	// Broadcast time update every 20 ticks (once per second).
 	if tickCount%20 == 0 {
-		s.players.Broadcast(&pkt.UpdateTime{
+		s.players.Broadcast(&v1_8.PlayClientboundUpdateTime{
 			Age:  age,
 			Time: timeOfDay,
 		})

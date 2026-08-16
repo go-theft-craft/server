@@ -8,9 +8,10 @@ A Java Edition 1.8.9 (protocol 47) Minecraft server in Go. It serves a real worl
 
 The wire protocol and the game data both come from
 [`minecraft-protocol`](../minecraft-protocol), which this repository consumes as
-a released module. This repository owns no wire code of its own; the last local
-wire types are the play packet structs in `pkg/gamedata/versions/pc_1_8`, which
-M6 replaces with generated ones.
+a released module. This repository owns no wire code of its own: every packet is
+a generated `minecraft-protocol` type. The only protocol constants that stay
+local are the three in `internal/server/protocolinfo` (the advertised version
+name deliberately differs from the generated one).
 
 ## Development Environment Setup
 
@@ -39,10 +40,9 @@ All commands use [Task](https://taskfile.dev) (`task <name>`):
 | `task fmt` | Format code (gci for imports, gofumpt for formatting) |
 | `task lint` | Run golangci-lint (runs fmt first) |
 | `task test` | Run all tests with coverage |
+| `task test:race` | Run all tests with the race detector |
 | `task cleanup` | Remove `build/` directory |
 | `task test:interop` | Run the pinned Node client against the server over loopback |
-| `task gen:dmd` | Download Minecraft data schemas |
-| `task gen:codegen` | Regenerate the play packet structs from `scheme/pc-1.8` |
 
 Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
 
@@ -52,21 +52,14 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
 - **`internal/server/`** — The server itself.
   - `conn/` — one `Connection` per client. It owns a `protocol.Stream` from its
     first byte: the stream does framing, compression, and encryption, and the
-    connection dispatches by state. Handshake and status run on generated
-    packets; login is delegated whole to `login.Acceptor`; play still decodes
-    the local structs with the shared reflect codec, which reads the same `mc`
-    tags.
+    connection dispatches by state. Handshake, status, login, and play all run
+    on generated `minecraft-protocol` packets; login is delegated whole to
+    `login.Acceptor`.
   - `player/`, `storage/`, `packet/` — player state, persistence, and the
     protocol constants the handlers name instead of writing hex literals.
 - **`pkg/world/`** — world storage, generation, Anvil region files, and NBT.
-- **`pkg/gamedata/versions/pc_1_8/`** — the last local wire types: the play
-  packet structs and the version constants. M6 deletes them.
-- **`cmd/codegen/`** — generates only those packet structs now. Every game-data
-  registry it used to emit comes from `minecraft-protocol/data` instead.
-- **`cmd/dmd/`** — downloads the PrismarineJS schemas that `cmd/codegen` reads.
 - **`interop/`** — the loopback lane that runs a pinned Node
   `minecraft-protocol` 1.66.2 client against this server.
-- **`scheme/`** — downloaded schema JSON. Not tracked; `task gen:dmd` fetches it.
 - **`vendor/`** — vendored Go dependencies. All builds use `-mod vendor`.
 
 ## Protocol rules

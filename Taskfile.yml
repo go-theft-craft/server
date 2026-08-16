@@ -17,11 +17,6 @@ env:
   PACKAGE_NAME: '{{.PACKAGE_NAME}}'
   CGO_ENABLED: 0
 
-includes:
-  gen:
-    taskfile: Taskfile.codegen.yml
-    dir: .
-
 tasks:
   cleanup:
     desc: Cleanup build artifacts
@@ -75,6 +70,16 @@ tasks:
     deps: [ deps ]
     cmds:
       - go test -mod vendor -covermode=count -coverprofile=../service-unit.cov -coverpkg ./... ./...
+
+  test:race:
+    desc: Run go unit tests with the race detector
+    deps: [ deps ]
+    # The race detector is built on cgo, so it cannot run under the global
+    # CGO_ENABLED=0; override it for this task only.
+    env:
+      CGO_ENABLED: 1
+    cmds:
+      - go test -race -mod vendor -covermode=atomic -coverprofile=../service-unit-race.cov -coverpkg ./... ./...
 
   server:
     desc: Run the Minecraft server

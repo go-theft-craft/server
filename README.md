@@ -86,8 +86,6 @@ Connect with a Minecraft 1.8.x client to `localhost:25565`.
 | `devbox run -- task lint` | Run golangci-lint |
 | `devbox run -- task build` | Build binary to `build/app` |
 | `devbox run -- task deps` | Download, tidy, and vendor dependencies |
-| `devbox run -- task gen:dmd` | Download Minecraft data schemas |
-| `devbox run -- task gen:codegen` | Generate Go types from schemas |
 | `devbox run -- task cleanup` | Remove build artifacts |
 
 Run a single test:

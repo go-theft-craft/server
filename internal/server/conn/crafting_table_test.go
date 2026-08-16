@@ -26,6 +26,16 @@ func openTableAt(t *testing.T, c *Connection, x, y, z int) {
 	}
 }
 
+// The 1.8 client only draws the workbench GUI when OpenWindow reports no
+// slots: `!packetIn.hasSlots()` is what picks the crafting branch, and any
+// positive count falls through to the generic container path, which draws that
+// many slots as a chest. Advertising nine drew one row of nine.
+func TestCraftingTable_OpenWindowAdvertisesNoSlots(t *testing.T) {
+	if tableAdvertisedSlots != 0 {
+		t.Errorf("advertised slots = %d, want 0 so the client draws a workbench", tableAdvertisedSlots)
+	}
+}
+
 func TestCraftingTable_RightClickOpensTheWindow(t *testing.T) {
 	c := newInventoryTestConn(t)
 

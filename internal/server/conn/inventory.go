@@ -44,10 +44,13 @@ const (
 	tableHotbarEnd   = 45
 	tableSlotTotal   = 46
 
-	// tableAdvertisedSlots is what OpenWindow reports. Vanilla counts the 3x3
-	// grid and not the output slot; the client lays the window out from the
-	// window type either way.
-	tableAdvertisedSlots = 9
+	// tableAdvertisedSlots is what OpenWindow reports, and it has to be zero.
+	// The 1.8 client picks the workbench GUI with `!packetIn.hasSlots()`; a
+	// positive count sends it down the generic container path instead, which
+	// draws that many slots as a chest. Vanilla reports no slots here for the
+	// same reason — the count is for real containers, and a workbench is an
+	// interface, not one.
+	tableAdvertisedSlots = 0
 )
 
 // craftingTableBlockID is the block a right-click opens the 3x3 window on.
@@ -724,6 +727,21 @@ func (c *Connection) finishDrag() {
 		return
 	}
 
+	// A drag fills grid cells the same way clicking them one at a time does, so
+	// it has to leave the same offer behind. Every other click path refreshes
+	// the output; this one did not, and a grid filled by dragging silently
+	// crafted nothing.
+	defer func() {
+		l := c.layout()
+		for _, s := range c.dragSlots {
+			if s >= l.gridStart && s <= l.gridEnd {
+				c.updateCraftingOutput()
+
+				return
+			}
+		}
+	}()
+
 	if c.dragMode == 0 {
 		// Left drag: distribute evenly.
 		perSlot := int(c.cursorSlot.ItemCount) / len(c.dragSlots)
@@ -863,17 +881,18 @@ func (c *Connection) handleCreativeSlot(value *v1_8.PlayServerboundSetCreativeSl
 func (c *Connection) openCraftingTable() error {
 	c.emptyCraftingArea()
 
-	c.nextWindowID++
-	if c.nextWindowID > 100 || c.nextWindowID < 1 {
-		c.nextWindowID = 1
-	}
+	// Vanilla's getNextWindowId, which cycles 1-100 and never yields 0.
+	c.nextWindowID = c.nextWindowID%100 + 1
 	c.windowID = c.nextWindowID
 
 	if err := c.send(&v1_8.PlayClientboundOpenWindow{
 		WindowID:      uint8(c.windowID),
 		InventoryType: "minecraft:crafting_table",
-		WindowTitle:   `{"text":"Crafting"}`,
-		SlotCount:     tableAdvertisedSlots,
+		// The title vanilla sends: BlockWorkbench's display name, which is a
+		// translation key rather than text, so a client shows it in its own
+		// language.
+		WindowTitle: `{"translate":"tile.workbench.name"}`,
+		SlotCount:   tableAdvertisedSlots,
 	}); err != nil {
 		return err
 	}

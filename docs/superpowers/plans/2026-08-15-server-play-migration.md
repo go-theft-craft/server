@@ -23,6 +23,51 @@
 
 None. M6.1 needs only the released `minecraft-protocol`, whose `generated/java/v1_8` already carries all 74 clientbound and every serverbound protocol 47 play packet. It is independent of M4, M5, M6.3, and M7, and can run at any time.
 
+## Execution status
+
+Tasks 1 through 4 are complete and each passed a task review. Task 5 is in
+progress. Commits, rulings, and deferred minor findings are recorded in
+`.superpowers/sdd/2026-08-15-server-play-migration/progress.md`, which is
+git-ignored scratch.
+
+| Task | Commit | Outcome |
+| --- | --- | --- |
+| 1 Type mapping | `ba59a91` | 71 pairs, 0 ID mismatches, 0 field re-orderings |
+| 2 Rehome constants | `4b85fc1` | Review clean, zero findings |
+| 3 Write decoded values | `a42d279` | Review clean; needed a transitional shim, see below |
+| 4 World and metadata | `77540b6` | Review clean; `item_entity.go` deferred to Task 5, see below |
+
+Three things this plan asserts are no longer true, corrected here rather than
+silently in the tasks:
+
+1. **A generated type and its write path must migrate together.** Task 4 found
+   that a generated `v1_8` value carries no `mc` struct tags while the old `pkt`
+   types do, and the reflective marshaller switches on those tags. A generated
+   value sent through the reflective path does not error, it emits a wrong and
+   effectively empty payload. It compiles, lints, and passes every test that
+   does not compare bytes. This is the migration's sharpest hazard and the plan
+   never anticipated it.
+2. **Task 3 could not be a two-file change.** Changing `writePacket`'s signature
+   breaks all 32 in-package call sites plus the writer passed to
+   `player.NewPlayer`, so a two-file commit would not compile. A transitional
+   `writeMarshalled` shim now carries the old marshal-then-write-as-payload
+   behaviour for unmigrated call sites. Stage C retypes them onto `send`, and
+   Task 8 deletes the shim with the package it marshals. **Task 6's text below
+   still shows call sites as `c.writePacket(&pkt.X)`; they are
+   `c.writeMarshalled(&pkt.X)`.**
+3. **Task 4 could not migrate `item_entity.go`.** Its packets ride
+   `Player.WritePacket`, wired to the reflective path and shared with
+   `manager.go`, so the closure and both callers must move in one commit.
+   Task 5 owns it.
+
+Two further corrections to this plan's own instructions, ruled before execution:
+
+- `devbox run -- task precommit` does not exist in this repository. The gate is
+  `devbox run -- task lint` then `devbox run -- task test`.
+- Task 4 Step 2's `devbox run -- go build ./...` contradicts the Global
+  Constraint forbidding direct `go` calls. The constraint governs; compile-check
+  with `devbox run -- task lint`.
+
 ## What is being replaced
 
 `pkg/gamedata/versions/pc_1_8` holds 112 generated packet types, of which **74 identifiers are referenced outside the package** across 19 files. Those 74 include three constants — `ProtocolVersion`, `VersionName`, and `MetadataEnd` — which need homes of their own, and a handful M3 already migrated on the wire but which tests still reference.
@@ -82,7 +127,7 @@ it once, and treat it as the migration's reference.
 **Interfaces:**
 - Produces: a reviewed table mapping every referenced `pkt.` identifier to its generated counterpart, with field differences called out.
 
-- [ ] **Step 1: List what the server actually uses**
+- [x] **Step 1: List what the server actually uses**
 
 ```bash
 grep -rho 'pkt\.[A-Z][A-Za-z0-9_]*' --include='*.go' . \
@@ -90,7 +135,7 @@ grep -rho 'pkt\.[A-Z][A-Za-z0-9_]*' --include='*.go' . \
 wc -l /tmp/server-types.txt   # expect 74
 ```
 
-- [ ] **Step 2: List what the generated package offers**
+- [x] **Step 2: List what the generated package offers**
 
 ```bash
 grep -o '^func ([A-Za-z0-9_]*) PacketID() int32' \
@@ -99,7 +144,7 @@ grep -o '^func ([A-Za-z0-9_]*) PacketID() int32' \
 wc -l /tmp/generated-types.txt
 ```
 
-- [ ] **Step 3: Pair them by packet ID, not by name**
+- [x] **Step 3: Pair them by packet ID, not by name**
 
 Names differ; packet IDs do not. Write a throwaway Go program under
 `/tmp/mapping` that imports both packages, calls `PacketID()` on a value of
@@ -110,14 +155,14 @@ Direction is implicit in the server's `CB`/`SB` suffix and explicit in the
 generated name, so a pair that disagrees on direction is a mapping error to
 resolve by hand, not a rename to apply.
 
-- [ ] **Step 4: Diff the fields**
+- [x] **Step 4: Diff the fields**
 
 For each pair, print both structs' field names and types with
 `reflect.TypeOf`. Record every difference in the mapping document under the
 type it affects. These are the places the migration can silently change
 behavior, and they are what Task 3 onward must check individually.
 
-- [ ] **Step 5: Write the mapping document**
+- [x] **Step 5: Write the mapping document**
 
 `docs/migration/2026-08-15-packet-mapping.md` holds one table with columns:
 server type, generated type, packet ID, and field differences. Where a server
@@ -125,7 +170,7 @@ type has no generated counterpart, say so explicitly and say what happens to
 it — the three constants and any type only tests reference are the expected
 cases.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add docs/migration/2026-08-15-packet-mapping.md
@@ -144,7 +189,7 @@ generated equivalent. They must survive the package's deletion.
 **Interfaces:**
 - Produces: `protocolinfo.ProtocolVersion`, `protocolinfo.VersionName`, `protocolinfo.MetadataEnd`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```go
 package protocolinfo_test
@@ -178,7 +223,7 @@ func TestMetadataEndIsTheProtocol47Terminator(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 ```bash
 devbox run -- task test -- ./internal/server/protocolinfo
@@ -186,7 +231,7 @@ devbox run -- task test -- ./internal/server/protocolinfo
 
 Expected: FAIL, package does not exist.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```go
 // Package protocolinfo holds the protocol 47 constants that are not packets.
@@ -216,7 +261,7 @@ const (
 )
 ```
 
-- [ ] **Step 4: Repoint every reference**
+- [x] **Step 4: Repoint every reference**
 
 ```bash
 grep -rln 'pkt\.\(ProtocolVersion\|VersionName\|MetadataEnd\)' --include='*.go' .
@@ -225,7 +270,7 @@ grep -rln 'pkt\.\(ProtocolVersion\|VersionName\|MetadataEnd\)' --include='*.go' 
 Change each to `protocolinfo.` and add the import. Leave the `pkt` import in
 place where the file still uses packet types; Task 3 onward removes those.
 
-- [ ] **Step 5: Run and verify**
+- [x] **Step 5: Run and verify**
 
 ```bash
 devbox run -- task test
@@ -233,7 +278,7 @@ devbox run -- task test
 
 Expected: PASS, including every byte-parity fixture.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add internal/server/protocolinfo/ 
@@ -258,7 +303,7 @@ a connection that writes a raw payload gets none.
 **Interfaces:**
 - Produces: `writePacket(p protocol.Packet) error` taking a packet whose `Value` is a generated type.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```go
 func TestWritePacketHandsTheSessionADecodedValue(t *testing.T) {
@@ -304,13 +349,13 @@ Keep `marshalWithOldCodec` as a test helper that calls `java.Marshal` against
 the old struct. It is the bridge that proves the two encodings agree, and it is
 deleted in Task 8 along with the package it marshals.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 ```bash
 devbox run -- task test -- ./internal/server/conn
 ```
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Replace `writePacket`'s body. It no longer marshals:
 
@@ -351,7 +396,7 @@ Check the real name of the generated packets' shared interface before writing
 local `packetValue interface{ PacketID() int32 }` in this file, which is what
 `stream.go` already has.
 
-- [ ] **Step 4: Run and verify it passes**
+- [x] **Step 4: Run and verify it passes**
 
 ```bash
 devbox run -- task test -- ./internal/server/conn
@@ -359,7 +404,7 @@ devbox run -- task test -- ./internal/server/conn
 
 Expected: PASS, including the byte-equality test.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add internal/server/conn/stream.go internal/server/conn/stream_test.go
@@ -380,7 +425,7 @@ most isolated first.
 - Modify: `pkg/world/chunk.go`, `internal/server/player/metadata.go`, `internal/server/player/item_entity.go`
 - Modify: `internal/server/player/metadata_test.go`
 
-- [ ] **Step 1: Run the parity fixtures and record the baseline**
+- [x] **Step 1: Run the parity fixtures and record the baseline**
 
 ```bash
 devbox run -- task test -- ./internal/server/conn -run Parity -v 2>&1 | tail -20
@@ -388,7 +433,7 @@ devbox run -- task test -- ./internal/server/conn -run Parity -v 2>&1 | tail -20
 
 Expected: PASS. Note the count; it must not change.
 
-- [ ] **Step 2: Retype, one type at a time**
+- [x] **Step 2: Retype, one type at a time**
 
 For each `pkt.X` in these files, substitute the generated type from Task 1's
 mapping and fix the field references the mapping flagged as different. Compile
@@ -398,7 +443,7 @@ after each type rather than after each file:
 devbox run -- go build ./... 
 ```
 
-- [ ] **Step 3: Run and verify**
+- [x] **Step 3: Run and verify**
 
 ```bash
 devbox run -- task test
@@ -406,7 +451,7 @@ devbox run -- task test
 
 Expected: PASS, with the same parity count as Step 1.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -u

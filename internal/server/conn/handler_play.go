@@ -660,7 +660,16 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 		return nil
 	}
 
-	stateID := int32(heldBlockID) << 4
+	// What gets placed is what the server has in hand, not what the packet
+	// claims: the packet's item is the client's view, and trusting it lets a
+	// client build with blocks it does not hold.
+	heldSlot := c.self.Inventory.GetHeldSlot()
+	held := c.self.Inventory.GetSlot(int(heldSlot))
+	if held.IsEmpty() || held.BlockID <= 0 || !c.isPlaceable(held.BlockID) {
+		return c.revertPlacement(x, y, z)
+	}
+
+	stateID := int32(held.BlockID)<<4 | int32(held.ItemDamage)&0xF
 	c.world.SetBlock(x, y, z, stateID)
 
 	blockChange := &v1_8.PlayClientboundBlockChange{
@@ -668,7 +677,50 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 		Type:     stateID,
 	}
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
-	return c.send(blockChange)
+	if err := c.send(blockChange); err != nil {
+		return err
+	}
+
+	// Survival pays for the block. The client already decremented its own copy
+	// of the stack when it predicted the placement, so a server that never
+	// consumed anything drifted one item ahead of the client on every place,
+	// and the next inventory sync handed that item back.
+	if c.self.GetGameMode() == packet.GameModeCreative {
+		return nil
+	}
+
+	c.self.Inventory.RemoveOne(int(heldSlot))
+	remaining := c.self.Inventory.GetSlot(int(heldSlot))
+	if err := c.sendSetSlot(0, int16(slotHotbarStart)+heldSlot, remaining); err != nil {
+		return err
+	}
+	c.broadcastSingleEquipment(c.self.EntityID, 0, remaining)
+
+	return nil
+}
+
+// isPlaceable reports whether an item ID names a block. Items — a sword, a
+// bucket — are not placed by a right-click on a block face, and the state ID
+// built from one would be a block the world has no entry for. With no game
+// data loaded there is nothing to check against, so the caller is trusted.
+func (c *Connection) isPlaceable(itemID int16) bool {
+	if c.gameData == nil || c.gameData.Blocks() == nil {
+		return true
+	}
+
+	_, ok := c.lookupBlock(int32(itemID) << 4)
+
+	return ok
+}
+
+// revertPlacement tells the client what is really at the position it just
+// predicted a block into, so a refused placement does not leave a ghost block
+// on screen until the chunk is reloaded.
+func (c *Connection) revertPlacement(x, y, z int) error {
+	return c.send(&v1_8.PlayClientboundBlockChange{
+		Location: blockPos(x, y, z),
+		Type:     c.world.GetBlock(x, y, z),
+	})
 }
 
 // parseUUID parses a hyphenated UUID string into 16 bytes.

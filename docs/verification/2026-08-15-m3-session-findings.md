@@ -15,7 +15,8 @@ up does not repeat the elimination.
 
 Finding 2 is now settled and fixed, ahead of M6, because M6's checklist could
 not close without it and the answer was a day's evidence rather than a
-migration. Findings 1 and 3 remain open, owned by M6 and M9.
+migration. Finding 3 is fixed too, on 2026-08-16. Finding 1, the crafting
+table, is the one that remains open.
 
 ## 1. The crafting table does not work
 
@@ -76,8 +77,8 @@ registry plus the click, shift-click, refusal, and partial-move paths.
 
 ## 3. Breaking a placed block returns two items in survival
 
-**Status:** open. The migrated drop data is **ruled out**; the pickup path is
-the remaining suspect.
+**Status:** fixed, 2026-08-16. The cause was the *placement*, not the break:
+`handleBlockPlace` never consumed the held item in survival.
 
 Reported: place a block (stack decrements, correct for survival), break it, and
 the stack comes back up by two rather than one.
@@ -99,12 +100,32 @@ one dug block yields one drop, as before.
 `GetGameMode() != packet.GameModeCreative`, and the session was in survival, so
 this is ordinary survival drop handling.
 
-**Remaining suspect — the pickup path.** `SpawnBlockDrop` spawns an item entity
-which is then collected. A scripted session that dug one block observed
-`spawn_entity: 3` alongside `collect: 3`, which is consistent with an item being
-credited more than once, or with an entity being collected by both the tracker
-broadcast and the owning connection. `SpawnBlockDrop` and the collect handler
-have not been read yet; that is where to start.
+**Ruled out — the pickup path.** This was the standing suspect, and it is
+innocent. `SpawnBlockDrop` spawns one entity per drop, `TryPickupItems` removes
+the entity under the same lock that credits it, and `Inventory.AddItem` merges
+and places without double-counting. Each of those was read and is covered by
+`TestPlaceThenBreak_ReturnsExactlyWhatWasPlaced`, which collects exactly one
+item.
+
+**The actual cause: placing a block cost nothing.** `handleBlockPlace` set the
+world block and broadcast the change, and never touched the inventory. The
+client decrements its own stack the moment it predicts a placement, so after
+one place the server held one item more than the client showed. Breaking the
+block credited the drop on top of that, and the next inventory sync handed the
+client both — the stack rising by two against the number the player had been
+looking at. Nothing about it was specific to breaking: any place followed by
+any inventory sync showed it.
+
+Fixed by consuming one item from the held slot on a survival placement, then
+syncing that slot and the held-item equipment. Two related defects on the same
+path went with it, because the fix had to read the held item to consume it:
+
+- The block placed came from the packet, so a client could name a block it did
+  not hold and build with it for free. The server now places what it has in
+  hand and refuses anything that is not a block, reverting the client's
+  predicted block rather than leaving a ghost.
+- The placed state dropped the item's metadata, so every variant became the
+  default — red wool placed as white. The state now carries it.
 
 ## What these say about M3
 

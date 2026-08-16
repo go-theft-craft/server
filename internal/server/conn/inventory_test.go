@@ -303,7 +303,7 @@ func TestCloseWindow_ReturnsCraftingItems(t *testing.T) {
 	c.craftingGrid[0] = stone(5)
 	c.craftingGrid[1] = dirt(3)
 
-	_ = c.handleCloseWindow([]byte{0}) // window ID 0
+	_ = c.handleCloseWindow()
 
 	// Crafting grid should be empty.
 	for i := 0; i < 4; i++ {

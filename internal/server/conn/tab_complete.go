@@ -1,36 +1,17 @@
 package conn
 
 import (
-	"bytes"
 	"strings"
 
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/player"
 )
 
-// handleTabComplete processes a TabComplete (0x14) packet and sends completions back.
-func (c *Connection) handleTabComplete(data []byte) error {
-	r := bytes.NewReader(data)
-
-	text, err := java.ReadString(r, c.limits)
-	if err != nil {
-		return err
-	}
-
-	hasPosition, err := java.ReadBool(r)
-	if err != nil {
-		return err
-	}
-	if hasPosition {
-		// Consume the looked-at block position (i64), we don't use it.
-		if _, err := java.ReadI64(r); err != nil {
-			return err
-		}
-	}
-
-	matches := computeCompletions(text, c.players)
+// handleTabComplete processes a TabComplete (0x14) packet and sends completions
+// back. The looked-at block (value.Block) is decoded by the session but unused.
+func (c *Connection) handleTabComplete(value *v1_8.PlayServerboundTabComplete) error {
+	matches := computeCompletions(value.Text, c.players)
 	return c.sendTabCompleteResponse(matches)
 }
 

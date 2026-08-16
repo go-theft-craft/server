@@ -1,40 +1,26 @@
 package conn
 
 import (
-	"encoding/binary"
 	"testing"
+
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
 	"github.com/go-theft-craft/server/internal/server/player"
 )
 
-// clickPacket builds a 1.8.9 Window Click (0x0E) payload:
-// windowId u8, slot i16, mouseButton i8, action i16, mode i8, item slot.
-// The item slot is blockId i16, and (when not -1) count i8, damage i16,
-// then a 0x00 optional-NBT marker.
-func clickPacket(t *testing.T, slot int16, button int8, mode int8, item player.Slot) []byte {
+// clickPacket builds a decoded Window Click (0x0E) value the way the generated
+// session hands it to the play handler: window 0, action 1, and the echoed
+// clicked item carried as a generated Slot.
+func clickPacket(t *testing.T, slot int16, button int8, mode int8, item player.Slot) *v1_8.PlayServerboundWindowClick {
 	t.Helper()
-	var b []byte
-	b = append(b, 0) // window 0
-	var s2 [2]byte
-	binary.BigEndian.PutUint16(s2[:], uint16(slot))
-	b = append(b, s2[:]...)
-	b = append(b, byte(button))
-	var a2 [2]byte
-	binary.BigEndian.PutUint16(a2[:], 1)
-	b = append(b, a2[:]...)
-	b = append(b, byte(mode))
-	// item
-	var id2 [2]byte
-	binary.BigEndian.PutUint16(id2[:], uint16(item.BlockID))
-	b = append(b, id2[:]...)
-	if item.BlockID != -1 {
-		b = append(b, byte(item.ItemCount))
-		var d2 [2]byte
-		binary.BigEndian.PutUint16(d2[:], uint16(item.ItemDamage))
-		b = append(b, d2[:]...)
-		b = append(b, 0x00) // optional NBT = absent
+	return &v1_8.PlayServerboundWindowClick{
+		WindowID:    0,
+		Slot:        slot,
+		MouseButton: button,
+		Action:      1,
+		Mode:        mode,
+		Item:        player.ToGeneratedSlot(item),
 	}
-	return b
 }
 
 // TestClientFlow_PlaceAndCraft reproduces a real client session: pick a log

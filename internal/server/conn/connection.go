@@ -188,16 +188,15 @@ func (c *Connection) handleNextPacket() error {
 		return err
 	}
 
-	// Handshake and status read the value the session decoded. Play still
-	// takes the raw payload and decodes it into the local structs; M6 moves
-	// those to generated types too.
+	// Every state now reads the value the session decoded rather than
+	// re-decoding the raw payload.
 	switch c.state {
 	case StateHandshake:
 		return c.handleHandshake(packet)
 	case StateStatus:
 		return c.handleStatus(packet)
 	case StatePlay:
-		return c.handlePlay(packet.ID, packet.Payload)
+		return c.handlePlay(packet)
 	default:
 		return fmt.Errorf("unknown state: %d", c.state)
 	}

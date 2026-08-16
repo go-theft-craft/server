@@ -1,11 +1,7 @@
 package conn
 
 import (
-	"bytes"
-	"fmt"
-
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/player"
 )
@@ -62,39 +58,14 @@ func (c *Connection) sendSetSlot(windowID int8, slotIndex int16, slot player.Slo
 	})
 }
 
-// handleWindowClick processes a WindowClick (0x0E) packet.
-func (c *Connection) handleWindowClick(data []byte) error {
-	r := bytes.NewReader(data)
-
-	windowID, err := java.ReadU8(r)
-	if err != nil {
-		return fmt.Errorf("read window id: %w", err)
-	}
-
-	slotIndex, err := java.ReadI16(r)
-	if err != nil {
-		return fmt.Errorf("read slot: %w", err)
-	}
-
-	button, err := java.ReadI8(r)
-	if err != nil {
-		return fmt.Errorf("read button: %w", err)
-	}
-
-	actionID, err := java.ReadI16(r)
-	if err != nil {
-		return fmt.Errorf("read action id: %w", err)
-	}
-
-	mode, _, err := java.ReadVarInt(r)
-	if err != nil {
-		return fmt.Errorf("read mode: %w", err)
-	}
-
-	// Read clicked item (we don't use it for validation, but must consume it).
-	if _, err := readSlot(r); err != nil {
-		return fmt.Errorf("read clicked item: %w", err)
-	}
+// handleWindowClick processes a WindowClick (0x0E) packet. The clicked item
+// the client echoes back (value.Item) is not needed for validation.
+func (c *Connection) handleWindowClick(value *v1_8.PlayServerboundWindowClick) error {
+	windowID := value.WindowID
+	slotIndex := value.Slot
+	button := value.MouseButton
+	actionID := value.Action
+	mode := int(value.Mode)
 
 	// Only handle player inventory (window 0) for now.
 	if windowID != 0 {
@@ -102,7 +73,7 @@ func (c *Connection) handleWindowClick(data []byte) error {
 	}
 
 	c.log.Info("window click", "slot", slotIndex, "button", button, "mode", mode, "craftOutput", c.craftingOutput, "cursor", c.cursorSlot)
-	c.dispatchClick(slotIndex, button, int(mode))
+	c.dispatchClick(slotIndex, button, mode)
 	c.log.Info("after click", "craftOutput", c.craftingOutput, "cursor", c.cursorSlot)
 
 	// Full inventory sync so client matches server state.
@@ -701,18 +672,9 @@ func (c *Connection) handleDoubleClick(_ int16) {
 }
 
 // handleCreativeSlot processes a SetCreativeSlot (0x10) packet.
-func (c *Connection) handleCreativeSlot(data []byte) error {
-	r := bytes.NewReader(data)
-
-	slotIndex, err := java.ReadI16(r)
-	if err != nil {
-		return fmt.Errorf("read creative slot index: %w", err)
-	}
-
-	item, err := readSlot(r)
-	if err != nil {
-		return fmt.Errorf("read creative slot item: %w", err)
-	}
+func (c *Connection) handleCreativeSlot(value *v1_8.PlayServerboundSetCreativeSlot) error {
+	slotIndex := value.Slot
+	item := slotFromGenerated(value.Item)
 
 	// Slot -1: drop item.
 	if slotIndex == -1 {
@@ -737,13 +699,9 @@ func (c *Connection) handleCreativeSlot(data []byte) error {
 	return nil
 }
 
-// handleCloseWindow processes a CloseWindow (0x0D) packet.
-func (c *Connection) handleCloseWindow(data []byte) error {
-	r := bytes.NewReader(data)
-	if _, err := java.ReadU8(r); err != nil {
-		return fmt.Errorf("read close window id: %w", err)
-	}
-
+// handleCloseWindow processes a CloseWindow (0x0D) packet. The window ID it
+// carries is not needed: only window 0 (the player inventory) is supported.
+func (c *Connection) handleCloseWindow() error {
 	// Return crafting grid items to inventory or drop them.
 	pos := c.self.GetPosition()
 	groundAt := c.groundAtFunc()
@@ -772,7 +730,7 @@ func (c *Connection) handleCloseWindow(data []byte) error {
 }
 
 // handleTransaction processes a Transaction (0x0F) packet. No-op for now.
-func (c *Connection) handleTransaction(data []byte) error {
+func (c *Connection) handleTransaction() error {
 	// The client sends this to confirm/deny server-initiated transactions.
 	// We don't initiate any, so just ignore.
 	return nil

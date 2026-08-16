@@ -1,7 +1,6 @@
 package conn
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -10,14 +9,13 @@ import (
 	"strings"
 	"time"
 
+	protocol "github.com/go-theft-craft/minecraft-protocol"
 	gamedata "github.com/go-theft-craft/minecraft-protocol/data"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
@@ -210,94 +208,70 @@ func (c *Connection) keepAliveLoop() {
 	}
 }
 
-func (c *Connection) handlePlay(packetID int32, data []byte) error {
-	switch packetID {
-	case pkt.KeepAliveSB{}.PacketID():
-		var p pkt.KeepAliveSB
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal keep alive: %w", err)
-		}
+// handlePlay dispatches on the value the generated session already decoded, so
+// no play packet is decoded a second time here. A packet whose ID is not
+// serverbound-play in protocol 47 arrives as a protocol.UnknownPacket and falls
+// through to the default, exactly as an unmatched ID did before.
+func (c *Connection) handlePlay(inbound protocol.Packet) error {
+	switch value := inbound.Value.(type) {
+	case *v1_8.PlayServerboundKeepAlive:
 		c.mu.Lock()
-		if p.KeepAliveID == c.lastKeepAliveID {
+		if value.KeepAliveID == c.lastKeepAliveID {
 			c.keepAliveAcked = true
 		}
 		c.mu.Unlock()
 
-	case pkt.ChatSB{}.PacketID():
-		var p pkt.ChatSB
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal chat: %w", err)
-		}
-		c.log.Info("chat", "message", p.Message)
-		if c.handleCommand(p.Message) {
+	case *v1_8.PlayServerboundChat:
+		c.log.Info("chat", "message", value.Message)
+		if c.handleCommand(value.Message) {
 			break
 		}
 		chatJSON := fmt.Sprintf(
 			`{"translate":"chat.type.text","with":[%s,%s]}`,
-			escapeJSON(c.self.Username), escapeJSON(p.Message),
+			escapeJSON(c.self.Username), escapeJSON(value.Message),
 		)
 		c.players.Broadcast(&v1_8.PlayClientboundChat{
 			Message:  chatJSON,
 			Position: 0,
 		})
 
-	case pkt.UseEntity{}.PacketID():
-		return c.handleUseEntity(data)
+	case *v1_8.PlayServerboundUseEntity:
+		return c.handleUseEntity(value)
 
-	case pkt.Flying{}.PacketID(): // Player (ground state)
+	case *v1_8.PlayServerboundFlying: // Player (ground state)
 		// heartbeat, ignore
 
-	case pkt.PositionSB{}.PacketID():
-		var p pkt.PositionSB
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal player position: %w", err)
-		}
-		c.handlePositionUpdate(p.X, p.Y, p.Z, 0, 0, p.OnGround, true, false)
+	case *v1_8.PlayServerboundPosition:
+		c.handlePositionUpdate(value.X, value.Y, value.Z, 0, 0, value.OnGround, true, false)
 
-	case pkt.Look{}.PacketID():
-		var p pkt.Look
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal player look: %w", err)
-		}
-		c.handleLookUpdate(p.Yaw, p.Pitch, p.OnGround)
+	case *v1_8.PlayServerboundLook:
+		c.handleLookUpdate(value.Yaw, value.Pitch, value.OnGround)
 
-	case pkt.PositionLook{}.PacketID():
-		var p pkt.PositionLook
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal player position and look: %w", err)
-		}
-		c.handlePositionUpdate(p.X, p.Y, p.Z, p.Yaw, p.Pitch, p.OnGround, true, true)
+	case *v1_8.PlayServerboundPositionLook:
+		c.handlePositionUpdate(value.X, value.Y, value.Z, value.Yaw, value.Pitch, value.OnGround, true, true)
 
-	case pkt.BlockDig{}.PacketID():
-		return c.handleBlockDig(data)
+	case *v1_8.PlayServerboundBlockDig:
+		return c.handleBlockDig(value)
 
-	case pkt.BlockPlace{}.PacketID():
-		return c.handleBlockPlace(data)
+	case *v1_8.PlayServerboundBlockPlace:
+		return c.handleBlockPlace(value)
 
-	case pkt.HeldItemSlotSB{}.PacketID():
-		var p pkt.HeldItemSlotSB
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal held item slot: %w", err)
-		}
-		if p.SlotID < 0 || p.SlotID > 8 {
+	case *v1_8.PlayServerboundHeldItemSlot:
+		if value.SlotID < 0 || value.SlotID > 8 {
 			return nil
 		}
-		c.self.Inventory.SetHeldSlot(p.SlotID)
+		c.self.Inventory.SetHeldSlot(value.SlotID)
 		heldItem := c.self.Inventory.HeldItem()
 		c.broadcastSingleEquipment(c.self.EntityID, 0, heldItem)
 
-	case pkt.ArmAnimation{}.PacketID():
+	case *v1_8.PlayServerboundArmAnimation:
 		c.players.BroadcastToTrackers(&v1_8.PlayClientboundAnimation{
 			EntityID:  c.self.EntityID,
 			Animation: 0, // swing arm
 		}, c.self.EntityID)
 
-	case pkt.EntityAction{}.PacketID():
-		var p pkt.EntityAction
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal entity action: %w", err)
-		}
-		switch p.ActionID {
+	case *v1_8.PlayServerboundEntityAction:
+		switch value.ActionID {
 		case 0: // start sneak
 			c.self.SetSneaking(true)
 			c.players.BroadcastEntityMetadata(c.self)
@@ -312,79 +286,56 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 			c.players.BroadcastEntityMetadata(c.self)
 		}
 
-	case pkt.SteerVehicle{}.PacketID(): // Steer Vehicle — no vehicle support, ignore
-		// consume and discard
+	case *v1_8.PlayServerboundSteerVehicle: // no vehicle support, ignore
 
-	case pkt.CloseWindowSB{}.PacketID():
-		return c.handleCloseWindow(data)
+	case *v1_8.PlayServerboundCloseWindow:
+		return c.handleCloseWindow()
 
-	case pkt.WindowClick{}.PacketID():
-		return c.handleWindowClick(data)
+	case *v1_8.PlayServerboundWindowClick:
+		return c.handleWindowClick(value)
 
-	case pkt.TransactionSB{}.PacketID():
-		return c.handleTransaction(data)
+	case *v1_8.PlayServerboundTransaction:
+		return c.handleTransaction()
 
-	case pkt.SetCreativeSlot{}.PacketID():
-		return c.handleCreativeSlot(data)
+	case *v1_8.PlayServerboundSetCreativeSlot:
+		return c.handleCreativeSlot(value)
 
-	case pkt.EnchantItem{}.PacketID(): // Enchant Item — no enchanting support, ignore
-		// consume and discard
+	case *v1_8.PlayServerboundEnchantItem: // no enchanting support, ignore
 
-	case pkt.UpdateSignSB{}.PacketID():
-		var p pkt.UpdateSignSB
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal update sign: %w", err)
-		}
-		x, y, z := java.DecodePosition(p.Location)
-		c.log.Info("update sign", "x", x, "y", y, "z", z,
-			"line1", p.Text1, "line2", p.Text2, "line3", p.Text3, "line4", p.Text4)
+	case *v1_8.PlayServerboundUpdateSign:
+		c.log.Info("update sign",
+			"x", int(value.Location.X), "y", int(value.Location.Y), "z", int(value.Location.Z),
+			"line1", value.Text1, "line2", value.Text2, "line3", value.Text3, "line4", value.Text4)
 
-	case pkt.AbilitiesSB{}.PacketID():
-		var p pkt.AbilitiesSB
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal abilities sb: %w", err)
-		}
-		c.handleAbilitiesUpdate(p)
+	case *v1_8.PlayServerboundAbilities:
+		c.handleAbilitiesUpdate(value)
 
-	case pkt.TabCompleteSB{}.PacketID():
-		return c.handleTabComplete(data)
+	case *v1_8.PlayServerboundTabComplete:
+		return c.handleTabComplete(value)
 
-	case pkt.Settings{}.PacketID():
-		var p pkt.Settings
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal client settings: %w", err)
-		}
-		c.log.Info("client settings", "locale", p.Locale, "viewDistance", p.ViewDistance)
-		c.self.SetSkinParts(p.SkinParts)
+	case *v1_8.PlayServerboundSettings:
+		c.log.Info("client settings", "locale", value.Locale, "viewDistance", value.ViewDistance)
+		c.self.SetSkinParts(value.SkinParts)
 		c.players.BroadcastEntityMetadata(c.self)
 
-	case pkt.ClientCommand{}.PacketID(): // Client Status (respawn / stats request)
+	case *v1_8.PlayServerboundClientCommand: // Client Status (respawn / stats request)
 		return c.handleRespawn()
 
-	case pkt.CustomPayloadSB{}.PacketID():
-		return c.handleCustomPayload(data)
+	case *v1_8.PlayServerboundCustomPayload:
+		return c.handleCustomPayload(value)
 
-	case pkt.Spectate{}.PacketID():
-		var p pkt.Spectate
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal spectate: %w", err)
-		}
+	case *v1_8.PlayServerboundSpectate:
 		if c.self.GetGameMode() != packet.GameModeSpectator {
 			break
 		}
-		targetUUID := java.UUID(p.Target).String()
-		target := c.players.GetByUUID(targetUUID)
+		target := c.players.GetByUUID(value.Target.String())
 		if target != nil {
 			pos := target.GetPosition()
 			c.teleportSelf(pos.X, pos.Y, pos.Z)
 		}
 
-	case pkt.ResourcePackReceive{}.PacketID():
-		var p pkt.ResourcePackReceive
-		if err := java.Unmarshal(data, &p, c.limits); err != nil {
-			return fmt.Errorf("unmarshal resource pack status: %w", err)
-		}
-		c.log.Info("resource pack status", "hash", p.Hash, "result", p.Result)
+	case *v1_8.PlayServerboundResourcePackReceive:
+		c.log.Info("resource pack status", "hash", value.Hash, "result", value.Result)
 
 	default:
 		// ignore unknown packets silently
@@ -506,19 +457,9 @@ func (c *Connection) handleLookUpdate(yaw, pitch float32, onGround bool) {
 	}, eid)
 }
 
-func (c *Connection) handleBlockDig(data []byte) error {
-	r := bytes.NewReader(data)
-
-	status, _, err := java.ReadVarInt(r)
-	if err != nil {
-		return fmt.Errorf("read dig status: %w", err)
-	}
-
-	posVal, err := java.ReadI64(r)
-	if err != nil {
-		return fmt.Errorf("read dig position: %w", err)
-	}
-	x, y, z := java.DecodePosition(posVal)
+func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
+	status := value.Status
+	x, y, z := int(value.Location.X), int(value.Location.Y), int(value.Location.Z)
 
 	switch status {
 	case 0: // Started digging
@@ -676,39 +617,14 @@ func (c *Connection) groundAtFunc() func(x, y, z int) float64 {
 	}
 }
 
-func (c *Connection) handleBlockPlace(data []byte) error {
-	r := bytes.NewReader(data)
-
-	posVal, err := java.ReadI64(r)
-	if err != nil {
-		return fmt.Errorf("read place position: %w", err)
-	}
-
-	face, err := java.ReadI8(r)
-	if err != nil {
-		return fmt.Errorf("read place face: %w", err)
-	}
-
-	slot, err := readSlot(r)
-	if err != nil {
-		return fmt.Errorf("read place slot: %w", err)
-	}
-
-	// Read cursor position (3 x u8) - we don't use these but must consume them.
-	if _, err := java.ReadU8(r); err != nil {
-		return fmt.Errorf("read cursor x: %w", err)
-	}
-	if _, err := java.ReadU8(r); err != nil {
-		return fmt.Errorf("read cursor y: %w", err)
-	}
-	if _, err := java.ReadU8(r); err != nil {
-		return fmt.Errorf("read cursor z: %w", err)
-	}
+func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) error {
+	face := value.Direction
+	heldBlockID := value.HeldItem.BlockID
 
 	// Special position -1,-1,-1 means the player is using an item (not placing a block).
-	if posVal == -1 {
+	if value.Location.X == -1 && value.Location.Y == -1 && value.Location.Z == -1 {
 		// Try to equip armor from hotbar via right-click.
-		if armorProtoSlot := armorSlotForItem(slot.BlockID); armorProtoSlot >= 0 {
+		if armorProtoSlot := armorSlotForItem(heldBlockID); armorProtoSlot >= 0 {
 			heldIdx := int16(slotHotbarStart) + int16(c.self.Inventory.GetHeldSlot())
 			heldItem := c.getWindowSlot(heldIdx)
 			armorItem := c.getWindowSlot(armorProtoSlot)
@@ -720,11 +636,11 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 	}
 
 	// Empty slot means no block to place.
-	if slot.BlockID <= 0 {
+	if heldBlockID <= 0 {
 		return nil
 	}
 
-	x, y, z := java.DecodePosition(posVal)
+	x, y, z := int(value.Location.X), int(value.Location.Y), int(value.Location.Z)
 
 	// Compute target position from face direction.
 	switch face {
@@ -744,7 +660,7 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 		return nil
 	}
 
-	stateID := int32(slot.BlockID) << 4
+	stateID := int32(heldBlockID) << 4
 	c.world.SetBlock(x, y, z, stateID)
 
 	blockChange := &v1_8.PlayClientboundBlockChange{
@@ -919,33 +835,12 @@ func sprintParticles(x, y, z float64, blockState int32) v1_8.PlayClientboundWorl
 	}
 }
 
-// handleUseEntity processes a UseEntity (0x02) packet.
-// Uses mc:"rest" encoding, so we parse manually.
-func (c *Connection) handleUseEntity(data []byte) error {
-	r := bytes.NewReader(data)
-
-	targetID, _, err := java.ReadVarInt(r)
-	if err != nil {
-		return fmt.Errorf("read use entity target: %w", err)
-	}
-
-	mouse, _, err := java.ReadVarInt(r)
-	if err != nil {
-		return fmt.Errorf("read use entity mouse: %w", err)
-	}
-
-	// mouse=2 (interact at) has 3 extra floats for the hit position.
-	if mouse == 2 {
-		if _, err := java.ReadF32(r); err != nil {
-			return fmt.Errorf("read use entity target x: %w", err)
-		}
-		if _, err := java.ReadF32(r); err != nil {
-			return fmt.Errorf("read use entity target y: %w", err)
-		}
-		if _, err := java.ReadF32(r); err != nil {
-			return fmt.Errorf("read use entity target z: %w", err)
-		}
-	}
+// handleUseEntity processes a UseEntity (0x02) packet. The generated model
+// carries the interact-at hit position (mouse==2) as switch fields the session
+// already consumed; only the target and mouse are needed here.
+func (c *Connection) handleUseEntity(value *v1_8.PlayServerboundUseEntity) error {
+	targetID := value.Target
+	mouse := value.Mouse
 
 	// mouse=1 is attack.
 	if mouse != 1 {
@@ -997,8 +892,8 @@ func (c *Connection) handleUseEntity(data []byte) error {
 }
 
 // handleAbilitiesUpdate processes a PlayerAbilities (0x13) server-bound packet.
-func (c *Connection) handleAbilitiesUpdate(p pkt.AbilitiesSB) {
-	wantsFlying := p.Flags&int8(packet.AbilityFlying) != 0
+func (c *Connection) handleAbilitiesUpdate(value *v1_8.PlayServerboundAbilities) {
+	wantsFlying := value.Flags&int8(packet.AbilityFlying) != 0
 	mode := c.self.GetGameMode()
 
 	// Only creative and spectator may fly.
@@ -1079,21 +974,16 @@ func (c *Connection) handleRespawn() error {
 }
 
 // handleCustomPayload processes a CustomPayload (0x17) plugin channel packet.
-func (c *Connection) handleCustomPayload(data []byte) error {
-	var p pkt.CustomPayloadSB
-	if err := java.Unmarshal(data, &p, c.limits); err != nil {
-		return fmt.Errorf("unmarshal custom payload: %w", err)
-	}
-
-	switch p.Channel {
+func (c *Connection) handleCustomPayload(value *v1_8.PlayServerboundCustomPayload) error {
+	switch value.Channel {
 	case "MC|Brand":
-		c.log.Info("client brand", "brand", string(p.Data))
+		c.log.Info("client brand", "brand", string(value.Data))
 		_ = c.send(&v1_8.PlayClientboundCustomPayload{
 			Channel: "MC|Brand",
 			Data:    []byte("GoTheftCraft"),
 		})
 	default:
-		c.log.Debug("plugin channel", "channel", p.Channel, "size", len(p.Data))
+		c.log.Debug("plugin channel", "channel", value.Channel, "size", len(value.Data))
 	}
 
 	return nil

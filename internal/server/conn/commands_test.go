@@ -156,7 +156,7 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 		limits:         limits,
 		ctx:            ctx,
 		cancel:         cancel,
-		state:          StatePlay,
+		state:          v1_8.StatePlay,
 		log:            slog.New(slog.DiscardHandler),
 		cfg:            config.DefaultConfig(),
 		self:           p,

@@ -13,22 +13,13 @@ import (
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	"github.com/go-theft-craft/minecraft-protocol/data"
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
-)
-
-// State represents the connection state.
-type State int
-
-const (
-	StateHandshake State = iota
-	StateStatus
-	StateLogin
-	StatePlay
 )
 
 // Connection manages a single client connection through the protocol state machine.
@@ -43,8 +34,12 @@ type Connection struct {
 	world   *world.World
 	storage *storage.Storage
 
+	// state caches the session's protocol state so the write path can stamp a
+	// packet without a Snapshot round-trip. It is refreshed from the session
+	// (syncState) at each transition and read through streamState; c.mu guards
+	// it because broadcasts read it from other players' goroutines.
 	mu    sync.Mutex
-	state State
+	state protocol.State
 
 	// Player management
 	players *player.Manager
@@ -114,7 +109,7 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		log:            log.With("addr", conn.RemoteAddr().String()),
 		ctx:            ctx,
 		cancel:         cancel,
-		state:          StateHandshake,
+		state:          v1_8.StateHandshaking,
 		world:          w,
 		storage:        store,
 		players:        players,
@@ -164,12 +159,12 @@ func (c *Connection) Handle() {
 				return
 			}
 			if isNormalDisconnect(err) {
-				c.log.Info("client disconnected", "state", c.state)
+				c.log.Info("client disconnected", "state", c.streamState())
 
 				return
 			}
 
-			c.log.Error("handling packet", "state", c.state, "error", err)
+			c.log.Error("handling packet", "state", c.streamState(), "error", err)
 
 			return
 		}
@@ -177,9 +172,11 @@ func (c *Connection) Handle() {
 }
 
 func (c *Connection) handleNextPacket() error {
+	state := c.streamState()
+
 	// Login is a phase, not a packet. The acceptor owns inbound delivery for
 	// its whole duration, so the read loop hands over rather than dispatching.
-	if c.state == StateLogin {
+	if state == v1_8.StateLogin {
 		return c.runLogin()
 	}
 
@@ -190,15 +187,15 @@ func (c *Connection) handleNextPacket() error {
 
 	// Every state now reads the value the session decoded rather than
 	// re-decoding the raw payload.
-	switch c.state {
-	case StateHandshake:
+	switch state {
+	case v1_8.StateHandshaking:
 		return c.handleHandshake(packet)
-	case StateStatus:
+	case v1_8.StateStatus:
 		return c.handleStatus(packet)
-	case StatePlay:
+	case v1_8.StatePlay:
 		return c.handlePlay(packet)
 	default:
-		return fmt.Errorf("unknown state: %d", c.state)
+		return fmt.Errorf("unknown state: %q", state)
 	}
 }
 

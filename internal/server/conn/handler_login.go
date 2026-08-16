@@ -42,9 +42,11 @@ func (c *Connection) runLogin() error {
 
 	c.log.Info("login success", "username", username, "uuid", identity, "online", c.cfg.OnlineMode)
 
-	// The acceptor already moved the session to play by writing login
-	// success; this mirrors it into the connection's own state.
-	c.state = StatePlay
+	// The acceptor already moved the session to play by writing login success;
+	// read that move back before startPlay sends its first play packet.
+	if err := c.syncState(c.ctx); err != nil {
+		return fmt.Errorf("sync state after login: %w", err)
+	}
 
 	return c.startPlay(username, identity, c.skinProperties(verifier, username))
 }

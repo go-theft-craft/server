@@ -37,24 +37,41 @@ func newStream(
 	return stream, nil
 }
 
-// streamState maps the connection's own state enum onto the protocol's.
+// streamState returns the session's protocol state as the connection last
+// observed it.
 //
-// Both exist for now. The session moves itself when it decodes a handshake or
-// writes a login success, and the handlers still move c.state alongside it;
-// Task 6 deletes the local enum once nothing reads it.
+// It reads a cache rather than the session, because the write path calls it on
+// every write — some of them broadcasts from other players' goroutines — and a
+// Snapshot round-trip there would take a context and could fail. The cache is
+// refreshed from the session by syncState at each transition, and the session's
+// play state is terminal, so a write can never read a state the session has
+// already moved past. c.mu makes the read memory-safe across goroutines.
 func (c *Connection) streamState() protocol.State {
-	switch c.state {
-	case StateHandshake:
-		return v1_8.StateHandshaking
-	case StateStatus:
-		return v1_8.StateStatus
-	case StateLogin:
-		return v1_8.StateLogin
-	case StatePlay:
-		return v1_8.StatePlay
-	default:
-		return v1_8.StateHandshaking
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.state
+}
+
+// syncState refreshes the cached protocol state from the session.
+//
+// M1 recorded that a running stream owns its session exclusively, so Snapshot
+// is the only safe way to read the state the session moved itself to. This is
+// called on the Handle goroutine at each transition — after the handshake is
+// read, and after login success is written — where a context and an error are
+// available. The session is the single source of truth; the connection no
+// longer re-derives the transition it already made.
+func (c *Connection) syncState(ctx context.Context) error {
+	snapshot, err := c.stream.Snapshot(ctx)
+	if err != nil {
+		return fmt.Errorf("read session state: %w", err)
 	}
+
+	c.mu.Lock()
+	c.state = snapshot.State
+	c.mu.Unlock()
+
+	return nil
 }
 
 // send builds and writes one clientbound packet as a generated value.

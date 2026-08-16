@@ -2,7 +2,6 @@ package conn
 
 import (
 	"bytes"
-	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	gamedata "github.com/go-theft-craft/minecraft-protocol/data"
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/packet"
@@ -76,7 +76,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	c.self.SetPosition(posX, posY, posZ, posYaw, posPitch, true)
 
 	// 1. Join Game
-	if err := c.writeMarshalled(&pkt.Login{
+	if err := c.send(&v1_8.PlayClientboundLogin{
 		EntityID:         entityID,
 		GameMode:         gameMode,
 		Dimension:        packet.DimensionOverworld,
@@ -89,15 +89,15 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	}
 
 	// 2. Spawn Position
-	if err := c.writeMarshalled(&pkt.SpawnPosition{
-		Location: java.EncodePosition(0, spawnY, 0),
+	if err := c.send(&v1_8.PlayClientboundSpawnPosition{
+		Location: blockPos(0, spawnY, 0),
 	}); err != nil {
 		return fmt.Errorf("write spawn position: %w", err)
 	}
 
 	// 3. Player Abilities (based on actual game mode)
 	abilities := abilitiesForGameMode(gameMode)
-	if err := c.writeMarshalled(&pkt.AbilitiesCB{
+	if err := c.send(&v1_8.PlayClientboundAbilities{
 		Flags:        abilities,
 		FlyingSpeed:  0.05,
 		WalkingSpeed: 0.1,
@@ -106,7 +106,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	}
 
 	// 4. Player Position And Look
-	if err := c.writeMarshalled(&pkt.PositionCB{
+	if err := c.send(&v1_8.PlayClientboundPosition{
 		X:     posX,
 		Y:     posY,
 		Z:     posZ,
@@ -124,7 +124,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 
 	// 6. Update Time (send current world time)
 	worldAge, worldTime := c.world.GetTime()
-	if err := c.writeMarshalled(&pkt.UpdateTime{
+	if err := c.send(&v1_8.PlayClientboundUpdateTime{
 		Age:  worldAge,
 		Time: worldTime,
 	}); err != nil {
@@ -137,7 +137,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	}
 
 	// 8. Chat Message — "Hello, world!"
-	if err := c.writeMarshalled(&pkt.ChatCB{
+	if err := c.send(&v1_8.PlayClientboundChat{
 		Message:  `{"text":"Hello, world!","color":"gold"}`,
 		Position: 0,
 	}); err != nil {
@@ -152,6 +152,12 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 
 	c.log.Info("join sequence complete", "entityID", entityID)
 	return nil
+}
+
+// blockPos builds a generated protocol 47 block Position. Its packed encoding
+// is byte-identical to java.EncodePosition written as an int64.
+func blockPos(x, y, z int) v1_8.Position {
+	return v1_8.Position{X: int32(x), Y: int16(y), Z: int32(z)}
 }
 
 // abilitiesForGameMode returns the ability flags for a given game mode.
@@ -180,7 +186,7 @@ func (c *Connection) keepAliveLoop() {
 			if !c.keepAliveAcked && id > 0 {
 				if time.Since(c.lastKeepAliveSent) > 30*time.Second {
 					c.mu.Unlock()
-					_ = c.writeMarshalled(&pkt.KickDisconnect{
+					_ = c.send(&v1_8.PlayClientboundKickDisconnect{
 						Reason: `{"text":"Timed out"}`,
 					})
 					c.disconnect("keepalive timeout")
@@ -193,7 +199,7 @@ func (c *Connection) keepAliveLoop() {
 			c.keepAliveAcked = false
 			c.mu.Unlock()
 
-			if err := c.writeMarshalled(&pkt.KeepAliveCB{
+			if err := c.send(&v1_8.PlayClientboundKeepAlive{
 				KeepAliveID: id,
 			}); err != nil {
 				c.log.Error("keep alive write failed", "error", err)
@@ -230,7 +236,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 			`{"translate":"chat.type.text","with":[%s,%s]}`,
 			escapeJSON(c.self.Username), escapeJSON(p.Message),
 		)
-		c.players.Broadcast(&pkt.ChatCB{
+		c.players.Broadcast(&v1_8.PlayClientboundChat{
 			Message:  chatJSON,
 			Position: 0,
 		})
@@ -281,7 +287,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		c.broadcastSingleEquipment(c.self.EntityID, 0, heldItem)
 
 	case pkt.ArmAnimation{}.PacketID():
-		c.players.BroadcastToTrackers(&pkt.Animation{
+		c.players.BroadcastToTrackers(&v1_8.PlayClientboundAnimation{
 			EntityID:  c.self.EntityID,
 			Animation: 0, // swing arm
 		}, c.self.EntityID)
@@ -421,7 +427,7 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 
 	switch {
 	case posChanged && lookChanged && fitsRelative:
-		c.players.BroadcastToTrackers(&pkt.EntityMoveLook{
+		c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityMoveLook{
 			EntityID: eid,
 			DX:       int8(dx),
 			DY:       int8(dy),
@@ -432,7 +438,7 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 		}, eid)
 
 	case posChanged && !lookChanged && fitsRelative:
-		c.players.BroadcastToTrackers(&pkt.RelEntityMove{
+		c.players.BroadcastToTrackers(&v1_8.PlayClientboundRelEntityMove{
 			EntityID: eid,
 			DX:       int8(dx),
 			DY:       int8(dy),
@@ -441,7 +447,7 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 		}, eid)
 
 	case posChanged:
-		c.players.BroadcastToTrackers(&pkt.EntityTeleport{
+		c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityTeleport{
 			EntityID: eid,
 			X:        newFX,
 			Y:        newFY,
@@ -453,7 +459,7 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 	}
 
 	if lookChanged {
-		c.players.BroadcastToTrackers(&pkt.EntityHeadRotation{
+		c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityHeadRotation{
 			EntityID: eid,
 			HeadYaw:  yawAngle,
 		}, eid)
@@ -463,9 +469,8 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 	if posChanged && c.self.IsSprinting() {
 		blockBelow := c.world.GetBlock(int(math.Floor(x)), int(math.Floor(y))-1, int(math.Floor(z)))
 		if blockBelow != 0 {
-			c.players.BroadcastToTrackers(&pkt.WorldParticles{
-				Data: buildSprintParticles(x, y, z, blockBelow),
-			}, eid)
+			particles := sprintParticles(x, y, z, blockBelow)
+			c.players.BroadcastToTrackers(&particles, eid)
 		}
 	}
 
@@ -488,14 +493,14 @@ func (c *Connection) handleLookUpdate(yaw, pitch float32, onGround bool) {
 	pitchAngle := player.DegreesToAngle(pitch)
 	eid := c.self.EntityID
 
-	c.players.BroadcastToTrackers(&pkt.EntityLook{
+	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityLook{
 		EntityID: eid,
 		Yaw:      yawAngle,
 		Pitch:    pitchAngle,
 		OnGround: onGround,
 	}, eid)
 
-	c.players.BroadcastToTrackers(&pkt.EntityHeadRotation{
+	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityHeadRotation{
 		EntityID: eid,
 		HeadYaw:  yawAngle,
 	}, eid)
@@ -519,7 +524,7 @@ func (c *Connection) handleBlockDig(data []byte) error {
 	case 0: // Started digging
 		if c.self.GetGameMode() == packet.GameModeCreative {
 			// Creative mode: instant break.
-			c.breakBlock(x, y, z, posVal)
+			c.breakBlock(x, y, z)
 		} else {
 			// Check if block is instant-break (hardness 0) in survival.
 			stateID := c.world.GetBlock(x, y, z)
@@ -532,7 +537,7 @@ func (c *Connection) handleBlockDig(data []byte) error {
 				breakTicks := calcBreakTime(block, heldItem.BlockID, materials)
 				if breakTicks == 0 {
 					// Instant break even in survival (e.g. tall grass, torches).
-					c.breakBlock(x, y, z, posVal)
+					c.breakBlock(x, y, z)
 					return nil
 				}
 				if breakTicks < 0 {
@@ -541,9 +546,9 @@ func (c *Connection) handleBlockDig(data []byte) error {
 				}
 			}
 			// Broadcast dig start animation to other players.
-			c.players.BroadcastToTrackers(&pkt.BlockBreakAnimation{
+			c.players.BroadcastToTrackers(&v1_8.PlayClientboundBlockBreakAnimation{
 				EntityID:     c.self.EntityID,
-				Location:     posVal,
+				Location:     blockPos(x, y, z),
 				DestroyStage: 0,
 			}, c.self.EntityID)
 		}
@@ -551,9 +556,9 @@ func (c *Connection) handleBlockDig(data []byte) error {
 
 	case 1: // Cancelled digging
 		// Reset block break animation for other players.
-		c.players.BroadcastToTrackers(&pkt.BlockBreakAnimation{
+		c.players.BroadcastToTrackers(&v1_8.PlayClientboundBlockBreakAnimation{
 			EntityID:     c.self.EntityID,
-			Location:     posVal,
+			Location:     blockPos(x, y, z),
 			DestroyStage: -1,
 		}, c.self.EntityID)
 		return nil
@@ -564,18 +569,18 @@ func (c *Connection) handleBlockDig(data []byte) error {
 		if block, ok := c.lookupBlock(stateID); ok {
 			if !block.Diggable || block.Hardness == nil {
 				// Unbreakable — resend the block to the client.
-				_ = c.writeMarshalled(&pkt.BlockChange{Location: posVal, Type: stateID})
+				_ = c.send(&v1_8.PlayClientboundBlockChange{Location: blockPos(x, y, z), Type: stateID})
 				return nil
 			}
 		}
 
 		// Reset animation and break the block.
-		c.players.BroadcastToTrackers(&pkt.BlockBreakAnimation{
+		c.players.BroadcastToTrackers(&v1_8.PlayClientboundBlockBreakAnimation{
 			EntityID:     c.self.EntityID,
-			Location:     posVal,
+			Location:     blockPos(x, y, z),
 			DestroyStage: -1,
 		}, c.self.EntityID)
-		c.breakBlock(x, y, z, posVal)
+		c.breakBlock(x, y, z)
 		return nil
 	}
 
@@ -614,25 +619,25 @@ func (c *Connection) handleBlockDig(data []byte) error {
 
 // breakBlock removes a block from the world, broadcasts the change + break effect,
 // and spawns item drops in survival mode.
-func (c *Connection) breakBlock(x, y, z int, posVal int64) {
+func (c *Connection) breakBlock(x, y, z int) {
 	oldBlockState := c.world.GetBlock(x, y, z)
 	c.world.SetBlock(x, y, z, 0)
-	blockChange := &pkt.BlockChange{
-		Location: posVal,
+	blockChange := &v1_8.PlayClientboundBlockChange{
+		Location: blockPos(x, y, z),
 		Type:     0,
 	}
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
 
 	if oldBlockState != 0 {
-		c.players.BroadcastToTrackers(&pkt.WorldEvent{
+		c.players.BroadcastToTrackers(&v1_8.PlayClientboundWorldEvent{
 			EffectID: 2001,
-			Location: posVal,
+			Location: blockPos(x, y, z),
 			Data:     oldBlockState,
 			Global:   false,
 		}, c.self.EntityID)
 	}
 
-	_ = c.writeMarshalled(blockChange)
+	_ = c.send(blockChange)
 
 	// Spawn item drops in survival mode.
 	if c.self.GetGameMode() != packet.GameModeCreative {
@@ -742,12 +747,12 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 	stateID := int32(slot.BlockID) << 4
 	c.world.SetBlock(x, y, z, stateID)
 
-	blockChange := &pkt.BlockChange{
-		Location: java.EncodePosition(x, y, z),
+	blockChange := &v1_8.PlayClientboundBlockChange{
+		Location: blockPos(x, y, z),
 		Type:     stateID,
 	}
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
-	return c.writeMarshalled(blockChange)
+	return c.send(blockChange)
 }
 
 // parseUUID parses a hyphenated UUID string into 16 bytes.
@@ -839,7 +844,7 @@ func (c *Connection) updateLoadedChunks(newCX, newCZ int) {
 			continue
 		}
 		// MC 1.8: send MapChunk with GroundUp=true, BitMap=0, empty data to unload.
-		if err := c.writeMarshalled(&pkt.MapChunk{
+		if err := c.send(&v1_8.PlayClientboundMapChunk{
 			X:         int32(pos.X),
 			Z:         int32(pos.Z),
 			GroundUp:  true,
@@ -872,7 +877,7 @@ func (c *Connection) clampToWorldBounds(x, y, z float64, yaw, pitch float32) (fl
 	}
 
 	if clampedX != x || clampedZ != z {
-		_ = c.writeMarshalled(&pkt.PositionCB{
+		_ = c.send(&v1_8.PlayClientboundPosition{
 			X:     clampedX,
 			Y:     y,
 			Z:     clampedZ,
@@ -894,24 +899,24 @@ func (c *Connection) isChunkInBounds(cx, cz int) bool {
 	return cx >= -r && cx <= r && cz >= -r && cz <= r
 }
 
-// buildSprintParticles builds WorldParticles raw data for sprint block-crack particles.
-// Particle ID 37 = block crack, with block state as additional data.
-func buildSprintParticles(x, y, z float64, blockState int32) []byte {
-	var buf bytes.Buffer
-
-	_ = binary.Write(&buf, binary.BigEndian, int32(37))    // particle ID: block crack
-	_ = binary.Write(&buf, binary.BigEndian, false)        // long distance
-	_ = binary.Write(&buf, binary.BigEndian, float32(x))   // x
-	_ = binary.Write(&buf, binary.BigEndian, float32(y))   // y
-	_ = binary.Write(&buf, binary.BigEndian, float32(z))   // z
-	_ = binary.Write(&buf, binary.BigEndian, float32(0.5)) // offset X
-	_ = binary.Write(&buf, binary.BigEndian, float32(0.1)) // offset Y
-	_ = binary.Write(&buf, binary.BigEndian, float32(0.5)) // offset Z
-	_ = binary.Write(&buf, binary.BigEndian, float32(0.0)) // speed
-	_ = binary.Write(&buf, binary.BigEndian, int32(5))     // count
-	_, _ = java.WriteVarInt(&buf, blockState)              // block state data
-
-	return buf.Bytes()
+// sprintParticles builds the WorldParticles (0x2A) block-crack effect at the
+// player's feet. Particle ID 37 = block crack, carrying the block state as its
+// single VarInt data element. The field order and widths match the raw builder
+// this replaced byte for byte.
+func sprintParticles(x, y, z float64, blockState int32) v1_8.PlayClientboundWorldParticles {
+	return v1_8.PlayClientboundWorldParticles{
+		ParticleID:   37,
+		LongDistance: false,
+		X:            float32(x),
+		Y:            float32(y),
+		Z:            float32(z),
+		OffsetX:      0.5,
+		OffsetY:      0.1,
+		OffsetZ:      0.5,
+		ParticleData: 0.0,
+		Particles:    5,
+		Data:         v1_8.PlayClientboundWorldParticlesDataSwitch{Case37: [1]int32{blockState}},
+	}
 }
 
 // handleUseEntity processes a UseEntity (0x02) packet.
@@ -953,12 +958,12 @@ func (c *Connection) handleUseEntity(data []byte) error {
 	}
 
 	// Broadcast hurt animation to all trackers of the target.
-	c.players.BroadcastToTrackers(&pkt.EntityStatus{
+	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityStatus{
 		EntityID:     targetID,
 		EntityStatus: 2, // hurt animation
 	}, targetID)
 	// Also send to the target itself.
-	_ = target.WritePacket(&pkt.EntityStatus{
+	_ = target.WritePacket(&v1_8.PlayClientboundEntityStatus{
 		EntityID:     targetID,
 		EntityStatus: 2,
 	})
@@ -979,7 +984,7 @@ func (c *Connection) handleUseEntity(data []byte) error {
 	vx := int16(dx * 0.4 * 8000)
 	vy := int16(0.36 * 8000)
 	vz := int16(dz * 0.4 * 8000)
-	velPkt := &pkt.EntityVelocity{
+	velPkt := &v1_8.PlayClientboundEntityVelocity{
 		EntityID:  targetID,
 		VelocityX: vx,
 		VelocityY: vy,
@@ -999,7 +1004,7 @@ func (c *Connection) handleAbilitiesUpdate(p pkt.AbilitiesSB) {
 	// Only creative and spectator may fly.
 	if wantsFlying && mode != packet.GameModeCreative && mode != packet.GameModeSpectator {
 		// Send corrective abilities back.
-		_ = c.writeMarshalled(&pkt.AbilitiesCB{
+		_ = c.send(&v1_8.PlayClientboundAbilities{
 			Flags:        abilitiesForGameMode(mode),
 			FlyingSpeed:  0.05,
 			WalkingSpeed: 0.1,
@@ -1019,7 +1024,7 @@ func (c *Connection) handleRespawn() error {
 	c.dead = false
 
 	// Send Respawn packet.
-	if err := c.writeMarshalled(&pkt.Respawn{
+	if err := c.send(&v1_8.PlayClientboundRespawn{
 		Dimension:  int32(packet.DimensionOverworld),
 		Difficulty: packet.DifficultyEasy,
 		Gamemode:   c.self.GetGameMode(),
@@ -1039,7 +1044,7 @@ func (c *Connection) handleRespawn() error {
 	}
 
 	// Send position.
-	if err := c.writeMarshalled(&pkt.PositionCB{
+	if err := c.send(&v1_8.PlayClientboundPosition{
 		X:     0.5,
 		Y:     float64(spawnY),
 		Z:     0.5,
@@ -1051,14 +1056,14 @@ func (c *Connection) handleRespawn() error {
 	}
 
 	// Restore health.
-	_ = c.writeMarshalled(&pkt.UpdateHealth{
+	_ = c.send(&v1_8.PlayClientboundUpdateHealth{
 		Health:         20,
 		Food:           20,
 		FoodSaturation: 5,
 	})
 
 	// Send abilities.
-	_ = c.writeMarshalled(&pkt.AbilitiesCB{
+	_ = c.send(&v1_8.PlayClientboundAbilities{
 		Flags:        abilitiesForGameMode(c.self.GetGameMode()),
 		FlyingSpeed:  0.05,
 		WalkingSpeed: 0.1,
@@ -1083,7 +1088,7 @@ func (c *Connection) handleCustomPayload(data []byte) error {
 	switch p.Channel {
 	case "MC|Brand":
 		c.log.Info("client brand", "brand", string(p.Data))
-		_ = c.writeMarshalled(&pkt.CustomPayloadCB{
+		_ = c.send(&v1_8.PlayClientboundCustomPayload{
 			Channel: "MC|Brand",
 			Data:    []byte("GoTheftCraft"),
 		})

@@ -494,7 +494,7 @@ func TestConcurrentWritesProduceIntactFrames(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			errs <- h.conn.writePacket(&pkt.ChatCB{
+			errs <- h.conn.writeMarshalled(&pkt.ChatCB{
 				Message:  fmt.Sprintf(`{"text":"writer %d"}`, index),
 				Position: 0,
 			})
@@ -684,7 +684,7 @@ func TestUnknownPlayPacketIsIgnored(t *testing.T) {
 	}
 
 	// The connection must still answer afterwards.
-	if err := h.conn.writePacket(&pkt.ChatCB{Message: `{"text":"still here"}`, Position: 0}); err != nil {
+	if err := h.conn.writeMarshalled(&pkt.ChatCB{Message: `{"text":"still here"}`, Position: 0}); err != nil {
 		t.Fatalf("write after unknown packet: %v", err)
 	}
 	h.expect(pkt.ChatCB{}.PacketID())

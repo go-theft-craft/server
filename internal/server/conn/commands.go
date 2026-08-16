@@ -62,7 +62,7 @@ func (c *Connection) handleCommand(msg string) bool {
 
 // sendSystemMsg sends a chat message (position=1, system) to this connection only.
 func (c *Connection) sendSystemMsg(text, color string) {
-	_ = c.writePacket(&pkt.ChatCB{
+	_ = c.writeMarshalled(&pkt.ChatCB{
 		Message:  fmt.Sprintf(`{"text":%s,"color":%s}`, escapeJSON(text), escapeJSON(color)),
 		Position: 1,
 	})
@@ -84,7 +84,7 @@ func (c *Connection) teleportSelf(x, y, z float64) {
 	pos := c.self.GetPosition()
 	c.setPositionAndUpdateChunks(x, y, z, pos.Yaw, pos.Pitch, false)
 
-	_ = c.writePacket(&pkt.PositionCB{
+	_ = c.writeMarshalled(&pkt.PositionCB{
 		X:     x,
 		Y:     y,
 		Z:     z,
@@ -181,14 +181,14 @@ func cmdGamemode(c *Connection, args []string) {
 		return
 	}
 
-	_ = c.writePacket(&pkt.GameStateChange{
+	_ = c.writeMarshalled(&pkt.GameStateChange{
 		Reason:   3, // Change game mode
 		GameMode: float32(mode),
 	})
 
 	c.self.SetGameMode(mode)
 
-	_ = c.writePacket(&pkt.AbilitiesCB{
+	_ = c.writeMarshalled(&pkt.AbilitiesCB{
 		Flags:        abilities,
 		FlyingSpeed:  0.05,
 		WalkingSpeed: 0.1,
@@ -268,7 +268,7 @@ func cmdMe(c *Connection, args []string) {
 
 func cmdKill(c *Connection, _ []string) {
 	c.dead = true
-	_ = c.writePacket(&pkt.UpdateHealth{
+	_ = c.writeMarshalled(&pkt.UpdateHealth{
 		Health:         0,
 		Food:           0,
 		FoodSaturation: 0,

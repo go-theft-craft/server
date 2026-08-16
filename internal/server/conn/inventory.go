@@ -53,7 +53,7 @@ func (c *Connection) sendWindowItems() error {
 	for _, s := range proto {
 		_ = player.WriteSlot(&buf, s)
 	}
-	return c.writePacket(&pkt.WindowItems{Data: buf.Bytes()})
+	return c.writeMarshalled(&pkt.WindowItems{Data: buf.Bytes()})
 }
 
 // sendSetSlot sends a single slot update to the client.
@@ -62,7 +62,7 @@ func (c *Connection) sendSetSlot(windowID int8, slotIndex int16, slot player.Slo
 	buf.WriteByte(byte(windowID))
 	_ = binary.Write(&buf, binary.BigEndian, slotIndex)
 	_ = player.WriteSlot(&buf, slot)
-	return c.writePacket(&pkt.SetSlot{Data: buf.Bytes()})
+	return c.writeMarshalled(&pkt.SetSlot{Data: buf.Bytes()})
 }
 
 // handleWindowClick processes a WindowClick (0x0E) packet.
@@ -118,7 +118,7 @@ func (c *Connection) handleWindowClick(data []byte) error {
 }
 
 func (c *Connection) sendTransaction(windowID int8, actionID int16, accepted bool) error {
-	return c.writePacket(&pkt.TransactionCB{
+	return c.writeMarshalled(&pkt.TransactionCB{
 		WindowID: windowID,
 		Action:   actionID,
 		Accepted: accepted,

@@ -26,7 +26,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 
 	uuidBytes := parseUUID(uuid)
 	entityID := c.players.AllocateEntityID()
-	c.self = player.NewPlayer(entityID, uuid, uuidBytes, username, skinProps, c.writePacket)
+	c.self = player.NewPlayer(entityID, uuid, uuidBytes, username, skinProps, c.writeMarshalled)
 
 	// Try to load saved player data.
 	var savedData *storage.PlayerData
@@ -76,7 +76,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	c.self.SetPosition(posX, posY, posZ, posYaw, posPitch, true)
 
 	// 1. Join Game
-	if err := c.writePacket(&pkt.Login{
+	if err := c.writeMarshalled(&pkt.Login{
 		EntityID:         entityID,
 		GameMode:         gameMode,
 		Dimension:        packet.DimensionOverworld,
@@ -89,7 +89,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	}
 
 	// 2. Spawn Position
-	if err := c.writePacket(&pkt.SpawnPosition{
+	if err := c.writeMarshalled(&pkt.SpawnPosition{
 		Location: java.EncodePosition(0, spawnY, 0),
 	}); err != nil {
 		return fmt.Errorf("write spawn position: %w", err)
@@ -97,7 +97,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 
 	// 3. Player Abilities (based on actual game mode)
 	abilities := abilitiesForGameMode(gameMode)
-	if err := c.writePacket(&pkt.AbilitiesCB{
+	if err := c.writeMarshalled(&pkt.AbilitiesCB{
 		Flags:        abilities,
 		FlyingSpeed:  0.05,
 		WalkingSpeed: 0.1,
@@ -106,7 +106,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	}
 
 	// 4. Player Position And Look
-	if err := c.writePacket(&pkt.PositionCB{
+	if err := c.writeMarshalled(&pkt.PositionCB{
 		X:     posX,
 		Y:     posY,
 		Z:     posZ,
@@ -124,7 +124,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 
 	// 6. Update Time (send current world time)
 	worldAge, worldTime := c.world.GetTime()
-	if err := c.writePacket(&pkt.UpdateTime{
+	if err := c.writeMarshalled(&pkt.UpdateTime{
 		Age:  worldAge,
 		Time: worldTime,
 	}); err != nil {
@@ -137,7 +137,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	}
 
 	// 8. Chat Message — "Hello, world!"
-	if err := c.writePacket(&pkt.ChatCB{
+	if err := c.writeMarshalled(&pkt.ChatCB{
 		Message:  `{"text":"Hello, world!","color":"gold"}`,
 		Position: 0,
 	}); err != nil {
@@ -180,7 +180,7 @@ func (c *Connection) keepAliveLoop() {
 			if !c.keepAliveAcked && id > 0 {
 				if time.Since(c.lastKeepAliveSent) > 30*time.Second {
 					c.mu.Unlock()
-					_ = c.writePacket(&pkt.KickDisconnect{
+					_ = c.writeMarshalled(&pkt.KickDisconnect{
 						Reason: `{"text":"Timed out"}`,
 					})
 					c.disconnect("keepalive timeout")
@@ -193,7 +193,7 @@ func (c *Connection) keepAliveLoop() {
 			c.keepAliveAcked = false
 			c.mu.Unlock()
 
-			if err := c.writePacket(&pkt.KeepAliveCB{
+			if err := c.writeMarshalled(&pkt.KeepAliveCB{
 				KeepAliveID: id,
 			}); err != nil {
 				c.log.Error("keep alive write failed", "error", err)
@@ -565,7 +565,7 @@ func (c *Connection) handleBlockDig(data []byte) error {
 		if block, ok := c.lookupBlock(stateID); ok {
 			if !block.Diggable || block.Hardness == nil {
 				// Unbreakable — resend the block to the client.
-				_ = c.writePacket(&pkt.BlockChange{Location: posVal, Type: stateID})
+				_ = c.writeMarshalled(&pkt.BlockChange{Location: posVal, Type: stateID})
 				return nil
 			}
 		}
@@ -634,7 +634,7 @@ func (c *Connection) breakBlock(x, y, z int, posVal int64) {
 		}, c.self.EntityID)
 	}
 
-	_ = c.writePacket(blockChange)
+	_ = c.writeMarshalled(blockChange)
 
 	// Spawn item drops in survival mode.
 	if c.self.GetGameMode() != packet.GameModeCreative {
@@ -749,7 +749,7 @@ func (c *Connection) handleBlockPlace(data []byte) error {
 		Type:     stateID,
 	}
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
-	return c.writePacket(blockChange)
+	return c.writeMarshalled(blockChange)
 }
 
 // parseUUID parses a hyphenated UUID string into 16 bytes.
@@ -804,7 +804,7 @@ func (c *Connection) sendInitialChunks() error {
 
 	for _, pos := range chunks {
 		chunk := c.world.EncodeChunk(pos.X, pos.Z)
-		if err := c.writePacket(&chunk); err != nil {
+		if err := c.writeMarshalled(&chunk); err != nil {
 			return err
 		}
 		c.loadedChunks[pos] = struct{}{}
@@ -827,7 +827,7 @@ func (c *Connection) updateLoadedChunks(newCX, newCZ int) {
 				continue
 			}
 			chunk := c.world.EncodeChunk(cx, cz)
-			if err := c.writePacket(&chunk); err != nil {
+			if err := c.writeMarshalled(&chunk); err != nil {
 				c.log.Error("send chunk", "cx", cx, "cz", cz, "error", err)
 				return
 			}
@@ -841,7 +841,7 @@ func (c *Connection) updateLoadedChunks(newCX, newCZ int) {
 			continue
 		}
 		// MC 1.8: send MapChunk with GroundUp=true, BitMap=0, empty data to unload.
-		if err := c.writePacket(&pkt.MapChunk{
+		if err := c.writeMarshalled(&pkt.MapChunk{
 			X:         int32(pos.X),
 			Z:         int32(pos.Z),
 			GroundUp:  true,
@@ -874,7 +874,7 @@ func (c *Connection) clampToWorldBounds(x, y, z float64, yaw, pitch float32) (fl
 	}
 
 	if clampedX != x || clampedZ != z {
-		_ = c.writePacket(&pkt.PositionCB{
+		_ = c.writeMarshalled(&pkt.PositionCB{
 			X:     clampedX,
 			Y:     y,
 			Z:     clampedZ,
@@ -1001,7 +1001,7 @@ func (c *Connection) handleAbilitiesUpdate(p pkt.AbilitiesSB) {
 	// Only creative and spectator may fly.
 	if wantsFlying && mode != packet.GameModeCreative && mode != packet.GameModeSpectator {
 		// Send corrective abilities back.
-		_ = c.writePacket(&pkt.AbilitiesCB{
+		_ = c.writeMarshalled(&pkt.AbilitiesCB{
 			Flags:        abilitiesForGameMode(mode),
 			FlyingSpeed:  0.05,
 			WalkingSpeed: 0.1,
@@ -1021,7 +1021,7 @@ func (c *Connection) handleRespawn() error {
 	c.dead = false
 
 	// Send Respawn packet.
-	if err := c.writePacket(&pkt.Respawn{
+	if err := c.writeMarshalled(&pkt.Respawn{
 		Dimension:  int32(packet.DimensionOverworld),
 		Difficulty: packet.DifficultyEasy,
 		Gamemode:   c.self.GetGameMode(),
@@ -1041,7 +1041,7 @@ func (c *Connection) handleRespawn() error {
 	}
 
 	// Send position.
-	if err := c.writePacket(&pkt.PositionCB{
+	if err := c.writeMarshalled(&pkt.PositionCB{
 		X:     0.5,
 		Y:     float64(spawnY),
 		Z:     0.5,
@@ -1053,14 +1053,14 @@ func (c *Connection) handleRespawn() error {
 	}
 
 	// Restore health.
-	_ = c.writePacket(&pkt.UpdateHealth{
+	_ = c.writeMarshalled(&pkt.UpdateHealth{
 		Health:         20,
 		Food:           20,
 		FoodSaturation: 5,
 	})
 
 	// Send abilities.
-	_ = c.writePacket(&pkt.AbilitiesCB{
+	_ = c.writeMarshalled(&pkt.AbilitiesCB{
 		Flags:        abilitiesForGameMode(c.self.GetGameMode()),
 		FlyingSpeed:  0.05,
 		WalkingSpeed: 0.1,
@@ -1085,7 +1085,7 @@ func (c *Connection) handleCustomPayload(data []byte) error {
 	switch p.Channel {
 	case "MC|Brand":
 		c.log.Info("client brand", "brand", string(p.Data))
-		_ = c.writePacket(&pkt.CustomPayloadCB{
+		_ = c.writeMarshalled(&pkt.CustomPayloadCB{
 			Channel: "MC|Brand",
 			Data:    []byte("GoTheftCraft"),
 		})

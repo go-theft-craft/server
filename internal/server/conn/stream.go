@@ -57,13 +57,15 @@ func (c *Connection) streamState() protocol.State {
 	}
 }
 
-// writeValue sends one clientbound packet as a generated value.
+// send builds and writes one clientbound packet as a generated value.
 //
-// The session encodes it and, where the packet implies one, proposes the state
-// or pipeline transition that goes with it. writePacket cannot do that: it
-// hands over a raw payload, which the session has nothing to inspect.
-func (c *Connection) writeValue(value packetValue) error {
-	return c.stream.Write(c.ctx, protocol.Packet{
+// The session encodes the value and, where the packet implies one, proposes
+// the state or pipeline transition that goes with it. A raw payload gives the
+// session nothing to inspect and so proposes nothing — which is why M3 left
+// play on raw payloads and mirrored the state locally. This is the call sites
+// migrate onto (Stage C), one area at a time.
+func (c *Connection) send(value packetValue) error {
+	return c.writePacket(protocol.Packet{
 		State:     c.streamState(),
 		Direction: protocol.DirectionClientbound,
 		ID:        value.PacketID(),
@@ -72,6 +74,10 @@ func (c *Connection) writeValue(value packetValue) error {
 }
 
 // packetValue is what both packet families have in common.
+//
+// The root protocol package declares no shared interface — protocol.Packet's
+// Value field is typed any, and the only PacketValue interface lives in the
+// wire/java subpackage — so send takes this local one.
 type packetValue interface {
 	PacketID() int32
 }
@@ -83,17 +89,36 @@ func (c *Connection) readPacket(ctx context.Context) (protocol.Packet, error) {
 
 // writePacket sends one clientbound packet.
 //
-// Its signature is unchanged, so its eighty call sites did not move. The body
-// marshals the local struct through the shared reflect codec — which reads the
-// same mc tags — and hands the stream a raw payload. The stream serializes
-// writes through its write pump, so this no longer takes a lock of its own.
-func (c *Connection) writePacket(p java.PacketValue) error {
+// It hands the stream a decoded value rather than a raw payload, so the
+// session encodes it and can inspect it. That is what lets the session
+// propose a state transition: M3 left play on raw payloads and mirrored the
+// state locally as a result, and this is where that mirror stops being
+// necessary. The stream serializes writes through its write pump, so this
+// takes no lock of its own.
+func (c *Connection) writePacket(p protocol.Packet) error {
+	if p.Value == nil && p.Payload == nil {
+		return fmt.Errorf("write packet 0x%02X: neither value nor payload", p.ID)
+	}
+
+	return c.stream.Write(c.ctx, p)
+}
+
+// writeMarshalled marshals a not-yet-migrated pc_1_8 packet struct through the
+// shared reflect codec and writes it as a raw payload.
+//
+// It is the transitional path for the call sites that still hand a pc_1_8
+// struct rather than a generated value. Stage C retypes each of them onto
+// send(&v1_8.…), and Task 8 deletes this together with the pc_1_8 package it
+// marshals. The bytes it produces are identical to what writePacket produced
+// before this task, so the byte-parity fixtures are unaffected while the
+// migration is in flight.
+func (c *Connection) writeMarshalled(p java.PacketValue) error {
 	payload, err := java.Marshal(p, c.limits)
 	if err != nil {
 		return fmt.Errorf("marshal packet 0x%02X: %w", p.PacketID(), err)
 	}
 
-	return c.stream.Write(c.ctx, protocol.Packet{
+	return c.writePacket(protocol.Packet{
 		State:     c.streamState(),
 		Direction: protocol.DirectionClientbound,
 		ID:        p.PacketID(),

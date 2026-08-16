@@ -133,5 +133,5 @@ func (c *Connection) sendTabCompleteResponse(matches []string) error {
 	for _, m := range matches {
 		_, _ = java.WriteString(&buf, c.limits, m)
 	}
-	return c.writePacket(&pkt.TabCompleteCB{Data: buf.Bytes()})
+	return c.writeMarshalled(&pkt.TabCompleteCB{Data: buf.Bytes()})
 }

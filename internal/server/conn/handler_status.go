@@ -43,7 +43,7 @@ func (c *Connection) handleStatus(packet protocol.Packet) error {
 	case *v1_8.StatusServerboundPing:
 		// The payload is echoed exactly; a client measures its latency from
 		// what it gets back.
-		return c.writeValue(&v1_8.StatusClientboundPing{Time: value.Time})
+		return c.send(&v1_8.StatusClientboundPing{Time: value.Time})
 
 	default:
 		return fmt.Errorf("unexpected status packet 0x%02X (%T)", packet.ID, packet.Value)
@@ -70,5 +70,5 @@ func (c *Connection) writeServerInfo() error {
 		return fmt.Errorf("marshal status response: %w", err)
 	}
 
-	return c.writeValue(&v1_8.StatusClientboundServerInfo{Response: string(encoded)})
+	return c.send(&v1_8.StatusClientboundServerInfo{Response: string(encoded)})
 }

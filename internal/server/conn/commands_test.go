@@ -15,7 +15,6 @@ import (
 
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
@@ -326,7 +325,7 @@ func TestCmdTime(t *testing.T) {
 	// Both players should get UpdateTime via Broadcast (through their WritePacket).
 	found := false
 	for _, p := range sp.get() {
-		if _, ok := p.(*pkt.UpdateTime); ok {
+		if _, ok := p.(*v1_8.PlayClientboundUpdateTime); ok {
 			found = true
 			break
 		}
@@ -337,7 +336,7 @@ func TestCmdTime(t *testing.T) {
 
 	found = false
 	for _, p := range sp2.get() {
-		if _, ok := p.(*pkt.UpdateTime); ok {
+		if _, ok := p.(*v1_8.PlayClientboundUpdateTime); ok {
 			found = true
 			break
 		}
@@ -374,7 +373,7 @@ func TestCmdSay(t *testing.T) {
 	// Broadcast goes through player WritePacket.
 	found := false
 	for _, p := range sp.get() {
-		if chat, ok := p.(*pkt.ChatCB); ok {
+		if chat, ok := p.(*v1_8.PlayClientboundChat); ok {
 			if strings.Contains(chat.Message, "[Server]") && strings.Contains(chat.Message, "hello everyone") {
 				found = true
 				break
@@ -394,7 +393,7 @@ func TestCmdMe(t *testing.T) {
 
 	found := false
 	for _, p := range sp.get() {
-		if chat, ok := p.(*pkt.ChatCB); ok {
+		if chat, ok := p.(*v1_8.PlayClientboundChat); ok {
 			if strings.Contains(chat.Message, "chat.type.emote") {
 				found = true
 				break

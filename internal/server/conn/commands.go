@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"strings"
 
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
 type command struct {
@@ -62,7 +63,7 @@ func (c *Connection) handleCommand(msg string) bool {
 
 // sendSystemMsg sends a chat message (position=1, system) to this connection only.
 func (c *Connection) sendSystemMsg(text, color string) {
-	_ = c.writeMarshalled(&pkt.ChatCB{
+	_ = c.send(&v1_8.PlayClientboundChat{
 		Message:  fmt.Sprintf(`{"text":%s,"color":%s}`, escapeJSON(text), escapeJSON(color)),
 		Position: 1,
 	})
@@ -84,7 +85,7 @@ func (c *Connection) teleportSelf(x, y, z float64) {
 	pos := c.self.GetPosition()
 	c.setPositionAndUpdateChunks(x, y, z, pos.Yaw, pos.Pitch, false)
 
-	_ = c.writeMarshalled(&pkt.PositionCB{
+	_ = c.send(&v1_8.PlayClientboundPosition{
 		X:     x,
 		Y:     y,
 		Z:     z,
@@ -93,7 +94,7 @@ func (c *Connection) teleportSelf(x, y, z float64) {
 		Flags: packet.PositionAbsolute,
 	})
 
-	c.players.BroadcastToTrackers(&pkt.EntityTeleport{
+	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityTeleport{
 		EntityID: c.self.EntityID,
 		X:        player.FixedPoint(x),
 		Y:        player.FixedPoint(y),
@@ -181,14 +182,14 @@ func cmdGamemode(c *Connection, args []string) {
 		return
 	}
 
-	_ = c.writeMarshalled(&pkt.GameStateChange{
+	_ = c.send(&v1_8.PlayClientboundGameStateChange{
 		Reason:   3, // Change game mode
 		GameMode: float32(mode),
 	})
 
 	c.self.SetGameMode(mode)
 
-	_ = c.writeMarshalled(&pkt.AbilitiesCB{
+	_ = c.send(&v1_8.PlayClientboundAbilities{
 		Flags:        abilities,
 		FlyingSpeed:  0.05,
 		WalkingSpeed: 0.1,
@@ -227,7 +228,7 @@ func cmdTime(c *Connection, args []string) {
 
 	c.world.SetTimeOfDay(ticks)
 	age, _ := c.world.GetTime()
-	c.players.Broadcast(&pkt.UpdateTime{
+	c.players.Broadcast(&v1_8.PlayClientboundUpdateTime{
 		Age:  age,
 		Time: ticks,
 	})
@@ -244,7 +245,7 @@ func cmdSay(c *Connection, args []string) {
 		`{"text":"[Server] %s","color":"light_purple"}`,
 		strings.ReplaceAll(strings.ReplaceAll(msg, `\`, `\\`), `"`, `\"`),
 	)
-	c.players.Broadcast(&pkt.ChatCB{
+	c.players.Broadcast(&v1_8.PlayClientboundChat{
 		Message:  chatJSON,
 		Position: 0,
 	})
@@ -260,7 +261,7 @@ func cmdMe(c *Connection, args []string) {
 		`{"translate":"chat.type.emote","with":[%s,%s]}`,
 		escapeJSON(c.self.Username), escapeJSON(action),
 	)
-	c.players.Broadcast(&pkt.ChatCB{
+	c.players.Broadcast(&v1_8.PlayClientboundChat{
 		Message:  chatJSON,
 		Position: 0,
 	})
@@ -268,12 +269,12 @@ func cmdMe(c *Connection, args []string) {
 
 func cmdKill(c *Connection, _ []string) {
 	c.dead = true
-	_ = c.writeMarshalled(&pkt.UpdateHealth{
+	_ = c.send(&v1_8.PlayClientboundUpdateHealth{
 		Health:         0,
 		Food:           0,
 		FoodSaturation: 0,
 	})
-	c.players.BroadcastToTrackers(&pkt.EntityStatus{
+	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityStatus{
 		EntityID:     c.self.EntityID,
 		EntityStatus: 3, // death animation
 	}, c.self.EntityID)

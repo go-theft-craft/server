@@ -27,7 +27,6 @@ import (
 	"github.com/go-theft-craft/server/internal/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/protocolinfo"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
@@ -176,14 +175,53 @@ func (h *harness) drain() {
 	}
 }
 
+// wirePacket is a generated packet value the tests put on or read off the wire.
+//
+// Generated types carry no mc struct tags, so java.Marshal/java.Unmarshal —
+// which encode by reflecting over those tags — cannot handle them; they encode
+// and decode through their own generated Encode/Decode methods instead. The
+// helpers below drive that codec, which is the same one the session uses.
+type wirePacket interface {
+	PacketID() int32
+	Encode(*java.Buffer) error
+	Decode(*java.Buffer) error
+}
+
+// wireEncode renders a generated packet's payload — the field bytes, without
+// the packet ID or length prefix — through its generated Encode method. This
+// is the payload shape java.Marshal produced for the old mc-tagged structs.
+func wireEncode(t *testing.T, packet interface{ Encode(*java.Buffer) error }) []byte {
+	t.Helper()
+
+	buf, err := java.NewWriteBuffer(testLimits())
+	if err != nil {
+		t.Fatalf("write buffer: %v", err)
+	}
+	if err := packet.Encode(buf); err != nil {
+		t.Fatalf("encode %T: %v", packet, err)
+	}
+
+	return buf.Bytes()
+}
+
+// wireDecode decodes a payload into a generated packet value through its
+// generated Decode method, the counterpart to wireEncode.
+func wireDecode(t *testing.T, payload []byte, packet interface{ Decode(*java.Buffer) error }) error {
+	t.Helper()
+
+	buf, err := java.NewReadBuffer(payload, testLimits())
+	if err != nil {
+		t.Fatalf("read buffer: %v", err)
+	}
+
+	return packet.Decode(buf)
+}
+
 // send writes one serverbound packet.
-func (h *harness) send(packet java.PacketValue) {
+func (h *harness) send(packet wirePacket) {
 	h.t.Helper()
 
-	payload, err := java.Marshal(packet, testLimits())
-	if err != nil {
-		h.t.Fatalf("marshal %T: %v", packet, err)
-	}
+	payload := wireEncode(h.t, packet)
 	if err := java.WriteRawPacket(h.client, testLimits(), protocol.Packet{
 		ID:      packet.PacketID(),
 		Payload: payload,
@@ -241,7 +279,7 @@ func (h *harness) expectClosed() {
 func (h *harness) handshake(nextState int32) {
 	h.t.Helper()
 
-	h.send(&pkt.SetProtocol{
+	h.send(&v1_8.HandshakingServerboundSetProtocol{
 		ProtocolVersion: protocolinfo.ProtocolVersion,
 		ServerHost:      "localhost",
 		ServerPort:      25565,
@@ -253,12 +291,12 @@ func TestStatusRequestAnswersWithTheServerDescription(t *testing.T) {
 	h := newHarness(t)
 
 	h.handshake(1)
-	h.send(&pkt.PingStart{})
+	h.send(&v1_8.StatusServerboundPingStart{})
 
-	response := h.expect(pkt.ServerInfo{}.PacketID())
+	response := h.expect(v1_8.StatusClientboundServerInfo{}.PacketID())
 
-	var info pkt.ServerInfo
-	if err := java.Unmarshal(response.data, &info, testLimits()); err != nil {
+	var info v1_8.StatusClientboundServerInfo
+	if err := wireDecode(t, response.data, &info); err != nil {
 		t.Fatalf("unmarshal status response: %v", err)
 	}
 
@@ -307,8 +345,8 @@ func TestPlayerInfoIsWrittenAsAGeneratedValue(t *testing.T) {
 	h := newHarness(t)
 
 	h.handshake(2)
-	h.send(&pkt.LoginStart{Username: "Tester"})
-	h.expect(pkt.Success{}.PacketID())
+	h.send(&v1_8.LoginServerboundLoginStart{Username: "Tester"})
+	h.expect(v1_8.LoginClientboundSuccess{}.PacketID())
 
 	info := readUntil(t, h, v1_8.PlayClientboundPlayerInfo{}.PacketID())
 	if len(info.data) < 2 {
@@ -345,16 +383,16 @@ func TestPingEchoesItsPayload(t *testing.T) {
 	h := newHarness(t)
 
 	h.handshake(1)
-	h.send(&pkt.PingStart{})
-	h.expect(pkt.ServerInfo{}.PacketID())
+	h.send(&v1_8.StatusServerboundPingStart{})
+	h.expect(v1_8.StatusClientboundServerInfo{}.PacketID())
 
 	const sent = int64(0x0123456789abcdef)
-	h.send(&pkt.PingSB{Time: sent})
+	h.send(&v1_8.StatusServerboundPing{Time: sent})
 
-	response := h.expect(pkt.PingCB{}.PacketID())
+	response := h.expect(v1_8.StatusClientboundPing{}.PacketID())
 
-	var pong pkt.PingCB
-	if err := java.Unmarshal(response.data, &pong, testLimits()); err != nil {
+	var pong v1_8.StatusClientboundPing
+	if err := wireDecode(t, response.data, &pong); err != nil {
 		t.Fatalf("unmarshal ping response: %v", err)
 	}
 	if pong.Time != sent {
@@ -423,12 +461,12 @@ func TestOfflineLoginReachesPlay(t *testing.T) {
 	h := newHarness(t)
 
 	h.handshake(2)
-	h.send(&pkt.LoginStart{Username: "Tester"})
+	h.send(&v1_8.LoginServerboundLoginStart{Username: "Tester"})
 
-	success := h.expect(pkt.Success{}.PacketID())
+	success := h.expect(v1_8.LoginClientboundSuccess{}.PacketID())
 
-	var confirmed pkt.Success
-	if err := java.Unmarshal(success.data, &confirmed, testLimits()); err != nil {
+	var confirmed v1_8.LoginClientboundSuccess
+	if err := wireDecode(t, success.data, &confirmed); err != nil {
 		t.Fatalf("unmarshal login success: %v", err)
 	}
 	if confirmed.Username != "Tester" {
@@ -440,10 +478,10 @@ func TestOfflineLoginReachesPlay(t *testing.T) {
 
 	// Join Game is the first play packet, and it is what proves the login
 	// handed over to the play state rather than merely answering.
-	join := h.expect(pkt.Login{}.PacketID())
+	join := h.expect(v1_8.PlayClientboundLogin{}.PacketID())
 
-	var joined pkt.Login
-	if err := java.Unmarshal(join.data, &joined, testLimits()); err != nil {
+	var joined v1_8.PlayClientboundLogin
+	if err := wireDecode(t, join.data, &joined); err != nil {
 		t.Fatalf("unmarshal join game: %v", err)
 	}
 	if joined.LevelType == "" {
@@ -463,7 +501,7 @@ func TestHandshakeRejectsAnInvalidNextState(t *testing.T) {
 func TestStatusRequestBeforeHandshakeIsRefused(t *testing.T) {
 	h := newHarness(t)
 
-	h.send(&pkt.PingStart{})
+	h.send(&v1_8.StatusServerboundPingStart{})
 	h.expectClosed()
 }
 
@@ -471,9 +509,9 @@ func TestClosingTheClientEndsTheConnection(t *testing.T) {
 	h := newHarness(t)
 
 	h.handshake(2)
-	h.send(&pkt.LoginStart{Username: "Tester"})
-	h.expect(pkt.Success{}.PacketID())
-	h.expect(pkt.Login{}.PacketID())
+	h.send(&v1_8.LoginServerboundLoginStart{Username: "Tester"})
+	h.expect(v1_8.LoginClientboundSuccess{}.PacketID())
+	h.expect(v1_8.PlayClientboundLogin{}.PacketID())
 
 	if err := h.client.Close(); err != nil && err != io.ErrClosedPipe {
 		t.Fatalf("close client: %v", err)
@@ -519,9 +557,9 @@ func TestConcurrentWritesProduceIntactFrames(t *testing.T) {
 	h := newHarness(t)
 
 	h.handshake(2)
-	h.send(&pkt.LoginStart{Username: "Tester"})
-	h.expect(pkt.Success{}.PacketID())
-	h.expect(pkt.Login{}.PacketID())
+	h.send(&v1_8.LoginServerboundLoginStart{Username: "Tester"})
+	h.expect(v1_8.LoginClientboundSuccess{}.PacketID())
+	h.expect(v1_8.PlayClientboundLogin{}.PacketID())
 
 	// Drain the rest of the join sequence so the two writes below are the
 	// only ones left to observe.
@@ -538,7 +576,7 @@ func TestConcurrentWritesProduceIntactFrames(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			errs <- h.conn.writeMarshalled(&pkt.ChatCB{
+			errs <- h.conn.send(&v1_8.PlayClientboundChat{
 				Message:  fmt.Sprintf(`{"text":"writer %d"}`, index),
 				Position: 0,
 			})
@@ -558,10 +596,10 @@ func TestConcurrentWritesProduceIntactFrames(t *testing.T) {
 	// body that is not a valid chat packet.
 	seen := make(map[string]bool, writers)
 	for range writers {
-		packet := h.expect(pkt.ChatCB{}.PacketID())
+		packet := h.expect(v1_8.PlayClientboundChat{}.PacketID())
 
-		var chat pkt.ChatCB
-		if err := java.Unmarshal(packet.data, &chat, testLimits()); err != nil {
+		var chat v1_8.PlayClientboundChat
+		if err := wireDecode(t, packet.data, &chat); err != nil {
 			t.Fatalf("decode concurrent write: %v", err)
 		}
 		seen[chat.Message] = true
@@ -609,14 +647,14 @@ func TestHandshakeTransitionsTheSession(t *testing.T) {
 			// Drive one more exchange so the handshake is known to have been
 			// processed before the state is read.
 			if testCase.nextState == 1 {
-				h.send(&pkt.PingStart{})
-				h.expect(pkt.ServerInfo{}.PacketID())
+				h.send(&v1_8.StatusServerboundPingStart{})
+				h.expect(v1_8.StatusClientboundServerInfo{}.PacketID())
 			} else {
-				h.send(&pkt.LoginStart{Username: "Tester"})
-				h.expect(pkt.Success{}.PacketID())
+				h.send(&v1_8.LoginServerboundLoginStart{Username: "Tester"})
+				h.expect(v1_8.LoginClientboundSuccess{}.PacketID())
 				// Join Game is written in the play state, so receiving it
 				// means the session has finished moving there.
-				h.expect(pkt.Login{}.PacketID())
+				h.expect(v1_8.PlayClientboundLogin{}.PacketID())
 			}
 
 			snapshot, err := h.conn.stream.Snapshot(t.Context())
@@ -672,20 +710,17 @@ var testLimits = sync.OnceValue(func() protocol.Limits {
 	return limits
 })
 
-// Task 8 moved play decoding onto the shared reflect codec. The local structs
-// and their mc tags did not change, so the same bytes must produce the same
-// struct, and the failure modes must be the ones the old loop had.
+// Play packets now decode through the generated v1_8 codec. A round trip must
+// still reproduce the same struct, and the failure modes must be the ones the
+// old loop had.
 
 func TestPlayPacketDecodesIntoTheSameStruct(t *testing.T) {
-	sent := &pkt.PositionSB{X: 1.5, Y: 64, Z: -2.25, OnGround: true}
+	sent := &v1_8.PlayServerboundPosition{X: 1.5, Y: 64, Z: -2.25, OnGround: true}
 
-	payload, err := java.Marshal(sent, testLimits())
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
+	payload := wireEncode(t, sent)
 
-	var received pkt.PositionSB
-	if err := java.Unmarshal(payload, &received, testLimits()); err != nil {
+	var received v1_8.PlayServerboundPosition
+	if err := wireDecode(t, payload, &received); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
@@ -696,13 +731,10 @@ func TestPlayPacketDecodesIntoTheSameStruct(t *testing.T) {
 
 // A truncated packet names what failed rather than panicking.
 func TestTruncatedPlayPacketIsAnError(t *testing.T) {
-	payload, err := java.Marshal(&pkt.PositionSB{X: 1, Y: 2, Z: 3}, testLimits())
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
+	payload := wireEncode(t, &v1_8.PlayServerboundPosition{X: 1, Y: 2, Z: 3})
 
-	var received pkt.PositionSB
-	err = java.Unmarshal(payload[:len(payload)-4], &received, testLimits())
+	var received v1_8.PlayServerboundPosition
+	err := wireDecode(t, payload[:len(payload)-4], &received)
 	if err == nil {
 		t.Fatal("a truncated payload decoded without error")
 	}
@@ -714,9 +746,9 @@ func TestUnknownPlayPacketIsIgnored(t *testing.T) {
 	h := newHarness(t)
 
 	h.handshake(2)
-	h.send(&pkt.LoginStart{Username: "Tester"})
-	h.expect(pkt.Success{}.PacketID())
-	h.expect(pkt.Login{}.PacketID())
+	h.send(&v1_8.LoginServerboundLoginStart{Username: "Tester"})
+	h.expect(v1_8.LoginClientboundSuccess{}.PacketID())
+	h.expect(v1_8.PlayClientboundLogin{}.PacketID())
 	drainUntilQuiet(t, h)
 
 	// 0x7F is serverbound-play in no version of protocol 47.
@@ -728,8 +760,8 @@ func TestUnknownPlayPacketIsIgnored(t *testing.T) {
 	}
 
 	// The connection must still answer afterwards.
-	if err := h.conn.writeMarshalled(&pkt.ChatCB{Message: `{"text":"still here"}`, Position: 0}); err != nil {
+	if err := h.conn.send(&v1_8.PlayClientboundChat{Message: `{"text":"still here"}`, Position: 0}); err != nil {
 		t.Fatalf("write after unknown packet: %v", err)
 	}
-	h.expect(pkt.ChatCB{}.PacketID())
+	h.expect(v1_8.PlayClientboundChat{}.PacketID())
 }

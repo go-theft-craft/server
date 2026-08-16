@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/config"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
 // These fixtures are the bytes the server puts on the wire today. They are
@@ -80,13 +80,20 @@ func assertFixture(t *testing.T, name string, got []byte) {
 // encode renders one packet exactly as the server writes it, length prefix
 // and all. It goes through the same writer the connection uses, so a change
 // in framing shows up in every fixture rather than in none of them.
-func encode(t *testing.T, packet java.PacketValue) []byte {
+//
+// The payload comes from the generated value's own Encode method — the codec
+// the session uses — because generated types carry no mc struct tags for
+// java.Marshal to reflect over. The fixtures were captured before the
+// migration, so a match proves the generated codec emits the same bytes the
+// old reflect codec did.
+func encode(t *testing.T, packet interface {
+	PacketID() int32
+	Encode(*java.Buffer) error
+},
+) []byte {
 	t.Helper()
 
-	payload, err := java.Marshal(packet, testLimits())
-	if err != nil {
-		t.Fatalf("marshal %T: %v", packet, err)
-	}
+	payload := wireEncode(t, packet)
 
 	var buf bytes.Buffer
 	if err := java.WriteRawPacket(&buf, testLimits(), protocol.Packet{
@@ -119,19 +126,19 @@ func TestByteParityStatusAndPing(t *testing.T) {
 	h := newHarness(t)
 
 	h.handshake(1)
-	h.send(&pkt.PingStart{})
-	assertFixture(t, "status_response", framed(t, h.expect(pkt.ServerInfo{}.PacketID())))
+	h.send(&v1_8.StatusServerboundPingStart{})
+	assertFixture(t, "status_response", framed(t, h.expect(v1_8.StatusClientboundServerInfo{}.PacketID())))
 
-	h.send(&pkt.PingSB{Time: 0x0123456789abcdef})
-	assertFixture(t, "ping_response", framed(t, h.expect(pkt.PingCB{}.PacketID())))
+	h.send(&v1_8.StatusServerboundPing{Time: 0x0123456789abcdef})
+	assertFixture(t, "ping_response", framed(t, h.expect(v1_8.StatusClientboundPing{}.PacketID())))
 }
 
 func TestByteParityLoginSuccess(t *testing.T) {
 	h := newHarness(t)
 
 	h.handshake(2)
-	h.send(&pkt.LoginStart{Username: "Tester"})
-	assertFixture(t, "login_success", framed(t, h.expect(pkt.Success{}.PacketID())))
+	h.send(&v1_8.LoginServerboundLoginStart{Username: "Tester"})
+	assertFixture(t, "login_success", framed(t, h.expect(v1_8.LoginClientboundSuccess{}.PacketID())))
 }
 
 // The encryption request is captured from a real online-mode login, with the
@@ -141,12 +148,12 @@ func TestByteParityEncryptionRequest(t *testing.T) {
 	h := newOnlineHarness(t, nil)
 
 	h.handshake(2)
-	h.send(&pkt.LoginStart{Username: "Tester"})
+	h.send(&v1_8.LoginServerboundLoginStart{Username: "Tester"})
 
-	request := h.expect(pkt.EncryptionBeginCB{}.PacketID())
+	request := h.expect(v1_8.LoginClientboundEncryptionBegin{}.PacketID())
 
-	var decoded pkt.EncryptionBeginCB
-	if err := java.Unmarshal(request.data, &decoded, testLimits()); err != nil {
+	var decoded v1_8.LoginClientboundEncryptionBegin
+	if err := wireDecode(t, request.data, &decoded); err != nil {
 		t.Fatalf("unmarshal encryption request: %v", err)
 	}
 	if decoded.ServerID != "" {
@@ -182,11 +189,11 @@ func TestVerifyTokenIsFreshPerConnection(t *testing.T) {
 	for range 2 {
 		h := newOnlineHarness(t, nil)
 		h.handshake(2)
-		h.send(&pkt.LoginStart{Username: "Tester"})
+		h.send(&v1_8.LoginServerboundLoginStart{Username: "Tester"})
 
-		var decoded pkt.EncryptionBeginCB
-		request := h.expect(pkt.EncryptionBeginCB{}.PacketID())
-		if err := java.Unmarshal(request.data, &decoded, testLimits()); err != nil {
+		var decoded v1_8.LoginClientboundEncryptionBegin
+		request := h.expect(v1_8.LoginClientboundEncryptionBegin{}.PacketID())
+		if err := wireDecode(t, request.data, &decoded); err != nil {
 			t.Fatalf("unmarshal encryption request: %v", err)
 		}
 		tokens = append(tokens, decoded.VerifyToken)
@@ -200,7 +207,7 @@ func TestVerifyTokenIsFreshPerConnection(t *testing.T) {
 // A login-state disconnect is what a failed online login produces today. It
 // is the form Task 9 must keep sending when a login is refused.
 func TestByteParityLoginDisconnect(t *testing.T) {
-	assertFixture(t, "login_disconnect", encode(t, &pkt.Disconnect{
+	assertFixture(t, "login_disconnect", encode(t, &v1_8.LoginClientboundDisconnect{
 		Reason: `{"text":"Failed to verify with Mojang."}`,
 	}))
 }
@@ -210,7 +217,7 @@ func TestByteParityLoginDisconnect(t *testing.T) {
 // than driving the timeout, and Task 9 asserts that a kicked player receives
 // exactly these bytes.
 func TestByteParityPlayDisconnect(t *testing.T) {
-	assertFixture(t, "play_disconnect", encode(t, &pkt.KickDisconnect{
+	assertFixture(t, "play_disconnect", encode(t, &v1_8.PlayClientboundKickDisconnect{
 		Reason: `{"text":"Timed out"}`,
 	}))
 }

@@ -15,19 +15,35 @@ up does not repeat the elimination.
 
 Finding 2 is now settled and fixed, ahead of M6, because M6's checklist could
 not close without it and the answer was a day's evidence rather than a
-migration. Finding 3 is fixed too, on 2026-08-16. Finding 1, the crafting
-table, is the one that remains open.
+migration. Findings 1 and 3 were fixed on 2026-08-16, so all three are closed —
+each under a test that fails against the behavior reported here.
 
 ## 1. The crafting table does not work
 
-**Status:** missing feature, predates M3. Confirmed by reading the code.
+**Status:** fixed, 2026-08-16. It was a missing feature, and it predated M3.
 
-Right-clicking a crafting table opens nothing. The server has no 3x3 matcher and
-no `OpenWindow` anywhere in the codebase — `grep -rn "OpenWindow\|3x3" internal/`
-returns nothing. Only `matchRecipe2x2` exists, against inventory slots 1–4.
+Right-clicking a crafting table opened nothing. The server had no 3x3 matcher
+and no `OpenWindow` anywhere in the codebase; only `matchRecipe2x2` existed,
+against inventory slots 1–4.
 
-Implementing it needs a window to open, the 3x3 grid slots, a 3x3 matcher, and
-the shift-click and result-slot behavior that goes with them.
+What it took: a window layout the click handlers read their slot ranges from,
+rather than the player window's constants they had hard-coded. A crafting table
+has no armor slots, so its inventory section sits one slot lower — every click,
+shift-click, number-key, drag, and double-click had to work in the coordinates
+of whichever window is open, or a click would move the item next to the one the
+player aimed at. With that in place the 3x3 is the same code as the 2x2 with a
+different grid size, and the matcher generalized to a square grid of any side.
+
+Right-clicking a table opens the window unless the player is sneaking, which is
+how vanilla lets you build against one. Opening a window returns whatever the
+2x2 still held, because that grid stops being reachable. A click carrying a
+window ID the server does not have open is refused rather than applied to slot
+numbers that no longer mean what the client meant.
+
+Not covered: the table is not a block entity, so two players opening the same
+table get separate grids, and a table broken while open leaves the window up
+until the player closes it. Both are invisible in single-player use and neither
+loses items — the grid is returned to whoever holds it.
 
 ## 2. Inventory crafting works only partially
 

@@ -32,21 +32,130 @@ const (
 	slotOutside = -999 // click outside window
 )
 
-// sendWindowItems sends the full Window 0 (player inventory) to the client.
+// Crafting table window (window type "minecraft:crafting_table") slot layout.
+// It has no armor slots, so its inventory section sits one slot lower than the
+// player window's: output 0, the 3x3 grid 1-9, main inventory 10-36, hotbar
+// 37-45.
+const (
+	tableGridEnd     = 9
+	tableMainStart   = 10
+	tableMainEnd     = 36
+	tableHotbarStart = 37
+	tableHotbarEnd   = 45
+	tableSlotTotal   = 46
+
+	// tableAdvertisedSlots is what OpenWindow reports. Vanilla counts the 3x3
+	// grid and not the output slot; the client lays the window out from the
+	// window type either way.
+	tableAdvertisedSlots = 9
+)
+
+// craftingTableBlockID is the block a right-click opens the 3x3 window on.
+const craftingTableBlockID = 58
+
+// windowLayout gives the slot ranges of whichever window is open. Every click
+// handler works in these coordinates, so one implementation serves the player's
+// own window and a crafting table's, which differ only in where each section
+// starts and how big the grid is.
+type windowLayout struct {
+	id       int8
+	gridSize int // side length: 2 for the player window, 3 for a table
+
+	gridStart int16
+	gridEnd   int16
+
+	// armorStart is -1 when the window has no armor slots.
+	armorStart int16
+	armorEnd   int16
+
+	mainStart   int16
+	mainEnd     int16
+	hotbarStart int16
+	hotbarEnd   int16
+
+	// invShift is added to a window slot in the main or hotbar range to reach
+	// the same item's slot in the player inventory window.
+	invShift int16
+
+	total int
+}
+
+func playerWindowLayout() windowLayout {
+	return windowLayout{
+		id:          0,
+		gridSize:    2,
+		gridStart:   slotCraftStart,
+		gridEnd:     slotCraftEnd,
+		armorStart:  slotArmorStart,
+		armorEnd:    slotArmorEnd,
+		mainStart:   slotMainStart,
+		mainEnd:     slotMainEnd,
+		hotbarStart: slotHotbarStart,
+		hotbarEnd:   slotHotbarEnd,
+		invShift:    0,
+		total:       slotTotal,
+	}
+}
+
+func tableWindowLayout(id int8) windowLayout {
+	return windowLayout{
+		id:          id,
+		gridSize:    3,
+		gridStart:   slotCraftStart,
+		gridEnd:     tableGridEnd,
+		armorStart:  -1,
+		armorEnd:    -1,
+		mainStart:   tableMainStart,
+		mainEnd:     tableMainEnd,
+		hotbarStart: tableHotbarStart,
+		hotbarEnd:   tableHotbarEnd,
+		invShift:    -1,
+		total:       tableSlotTotal,
+	}
+}
+
+// hasArmor reports whether the window shows the player's armor. A crafting
+// table does not, so shift-clicking a helmet inside one stores it rather than
+// wearing it.
+func (l windowLayout) hasArmor() bool {
+	return l.armorStart >= 0
+}
+
+// gridCells is how many slots the crafting grid has.
+func (l windowLayout) gridCells() int {
+	return l.gridSize * l.gridSize
+}
+
+// layout returns the layout of the window the player currently has open.
+func (c *Connection) layout() windowLayout {
+	if c.windowID == 0 {
+		return playerWindowLayout()
+	}
+
+	return tableWindowLayout(c.windowID)
+}
+
+// emptyCraftingGrid returns a grid with every cell empty. The zero value will
+// not do: an empty slot is block ID -1, and a zeroed one reads as block 0.
+func emptyCraftingGrid() [9]player.Slot {
+	var grid [9]player.Slot
+	for i := range grid {
+		grid[i] = player.EmptySlot
+	}
+
+	return grid
+}
+
+// sendWindowItems sends every slot of the window the player has open.
 func (c *Connection) sendWindowItems() error {
-	proto := c.self.Inventory.ToProtocolSlots()
+	l := c.layout()
 
-	// Overlay crafting slots from connection state.
-	proto[slotCraftOutput] = c.craftingOutput
-	for i := 0; i < slotCraftCount; i++ {
-		proto[slotCraftStart+i] = c.craftingGrid[i]
+	items := make([]v1_8.Slot, l.total)
+	for i := range items {
+		items[i] = player.ToGeneratedSlot(c.getWindowSlot(int16(i)))
 	}
 
-	items := make([]v1_8.Slot, slotTotal)
-	for i, s := range proto {
-		items[i] = player.ToGeneratedSlot(s)
-	}
-	return c.send(&v1_8.PlayClientboundWindowItems{WindowID: 0, Items: items})
+	return c.send(&v1_8.PlayClientboundWindowItems{WindowID: uint8(l.id), Items: items})
 }
 
 // sendSetSlot sends a single slot update to the client.
@@ -61,18 +170,20 @@ func (c *Connection) sendSetSlot(windowID int8, slotIndex int16, slot player.Slo
 // handleWindowClick processes a WindowClick (0x0E) packet. The clicked item
 // the client echoes back (value.Item) is not needed for validation.
 func (c *Connection) handleWindowClick(value *v1_8.PlayServerboundWindowClick) error {
-	windowID := value.WindowID
+	windowID := int8(value.WindowID)
 	slotIndex := value.Slot
 	button := value.MouseButton
 	actionID := value.Action
 	mode := int(value.Mode)
 
-	// Only handle player inventory (window 0) for now.
-	if windowID != 0 {
-		return c.sendTransaction(0, actionID, false)
+	// A click in a window the player does not have open is stale — the window
+	// closed while the click was in flight — and applying it would move items
+	// through slot numbers that no longer mean what the client meant.
+	if windowID != c.windowID {
+		return c.sendTransaction(windowID, actionID, false)
 	}
 
-	c.log.Info("window click", "slot", slotIndex, "button", button, "mode", mode, "craftOutput", c.craftingOutput, "cursor", c.cursorSlot)
+	c.log.Info("window click", "window", windowID, "slot", slotIndex, "button", button, "mode", mode, "craftOutput", c.craftingOutput, "cursor", c.cursorSlot)
 	c.dispatchClick(slotIndex, button, mode)
 	c.log.Info("after click", "craftOutput", c.craftingOutput, "cursor", c.cursorSlot)
 
@@ -82,7 +193,7 @@ func (c *Connection) handleWindowClick(value *v1_8.PlayServerboundWindowClick) e
 	_ = c.sendSetSlot(-1, -1, c.cursorSlot)
 
 	// Always accept the transaction.
-	return c.sendTransaction(0, actionID, true)
+	return c.sendTransaction(windowID, actionID, true)
 }
 
 func (c *Connection) sendTransaction(windowID int8, actionID int16, accepted bool) error {
@@ -112,31 +223,59 @@ func (c *Connection) dispatchClick(slot int16, button int8, mode int) {
 	}
 }
 
-// getWindowSlot reads a slot from the player inventory window (0-44).
+// inventorySlot maps a window slot onto the player inventory's own protocol
+// slot, reporting false for slots that do not address the inventory — the
+// crafting area, and anything out of range.
+func (l windowLayout) inventorySlot(slot int16) (int16, bool) {
+	if l.hasArmor() && slot >= l.armorStart && slot <= l.armorEnd {
+		return slot + l.invShift, true
+	}
+	if slot >= l.mainStart && slot <= l.hotbarEnd {
+		return slot + l.invShift, true
+	}
+
+	return 0, false
+}
+
+// getWindowSlot reads a slot of the open window.
 func (c *Connection) getWindowSlot(slot int16) player.Slot {
+	return c.getSlotIn(c.layout(), slot)
+}
+
+// setWindowSlot writes a slot of the open window.
+func (c *Connection) setWindowSlot(slot int16, item player.Slot) {
+	c.setSlotIn(c.layout(), slot, item)
+}
+
+// getSlotIn reads a slot in the coordinates of the given window.
+func (c *Connection) getSlotIn(l windowLayout, slot int16) player.Slot {
 	switch {
 	case slot == slotCraftOutput:
 		return c.craftingOutput
-	case slot >= slotCraftStart && slot <= slotCraftEnd:
-		return c.craftingGrid[slot-slotCraftStart]
-	case slot >= slotArmorStart && slot <= slotHotbarEnd:
-		return c.self.Inventory.GetProtocolSlot(int(slot))
+	case slot >= l.gridStart && slot <= l.gridEnd:
+		return c.craftingGrid[slot-l.gridStart]
 	default:
+		if proto, ok := l.inventorySlot(slot); ok {
+			return c.self.Inventory.GetProtocolSlot(int(proto))
+		}
+
 		return player.EmptySlot
 	}
 }
 
-// setWindowSlot writes a slot to the player inventory window (0-44)
-// and broadcasts equipment changes to trackers if needed.
-func (c *Connection) setWindowSlot(slot int16, item player.Slot) {
+// setSlotIn writes a slot in the coordinates of the given window and
+// broadcasts equipment changes to trackers if needed.
+func (c *Connection) setSlotIn(l windowLayout, slot int16, item player.Slot) {
 	switch {
 	case slot == slotCraftOutput:
 		c.craftingOutput = item
-	case slot >= slotCraftStart && slot <= slotCraftEnd:
-		c.craftingGrid[slot-slotCraftStart] = item
-	case slot >= slotArmorStart && slot <= slotHotbarEnd:
-		c.self.Inventory.SetProtocolSlot(int(slot), item)
-		c.broadcastEquipmentIfNeeded(slot)
+	case slot >= l.gridStart && slot <= l.gridEnd:
+		c.craftingGrid[slot-l.gridStart] = item
+	default:
+		if proto, ok := l.inventorySlot(slot); ok {
+			c.self.Inventory.SetProtocolSlot(int(proto), item)
+			c.broadcastEquipmentIfNeeded(proto)
+		}
 	}
 }
 
@@ -176,6 +315,8 @@ func (c *Connection) broadcastEquipmentIfNeeded(protoSlot int16) {
 
 // handleNormalClick handles mode 0: left-click (pickup/place/swap) and right-click (half-pickup/place-one).
 func (c *Connection) handleNormalClick(slot int16, button int8) {
+	l := c.layout()
+
 	if slot == slotOutside {
 		// Click outside window: drop cursor item.
 		if !c.cursorSlot.IsEmpty() {
@@ -192,7 +333,7 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 		return
 	}
 
-	if slot < 0 || slot > slotHotbarEnd {
+	if slot < 0 || slot > l.hotbarEnd {
 		return
 	}
 
@@ -300,19 +441,21 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 	}
 
 	// Update crafting output if a crafting slot was modified.
-	if slot >= slotCraftStart && slot <= slotCraftEnd {
+	if slot >= l.gridStart && slot <= l.gridEnd {
 		c.updateCraftingOutput()
 	}
 }
 
 // handleShiftClick handles mode 1: shift-click to move items between sections.
 func (c *Connection) handleShiftClick(slot int16, _ int8) {
+	l := c.layout()
+
 	if slot == slotCraftOutput {
 		c.shiftCraftAll()
 		return
 	}
 
-	if slot < 0 || slot > slotHotbarEnd {
+	if slot < 0 || slot > l.hotbarEnd {
 		return
 	}
 
@@ -325,26 +468,26 @@ func (c *Connection) handleShiftClick(slot int16, _ int8) {
 	// have already been placed, so the source slot keeps only the remainder.
 	leftover := int(item.ItemCount)
 	switch {
-	case slot >= slotArmorStart && slot <= slotArmorEnd:
+	case l.hasArmor() && slot >= l.armorStart && slot <= l.armorEnd:
 		// Armor → main inventory or hotbar.
-		leftover = c.addToSection(item, slotMainStart, slotHotbarEnd)
-	case slot >= slotMainStart && slot <= slotMainEnd:
+		leftover = c.addToSection(item, l.mainStart, l.hotbarEnd)
+	case slot >= l.mainStart && slot <= l.mainEnd:
 		// Main inventory → try armor first if applicable, then hotbar.
 		if c.equipArmor(item) {
 			leftover = 0
 		} else {
-			leftover = c.addToSection(item, slotHotbarStart, slotHotbarEnd)
+			leftover = c.addToSection(item, l.hotbarStart, l.hotbarEnd)
 		}
-	case slot >= slotHotbarStart && slot <= slotHotbarEnd:
+	case slot >= l.hotbarStart && slot <= l.hotbarEnd:
 		// Hotbar → try armor first if applicable, then main inventory.
 		if c.equipArmor(item) {
 			leftover = 0
 		} else {
-			leftover = c.addToSection(item, slotMainStart, slotMainEnd)
+			leftover = c.addToSection(item, l.mainStart, l.mainEnd)
 		}
-	case slot >= slotCraftStart && slot <= slotCraftEnd:
+	case slot >= l.gridStart && slot <= l.gridEnd:
 		// Crafting grid → main or hotbar.
-		leftover = c.addToSection(item, slotMainStart, slotHotbarEnd)
+		leftover = c.addToSection(item, l.mainStart, l.hotbarEnd)
 	}
 
 	if leftover == int(item.ItemCount) {
@@ -359,14 +502,19 @@ func (c *Connection) handleShiftClick(slot int16, _ int8) {
 		c.setWindowSlot(slot, remainder)
 	}
 
-	if slot >= slotCraftStart && slot <= slotCraftEnd {
+	if slot >= l.gridStart && slot <= l.gridEnd {
 		c.updateCraftingOutput()
 	}
 }
 
 // equipArmor moves item into its armor slot when the item is armor and that
-// slot is empty.
+// slot is empty. A window without armor slots — a crafting table — never
+// equips: vanilla stores the piece instead.
 func (c *Connection) equipArmor(item player.Slot) bool {
+	if !c.layout().hasArmor() {
+		return false
+	}
+
 	armorSlot := armorSlotForItem(item.BlockID)
 	if armorSlot < 0 || !c.getWindowSlot(armorSlot).IsEmpty() {
 		return false
@@ -380,11 +528,12 @@ func (c *Connection) equipArmor(item player.Slot) bool {
 // is what vanilla does when the crafting output is shift-clicked. Taking the
 // output with a normal click crafts once; shift-click drains the grid.
 func (c *Connection) shiftCraftAll() {
+	l := c.layout()
 	crafted := false
 
-	// A 2x2 grid holds at most 64 of each ingredient, so no grid can support
-	// more crafts than that. The bound keeps a matcher that fails to consume
-	// its ingredients from spinning here.
+	// A grid slot holds at most 64 items, so no grid can support more crafts
+	// than that. The bound keeps a matcher that fails to consume its
+	// ingredients from spinning here.
 	for range 64 {
 		result := c.craftingOutput
 		if result.IsEmpty() {
@@ -392,11 +541,11 @@ func (c *Connection) shiftCraftAll() {
 		}
 		// Vanilla refuses a craft it cannot deposit whole rather than
 		// splitting the result stack.
-		if c.spaceForItem(result, slotMainStart, slotHotbarEnd) < int(result.ItemCount) {
+		if c.spaceForItem(result, l.mainStart, l.hotbarEnd) < int(result.ItemCount) {
 			break
 		}
 
-		c.addToSection(result, slotMainStart, slotHotbarEnd)
+		c.addToSection(result, l.mainStart, l.hotbarEnd)
 		c.consumeCraftingIngredients()
 		c.craftingOutput = c.matchCraftingRecipe()
 		crafted = true
@@ -464,11 +613,13 @@ func (c *Connection) spaceForItem(item player.Slot, lo, hi int16) int {
 
 // handleNumberKey handles mode 2: pressing number keys 1-9 to swap with hotbar.
 func (c *Connection) handleNumberKey(slot int16, button int8) {
-	if slot < 0 || slot > slotHotbarEnd {
+	l := c.layout()
+
+	if slot < 0 || slot > l.hotbarEnd {
 		return
 	}
-	hotbarSlot := int16(slotHotbarStart) + int16(button)
-	if hotbarSlot < slotHotbarStart || hotbarSlot > slotHotbarEnd {
+	hotbarSlot := l.hotbarStart + int16(button)
+	if hotbarSlot < l.hotbarStart || hotbarSlot > l.hotbarEnd {
 		return
 	}
 
@@ -477,14 +628,14 @@ func (c *Connection) handleNumberKey(slot int16, button int8) {
 	c.setWindowSlot(slot, hotbarItem)
 	c.setWindowSlot(hotbarSlot, slotItem)
 
-	if slot >= slotCraftStart && slot <= slotCraftEnd {
+	if slot >= l.gridStart && slot <= l.gridEnd {
 		c.updateCraftingOutput()
 	}
 }
 
 // handleMiddleClick handles mode 3: middle-click in creative mode (clone to cursor).
 func (c *Connection) handleMiddleClick(slot int16) {
-	if slot < 0 || slot > slotHotbarEnd {
+	if slot < 0 || slot > c.layout().hotbarEnd {
 		return
 	}
 	item := c.getWindowSlot(slot)
@@ -496,12 +647,14 @@ func (c *Connection) handleMiddleClick(slot int16) {
 
 // handleDropClick handles mode 4: Q key drop.
 func (c *Connection) handleDropClick(slot int16, button int8) {
+	l := c.layout()
+
 	if slot == slotOutside {
 		// Drop cursor (already handled by normal click path when mode=4 slot=-999).
 		// In practice this shouldn't happen, but handle gracefully.
 		return
 	}
-	if slot < 0 || slot > slotHotbarEnd {
+	if slot < 0 || slot > l.hotbarEnd {
 		return
 	}
 
@@ -528,7 +681,7 @@ func (c *Connection) handleDropClick(slot int16, button int8) {
 		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
 	}
 
-	if slot >= slotCraftStart && slot <= slotCraftEnd {
+	if slot >= l.gridStart && slot <= l.gridEnd {
 		c.updateCraftingOutput()
 	}
 }
@@ -548,7 +701,7 @@ func (c *Connection) handleDragClick(slot int16, button int8) {
 		c.dragMode = 1
 		c.dragSlots = nil
 	case 1, 5: // Add slot
-		if c.dragActive && slot >= 0 && slot <= slotHotbarEnd {
+		if c.dragActive && slot >= 0 && slot <= c.layout().hotbarEnd {
 			c.dragSlots = append(c.dragSlots, slot)
 		}
 	case 2: // End left drag
@@ -649,9 +802,11 @@ func (c *Connection) handleDoubleClick(_ int16) {
 		return
 	}
 
+	l := c.layout()
+
 	needed := 64 - int(c.cursorSlot.ItemCount)
 	// Scan all inventory slots (skip crafting output).
-	for s := int16(slotCraftStart); s <= slotHotbarEnd && needed > 0; s++ {
+	for s := l.gridStart; s <= l.hotbarEnd && needed > 0; s++ {
 		item := c.getWindowSlot(s)
 		if item.IsEmpty() || !canStack(item, c.cursorSlot) {
 			continue
@@ -695,34 +850,74 @@ func (c *Connection) handleCreativeSlot(value *v1_8.PlayServerboundSetCreativeSl
 	if item.BlockID != -1 {
 		pSlot = player.Slot{BlockID: item.BlockID, ItemCount: item.ItemCount, ItemDamage: item.ItemDamage}
 	}
-	c.setWindowSlot(slotIndex, pSlot)
+	// A creative slot is always addressed in the player window's coordinates,
+	// whatever window happens to be open on top of it.
+	c.setSlotIn(playerWindowLayout(), slotIndex, pSlot)
+
 	return nil
 }
 
-// handleCloseWindow processes a CloseWindow (0x0D) packet. The window ID it
-// carries is not needed: only window 0 (the player inventory) is supported.
-func (c *Connection) handleCloseWindow() error {
-	// Return crafting grid items to inventory or drop them.
+// openCraftingTable opens the 3x3 window on the table at (x, y, z) and tells
+// the client to show it. The grid it opens onto is always empty: whatever the
+// player left in the last one was returned when that window closed.
+func (c *Connection) openCraftingTable() error {
+	c.emptyCraftingArea()
+
+	c.nextWindowID++
+	if c.nextWindowID > 100 || c.nextWindowID < 1 {
+		c.nextWindowID = 1
+	}
+	c.windowID = c.nextWindowID
+
+	if err := c.send(&v1_8.PlayClientboundOpenWindow{
+		WindowID:      uint8(c.windowID),
+		InventoryType: "minecraft:crafting_table",
+		WindowTitle:   `{"text":"Crafting"}`,
+		SlotCount:     tableAdvertisedSlots,
+	}); err != nil {
+		return err
+	}
+
+	return c.sendWindowItems()
+}
+
+// emptyCraftingArea returns the crafting grid to the inventory, dropping what
+// does not fit, and clears the output. It runs whenever the crafting area stops
+// being reachable: a window opening over it, or the open window closing.
+func (c *Connection) emptyCraftingArea() {
+	l := c.layout()
 	pos := c.self.GetPosition()
 	groundAt := c.groundAtFunc()
-	for i := 0; i < slotCraftCount; i++ {
+
+	for i := range l.gridCells() {
 		if c.craftingGrid[i].IsEmpty() {
 			continue
 		}
 		// Only what did not fit is dropped. Dropping the whole stack after
 		// part of it was already stored would duplicate the stored part.
-		if leftover := c.addToSection(c.craftingGrid[i], slotMainStart, slotHotbarEnd); leftover > 0 {
+		if leftover := c.addToSection(c.craftingGrid[i], l.mainStart, l.hotbarEnd); leftover > 0 {
 			dropped := c.craftingGrid[i]
 			dropped.ItemCount = int8(leftover)
 			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
 		}
 		c.craftingGrid[i] = player.EmptySlot
 	}
+
+	c.craftingGrid = emptyCraftingGrid()
 	c.craftingOutput = player.EmptySlot
+}
+
+// handleCloseWindow processes a CloseWindow (0x0D) packet. The window ID it
+// carries is not checked: a client closing a window the server no longer has
+// open still means the player is looking at their own inventory again.
+func (c *Connection) handleCloseWindow() error {
+	c.emptyCraftingArea()
+	c.windowID = 0
 
 	// Drop cursor item.
 	if !c.cursorSlot.IsEmpty() {
-		c.players.SpawnItemEntity(c.self.EntityID, c.cursorSlot, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
+		pos := c.self.GetPosition()
+		c.players.SpawnItemEntity(c.self.EntityID, c.cursorSlot, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
 		c.cursorSlot = player.EmptySlot
 	}
 
@@ -777,7 +972,7 @@ func armorSlotForItem(blockID int16) int16 {
 
 // consumeCraftingIngredients removes one item from each occupied crafting grid slot.
 func (c *Connection) consumeCraftingIngredients() {
-	for i := 0; i < slotCraftCount; i++ {
+	for i := range c.layout().gridCells() {
 		if c.craftingGrid[i].IsEmpty() {
 			continue
 		}
@@ -792,17 +987,20 @@ func (c *Connection) consumeCraftingIngredients() {
 func (c *Connection) updateCraftingOutput() {
 	result := c.matchCraftingRecipe()
 	c.craftingOutput = result
-	_ = c.sendSetSlot(0, slotCraftOutput, result)
+	_ = c.sendSetSlot(c.windowID, slotCraftOutput, result)
 }
 
-// matchCraftingRecipe tries to match the 2x2 crafting grid against known recipes.
-// This is a placeholder that will be replaced by the full crafting system.
+// matchCraftingRecipe matches the open window's crafting grid against the
+// recipe registry. The grid is 2x2 in the player's own window and 3x3 in a
+// crafting table, which is the whole difference between them.
 func (c *Connection) matchCraftingRecipe() player.Slot {
-	// Check if crafting grid is empty.
+	cells := c.layout().gridCells()
+
 	allEmpty := true
-	for i := 0; i < slotCraftCount; i++ {
+	for i := range cells {
 		if !c.craftingGrid[i].IsEmpty() {
 			allEmpty = false
+
 			break
 		}
 	}
@@ -814,5 +1012,5 @@ func (c *Connection) matchCraftingRecipe() player.Slot {
 		return player.EmptySlot
 	}
 
-	return matchRecipe2x2(c.craftingGrid, c.gameData.Recipes())
+	return matchRecipe(c.craftingGrid[:], c.layout().gridSize, c.gameData.Recipes())
 }

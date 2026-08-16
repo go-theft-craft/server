@@ -54,9 +54,19 @@ type Connection struct {
 	keepAliveAcked    bool
 
 	// Inventory state (only accessed from Handle goroutine)
-	cursorSlot     player.Slot
-	craftingGrid   [4]player.Slot
+	cursorSlot player.Slot
+	// craftingGrid is row-major and sized for the largest grid a window can
+	// show. The open window decides how much of it is in play: the player's own
+	// window uses the first four cells as a 2x2, a crafting table all nine as a
+	// 3x3.
+	craftingGrid   [9]player.Slot
 	craftingOutput player.Slot
+	// windowID is the window the player has open, or 0 for their own
+	// inventory, which is always open and never allocated an ID.
+	windowID int8
+	// nextWindowID is where the next allocation starts. Window IDs cycle
+	// through 1-100; 0 is reserved for the player's own inventory.
+	nextWindowID int8
 
 	// Drag state for mode 5 (paint/drag click)
 	dragMode   int8
@@ -117,7 +127,7 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		keepAliveAcked: true,
 		cursorSlot:     player.EmptySlot,
 		craftingOutput: player.EmptySlot,
-		craftingGrid:   [4]player.Slot{player.EmptySlot, player.EmptySlot, player.EmptySlot, player.EmptySlot},
+		craftingGrid:   emptyCraftingGrid(),
 		gameData:       gd,
 	}, nil
 }

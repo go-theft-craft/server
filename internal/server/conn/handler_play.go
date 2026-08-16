@@ -635,12 +635,23 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 		return nil
 	}
 
+	clickedX, clickedY, clickedZ := int(value.Location.X), int(value.Location.Y), int(value.Location.Z)
+
+	// Right-clicking a block that has a use takes priority over placing, unless
+	// the player is sneaking — which is how vanilla lets you build against a
+	// crafting table instead of opening it.
+	if !c.self.IsSneaking() {
+		if c.world.GetBlock(clickedX, clickedY, clickedZ)>>4 == craftingTableBlockID {
+			return c.openCraftingTable()
+		}
+	}
+
 	// Empty slot means no block to place.
 	if heldBlockID <= 0 {
 		return nil
 	}
 
-	x, y, z := int(value.Location.X), int(value.Location.Y), int(value.Location.Z)
+	x, y, z := clickedX, clickedY, clickedZ
 
 	// Compute target position from face direction.
 	switch face {

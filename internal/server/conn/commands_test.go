@@ -167,7 +167,7 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 		keepAliveAcked: true,
 		cursorSlot:     player.EmptySlot,
 		craftingOutput: player.EmptySlot,
-		craftingGrid:   [4]player.Slot{player.EmptySlot, player.EmptySlot, player.EmptySlot, player.EmptySlot},
+		craftingGrid:   emptyCraftingGrid(),
 	}
 
 	return c, sp, m, written

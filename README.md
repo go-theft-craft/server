@@ -325,7 +325,7 @@ Minecraft 1.8.8 (protocol 47) implementation status:
 - PvP combat: attack with knockback, hurt animation, death animation
 - Chat messaging and commands (including `/save`, `/kill` with respawn)
 - Multiplayer: player spawning, entity tracking, visibility streaming, periodic position resyncs
-- Inventory: hotbar, armor, held item, crafting (2x2), item dropping with physics
+- Inventory: hotbar, armor, held item, crafting (2x2 inventory grid and the 3x3 crafting table), item dropping with physics
 - Item entities: throw arc simulation, terrain-aware landing, auto-pickup
 - Procedural world generation with biomes, caves, ores, trees
 - Dynamic chunk loading/unloading with smart pre-generation skip on restart

@@ -278,8 +278,7 @@ func (c *Connection) handlePlay(packetID int32, data []byte) error {
 		}
 		c.self.Inventory.SetHeldSlot(p.SlotID)
 		heldItem := c.self.Inventory.HeldItem()
-		eqData := player.BuildSingleEquipment(c.self.EntityID, 0, heldItem)
-		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: eqData}, c.self.EntityID)
+		c.broadcastSingleEquipment(c.self.EntityID, 0, heldItem)
 
 	case pkt.ArmAnimation{}.PacketID():
 		c.players.BroadcastToTrackers(&pkt.Animation{
@@ -607,8 +606,7 @@ func (c *Connection) handleBlockDig(data []byte) error {
 
 		// Update held item for trackers.
 		newHeld := c.self.Inventory.HeldItem()
-		eqData := player.BuildSingleEquipment(c.self.EntityID, 0, newHeld)
-		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: eqData}, c.self.EntityID)
+		c.broadcastSingleEquipment(c.self.EntityID, 0, newHeld)
 	}
 
 	return nil

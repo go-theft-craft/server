@@ -15,13 +15,13 @@ type Slot struct {
 	ItemDamage int16
 }
 
-// toGeneratedSlot converts a Slot to the generated protocol 47 Slot value.
+// ToGeneratedSlot converts a Slot to the generated protocol 47 Slot value.
 //
 // It mirrors WriteSlot's wire shape: for an empty slot (BlockID -1) the
 // generated Slot.Encode writes only the block ID, and for a present item it
 // writes count, damage, and — with NBTData nil — the single-byte no-NBT
 // sentinel WriteSlot emits by hand.
-func toGeneratedSlot(s Slot) v1_8.Slot {
+func ToGeneratedSlot(s Slot) v1_8.Slot {
 	slot := v1_8.Slot{BlockID: s.BlockID}
 	if s.BlockID != -1 {
 		slot.AnonymousSwitch1.Default.ItemCount = s.ItemCount

@@ -2,13 +2,12 @@ package conn
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/player"
-	pkt "github.com/go-theft-craft/server/pkg/gamedata/versions/pc_1_8"
 )
 
 // Player inventory window (window 0) slot layout.
@@ -47,22 +46,20 @@ func (c *Connection) sendWindowItems() error {
 		proto[slotCraftStart+i] = c.craftingGrid[i]
 	}
 
-	var buf bytes.Buffer
-	buf.WriteByte(0) // window ID = 0
-	_ = binary.Write(&buf, binary.BigEndian, int16(slotTotal))
-	for _, s := range proto {
-		_ = player.WriteSlot(&buf, s)
+	items := make([]v1_8.Slot, slotTotal)
+	for i, s := range proto {
+		items[i] = player.ToGeneratedSlot(s)
 	}
-	return c.writeMarshalled(&pkt.WindowItems{Data: buf.Bytes()})
+	return c.send(&v1_8.PlayClientboundWindowItems{WindowID: 0, Items: items})
 }
 
 // sendSetSlot sends a single slot update to the client.
 func (c *Connection) sendSetSlot(windowID int8, slotIndex int16, slot player.Slot) error {
-	var buf bytes.Buffer
-	buf.WriteByte(byte(windowID))
-	_ = binary.Write(&buf, binary.BigEndian, slotIndex)
-	_ = player.WriteSlot(&buf, slot)
-	return c.writeMarshalled(&pkt.SetSlot{Data: buf.Bytes()})
+	return c.send(&v1_8.PlayClientboundSetSlot{
+		WindowID: windowID,
+		Slot:     slotIndex,
+		Item:     player.ToGeneratedSlot(slot),
+	})
 }
 
 // handleWindowClick processes a WindowClick (0x0E) packet.
@@ -118,7 +115,7 @@ func (c *Connection) handleWindowClick(data []byte) error {
 }
 
 func (c *Connection) sendTransaction(windowID int8, actionID int16, accepted bool) error {
-	return c.writeMarshalled(&pkt.TransactionCB{
+	return c.send(&v1_8.PlayClientboundTransaction{
 		WindowID: windowID,
 		Action:   actionID,
 		Accepted: accepted,
@@ -172,6 +169,13 @@ func (c *Connection) setWindowSlot(slot int16, item player.Slot) {
 	}
 }
 
+// broadcastSingleEquipment sends one EntityEquipment (0x04) update to the
+// player's trackers.
+func (c *Connection) broadcastSingleEquipment(entityID int32, equipSlot int16, slot player.Slot) {
+	value := player.BuildSingleEquipmentValue(entityID, equipSlot, slot)
+	c.players.BroadcastToTrackers(&value, entityID)
+}
+
 // broadcastEquipmentIfNeeded sends equipment updates to trackers when
 // armor or held item slots change.
 func (c *Connection) broadcastEquipmentIfNeeded(protoSlot int16) {
@@ -179,22 +183,22 @@ func (c *Connection) broadcastEquipmentIfNeeded(protoSlot int16) {
 	switch {
 	case protoSlot == slotHelmet:
 		slot := c.self.Inventory.GetArmor(3)
-		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 4, slot)}, eid)
+		c.broadcastSingleEquipment(eid, 4, slot)
 	case protoSlot == slotChestplate:
 		slot := c.self.Inventory.GetArmor(2)
-		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 3, slot)}, eid)
+		c.broadcastSingleEquipment(eid, 3, slot)
 	case protoSlot == slotLeggings:
 		slot := c.self.Inventory.GetArmor(1)
-		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 2, slot)}, eid)
+		c.broadcastSingleEquipment(eid, 2, slot)
 	case protoSlot == slotBoots:
 		slot := c.self.Inventory.GetArmor(0)
-		c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 1, slot)}, eid)
+		c.broadcastSingleEquipment(eid, 1, slot)
 	case protoSlot >= slotHotbarStart && protoSlot <= slotHotbarEnd:
 		// Check if this is the active hotbar slot.
 		hotbarIdx := protoSlot - slotHotbarStart
 		if hotbarIdx == int16(c.self.Inventory.GetHeldSlot()) {
 			heldItem := c.self.Inventory.HeldItem()
-			c.players.BroadcastToTrackers(&pkt.EntityEquipment{Data: player.BuildSingleEquipment(eid, 0, heldItem)}, eid)
+			c.broadcastSingleEquipment(eid, 0, heldItem)
 		}
 	}
 }

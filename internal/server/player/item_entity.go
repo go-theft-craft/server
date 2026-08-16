@@ -297,6 +297,6 @@ func itemMetadataValue(ie *ItemEntity) v1_8.EntityMetadata {
 			Type: metaTypeSlot,
 			Key:  10,
 		},
-		Value: v1_8.EntityMetadataItemValueSwitch{Case5: toGeneratedSlot(ie.Item)},
+		Value: v1_8.EntityMetadataItemValueSwitch{Case5: ToGeneratedSlot(ie.Item)},
 	}}
 }

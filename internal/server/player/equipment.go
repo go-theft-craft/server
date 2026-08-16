@@ -1,11 +1,7 @@
 package player
 
 import (
-	"bytes"
-	"encoding/binary"
-
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 )
 
 // BuildEquipmentValues builds the 5 EntityEquipment (0x04) packet values for a
@@ -32,23 +28,13 @@ func equipmentValue(entityID int32, equipSlot int16, slot Slot) v1_8.PlayClientb
 	return v1_8.PlayClientboundEntityEquipment{
 		EntityID: entityID,
 		Slot:     equipSlot,
-		Item:     toGeneratedSlot(slot),
+		Item:     ToGeneratedSlot(slot),
 	}
 }
 
-// BuildSingleEquipment builds a single EntityEquipment raw data payload.
-//
-// The still-pc_1_8 handlers (inventory.go, commands.go, handler_play.go) wrap
-// this in a pkt.EntityEquipment{Data: ...}; Task 6 retypes them onto
-// EntityEquipment values and this byte builder goes away with the pkt package.
-func BuildSingleEquipment(entityID int32, equipSlot int16, slot Slot) []byte {
-	return buildEquipmentData(entityID, equipSlot, slot)
-}
-
-func buildEquipmentData(entityID int32, equipSlot int16, slot Slot) []byte {
-	var buf bytes.Buffer
-	_, _ = java.WriteVarInt(&buf, entityID)
-	_ = binary.Write(&buf, binary.BigEndian, equipSlot)
-	_ = WriteSlot(&buf, slot)
-	return buf.Bytes()
+// BuildSingleEquipmentValue builds a single EntityEquipment (0x04) packet value
+// for one equipment slot. It is the generated-type replacement for
+// BuildSingleEquipment's raw-byte payload.
+func BuildSingleEquipmentValue(entityID int32, equipSlot int16, slot Slot) v1_8.PlayClientboundEntityEquipment {
+	return equipmentValue(entityID, equipSlot, slot)
 }

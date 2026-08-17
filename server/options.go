@@ -27,6 +27,7 @@ type builder struct {
 	log       *slog.Logger
 	generator gen.Generator
 	store     Store
+	observer  Observer
 }
 
 // WithSettings replaces the whole settings struct. The value is copied, so the

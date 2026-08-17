@@ -118,9 +118,13 @@ type PlayerStore interface {
 
 // NewConnection creates a new Connection from a raw TCP connection.
 //
+// The stream options are the server's, not the connection's: an observed
+// server installs an observation sink through them, and a server nobody asked
+// for metrics passes none and pays nothing per frame.
+//
 // It returns an error because the connection now owns a managed stream, and a
 // stream that cannot be built is a connection that cannot be served.
-func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World, players *player.Manager, store PlayerStore, gd *data.Set) (*Connection, error) {
+func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World, players *player.Manager, store PlayerStore, gd *data.Set, streamOptions ...protocol.StreamOption) (*Connection, error) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	limits, err := protocol.NewLimits()
@@ -137,7 +141,9 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		return nil, fmt.Errorf("build legacy ping hook: %w", err)
 	}
 
-	stream, err := newStream(conn, limits, protocol.WithPreFrameHook(legacyPing))
+	options := append([]protocol.StreamOption{protocol.WithPreFrameHook(legacyPing)}, streamOptions...)
+
+	stream, err := newStream(conn, limits, options...)
 	if err != nil {
 		cancel()
 

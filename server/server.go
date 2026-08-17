@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	protocol "github.com/go-theft-craft/minecraft-protocol"
 	"github.com/go-theft-craft/minecraft-protocol/data"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
@@ -28,6 +29,11 @@ type Server struct {
 	store     Store
 	gameData  *data.Set
 	generator gen.Generator
+
+	// dispatch delivers samples to the observer the server was built with. It
+	// is nil when no observer was supplied, and every sampling path checks
+	// that rather than measuring for a no-op.
+	dispatch *dispatcher
 
 	// playerStore is the half of persistence Store cannot express yet,
 	// because loading and saving a player name internal types. It is
@@ -90,6 +96,10 @@ func New(opts ...Option) (*Server, error) {
 
 	if ps, ok := b.store.(playerSaver); ok {
 		srv.playerStore = ps
+	}
+
+	if b.observer != nil {
+		srv.dispatch = newDispatcher(b.observer)
 	}
 
 	return srv, nil
@@ -190,7 +200,7 @@ func (s *Server) Start(ctx context.Context) error {
 			continue
 		}
 
-		connection, err := conn.NewConnection(ctx, c, s.cfg, s.log, s.world, s.players, s.playerStore, s.gameData)
+		connection, err := conn.NewConnection(ctx, c, s.cfg, s.log, s.world, s.players, s.playerStore, s.gameData, s.streamOptions()...)
 		if err != nil {
 			s.log.Error("create connection", "error", err, "addr", c.RemoteAddr().String())
 			_ = c.Close()
@@ -262,6 +272,15 @@ func (s *Server) tickLoop(ctx context.Context) {
 	ticker := time.NewTicker(50 * time.Millisecond)
 	defer ticker.Stop()
 
+	// A server with no observer never reads its own resource use: the
+	// measurement exists to be reported, and there is nobody to report it to.
+	resources := time.NewTicker(resourceSampleInterval)
+	defer resources.Stop()
+
+	if !s.observed() {
+		resources.Stop()
+	}
+
 	var tickCount int
 
 	for {
@@ -271,8 +290,21 @@ func (s *Server) tickLoop(ctx context.Context) {
 		case <-ticker.C:
 			tickCount++
 			s.tick(tickCount)
+		case <-resources.C:
+			s.SampleResources()
 		}
 	}
+}
+
+// streamOptions are the options every connection's stream is built with. An
+// observed server installs the network sink here, so the observation cost is
+// paid only by a server that asked for it.
+func (s *Server) streamOptions() []protocol.StreamOption {
+	if !s.observed() {
+		return nil
+	}
+
+	return []protocol.StreamOption{protocol.WithObservationSink(NetworkSink(s.dispatch))}
 }
 
 // tick advances the world by one tick and broadcasts time every 20 ticks (~1 second).

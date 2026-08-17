@@ -22,6 +22,17 @@ type Generator interface {
 	HeightAt(blockX, blockZ int) int
 }
 
+// Loader is where a world looks for a column before generating one.
+//
+// It is declared here for the same reason Generator is: a store lives above
+// this package, and this package must not import it.
+type Loader interface {
+	// LoadChunk returns the stored column, or nil for a position nothing has
+	// been written to. An error means the store failed, and the world will
+	// not generate over what it could not read.
+	LoadChunk(pos ChunkPos) (*Chunk, error)
+}
+
 // Binder is the optional interface a Generator implements when it needs block
 // state handles. The world binds a generator once, at construction, so that a
 // palette is resolved before the first block is written rather than on the
@@ -40,6 +51,7 @@ type World struct {
 	reg       StateRegistry
 	air       State
 	generator Generator
+	loader    Loader
 
 	// adapter renders the world for the version its clients speak. The world
 	// itself never calls it: it holds it so a connection and a saver can ask
@@ -84,6 +96,13 @@ func NewWorld(dim Dimension, adapter Adapter, generator Generator) (*World, erro
 
 	return w, nil
 }
+
+// SetLoader gives the world somewhere to look before it generates.
+//
+// It is construction-time only: the server calls it in New, before anything
+// can read a chunk. There is no way to change a loader under a running world,
+// because a chunk already generated would not be reloaded.
+func (w *World) SetLoader(l Loader) { w.loader = l }
 
 // Dimension is the world's vertical extent.
 func (w *World) Dimension() Dimension { return w.dim }
@@ -130,6 +149,12 @@ func (w *World) chunkSlot(pos ChunkPos) *atomic.Pointer[Chunk] {
 }
 
 func (w *World) generate(pos ChunkPos) *Chunk {
+	if c := w.load(pos); c != nil {
+		c.Gen = Generation(w.generation.Add(1))
+
+		return c
+	}
+
 	b := NewBuilder(w.dim, pos, w.air)
 	if w.generator != nil {
 		if err := w.generator.Generate(pos, b); err != nil {
@@ -139,6 +164,29 @@ func (w *World) generate(pos ChunkPos) *Chunk {
 	}
 	c := b.Build()
 	c.Gen = Generation(w.generation.Add(1))
+
+	return c
+}
+
+// load asks the loader for a column. It returns nil when there is no loader or
+// the loader has nothing, which is the signal to generate.
+//
+// A loader that *fails* is different: the column comes back empty and marked
+// Unreadable, so nothing generates over data that is there but could not be
+// read, and nothing saves the empty column back over it either. A world that
+// quietly regenerates on a disk fault looks like a world that was deleted.
+func (w *World) load(pos ChunkPos) *Chunk {
+	if w.loader == nil {
+		return nil
+	}
+
+	c, err := w.loader.LoadChunk(pos)
+	if err != nil {
+		wrapped := fmt.Errorf("world: load chunk %v: %w", pos, err)
+		w.genErr.CompareAndSwap(nil, &wrapped)
+
+		return &Chunk{Pos: pos, Sections: make([]*Section, w.dim.Sections()), Unreadable: true}
+	}
 
 	return c
 }

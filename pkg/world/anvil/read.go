@@ -79,6 +79,52 @@ func (r *Region) Chunk(pos world.ChunkPos) (*world.Chunk, bool, error) {
 		return nil, false, fmt.Errorf("anvil: chunk %v is not in region %d,%d", pos, r.rx, r.rz)
 	}
 
+	payload, present, err := r.rawChunk(pos)
+	if err != nil || !present {
+		return nil, false, err
+	}
+
+	root, err := nbt.Decode(payload)
+	if err != nil {
+		return nil, false, fmt.Errorf("anvil: chunk %v: %w", pos, err)
+	}
+	level, ok := root.Compound("Level")
+	if !ok {
+		return nil, false, fmt.Errorf("%w: chunk %v has no Level compound", ErrCorrupt, pos)
+	}
+
+	c, err := r.decodeLevel(pos, level)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return c, true, nil
+}
+
+// RawChunks returns the decoded NBT payload of every chunk present in the
+// region, keyed by position.
+//
+// A store rewriting one region needs it: a region holds 1,024 columns and a
+// snapshot holds only the resident ones, so saving without carrying the rest
+// forward would delete the world outside the players.
+func (r *Region) RawChunks() (map[world.ChunkPos][]byte, error) {
+	out := make(map[world.ChunkPos][]byte)
+	for i := range 1024 {
+		pos := world.ChunkPos{X: r.rx*32 + i%32, Z: r.rz*32 + i/32}
+		payload, present, err := r.rawChunk(pos)
+		if err != nil {
+			return nil, err
+		}
+		if present {
+			out[pos] = payload
+		}
+	}
+
+	return out, nil
+}
+
+// rawChunk locates and decompresses one chunk's NBT payload.
+func (r *Region) rawChunk(pos world.ChunkPos) ([]byte, bool, error) {
 	entry := binary.BigEndian.Uint32(r.data[((pos.X&31)+(pos.Z&31)*32)*4:])
 	offset, sectors := entry>>8, entry&0xFF
 	if offset == 0 && sectors == 0 {
@@ -104,21 +150,7 @@ func (r *Region) Chunk(pos world.ChunkPos) (*world.Chunk, bool, error) {
 		return nil, false, fmt.Errorf("anvil: chunk %v: %w", pos, err)
 	}
 
-	root, err := nbt.Decode(payload)
-	if err != nil {
-		return nil, false, fmt.Errorf("anvil: chunk %v: %w", pos, err)
-	}
-	level, ok := root.Compound("Level")
-	if !ok {
-		return nil, false, fmt.Errorf("%w: chunk %v has no Level compound", ErrCorrupt, pos)
-	}
-
-	c, err := r.decodeLevel(pos, level)
-	if err != nil {
-		return nil, false, err
-	}
-
-	return c, true, nil
+	return payload, true, nil
 }
 
 func decompress(scheme byte, payload []byte) ([]byte, error) {

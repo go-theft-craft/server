@@ -28,7 +28,8 @@ type builder struct {
 	log         *slog.Logger
 	generator   gen.Generator
 	dimension   world.Dimension
-	store       Store
+	worldStore  WorldStore
+	sideStore   SideStore
 	playerStore PlayerStore
 	observer    Observer
 }

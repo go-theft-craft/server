@@ -1,64 +1,174 @@
 package server
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 
-	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
 )
 
-// Store is world persistence. The server depends on this rather than on a
-// concrete type, so an application can supply its own.
+// Persistence.
 //
-// It covers the world only. Player persistence still runs through the
-// concrete path inside this package, because storage.SavePlayer takes an
-// internal type and no external implementer could satisfy a method naming it.
-// M11.3 folds player data in when the player model has a public shape.
+// One store named a format — M11.1's Store had SaveWorldAnvil on it — and one
+// store could not express player data at all, because saving a player named an
+// internal type. Both are fixed by splitting the seam in three and giving each
+// half a public value type:
 //
-// SaveWorldAnvil names a format, which a seam should not. It is here because
-// it is what the server calls today, and inventing the version-neutral
-// WorldStore now would be designing M11.3 without its research.
-type Store interface {
-	HasSavedWorld() bool
-	LoadWorld(w *world.World) error
-	SaveWorld(w *world.World) error
-	LoadBlockOverrides(w *world.World) error
-	SaveBlockOverrides(w *world.World) error
-	LoadChests(w *world.World) error
-	SaveChests(w *world.World) error
-	SaveWorldAnvil(w *world.World) error
+//   - WorldStore holds what vanilla has fields for: blocks, biomes, and tile
+//     entities. Its format is a detail; its interface names none.
+//   - SideStore holds what vanilla has no field for. It is written from the
+//     same snapshot as the world and stamped with the same generation, so a
+//     mismatched pair is detected at load rather than trusted.
+//   - PlayerStore holds per-player state as PlayerData.
+//
+// Each is a separate option, so an application can replace one and keep the
+// defaults for the other two.
+
+// DefaultWorld is the world name the server passes when it has only one.
+// The parameter exists so a second dimension is not a signature change.
+const DefaultWorld = "overworld"
+
+// SidecarVersion is the sidecar format this build writes.
+const SidecarVersion = 1
+
+// WorldStore holds the vanilla world: blocks, biomes, and the tile entities
+// the vanilla format has fields for.
+type WorldStore interface {
+	// LoadChunk returns the stored column, or nil for a position nothing has
+	// been written to yet.
+	//
+	// nil, nil means "generate one". An error means the store failed, and the
+	// server must not silently regenerate over data it could not read: a world
+	// that quietly regenerates on a disk error looks like a world that was
+	// deleted.
+	LoadChunk(ctx context.Context, name string, pos world.ChunkPos) (*world.Chunk, error)
+	// SaveSnapshot writes every chunk in the snapshot that has moved since
+	// the store last wrote it.
+	SaveSnapshot(ctx context.Context, name string, snap world.Snapshot) error
+	// Level reports false for a world that has never been saved.
+	Level(ctx context.Context, name string) (LevelData, bool, error)
+	SaveLevel(ctx context.Context, name string, data LevelData) error
+	Close() error
 }
 
-// WithStore supplies persistence. Omit the option entirely to run without it;
-// a nil store is an error rather than a silent no-op, because "I passed a
-// store and nothing was saved" is the harder failure to diagnose.
-func WithStore(store Store) Option {
+// SideStore holds what the vanilla format has no field for.
+type SideStore interface {
+	SaveSnapshot(ctx context.Context, name string, snap world.Snapshot) error
+	// Load returns the sidecar written for a chunk, and reports whether one
+	// was there. The generation the caller passes is the world's, so an
+	// implementation can report a stamp mismatch rather than hide it.
+	Load(ctx context.Context, name string, pos world.ChunkPos, gen world.Generation) (Sidecar, bool, error)
+	Close() error
+}
+
+// LevelData is world-level metadata: what vanilla keeps in level.dat.
+//
+// The age and time-of-day tags are the ones world.json used, so an existing
+// file still loads.
+type LevelData struct {
+	Age             int64           `json:"age"`
+	TimeOfDay       int64           `json:"time_of_day"`
+	Seed            int64           `json:"seed,omitempty"`
+	GeneratorType   string          `json:"generator_type,omitempty"`
+	GeneratorParams json.RawMessage `json:"generator_params,omitempty"`
+}
+
+// Sidecar is the per-chunk record of everything vanilla cannot hold.
+//
+// In this milestone it carries nothing but its own version and the generation
+// it was written at. The container is written empty on purpose: M11.5 adds
+// contents to it rather than adding a format.
+type Sidecar struct {
+	Version    int              `json:"version"`
+	Generation world.Generation `json:"generation"`
+	// BlockIdentity maps a chunk-local block index to the identity M11.5
+	// gives it. Empty here.
+	BlockIdentity map[string]string `json:"block_identity,omitempty"`
+}
+
+// WithWorldStore supplies world persistence. Omit it to run without;
+// a nil store is an error rather than a silent no-op.
+func WithWorldStore(store WorldStore) Option {
 	return func(b *builder) error {
 		if store == nil {
-			return fmt.Errorf("%w: nil store, omit WithStore to run without persistence", ErrInvalidOption)
+			return fmt.Errorf("%w: nil world store, omit WithWorldStore to run without one", ErrInvalidOption)
 		}
-		b.store = store
+		b.worldStore = store
 
 		return nil
 	}
 }
 
-// FileStore returns the framework's default store, which keeps config,
-// world, and player data as files under dir.
+// WithSideStore supplies the sidecar. Omit it to run without one.
+func WithSideStore(store SideStore) Option {
+	return func(b *builder) error {
+		if store == nil {
+			return fmt.Errorf("%w: nil side store, omit WithSideStore to run without one", ErrInvalidOption)
+		}
+		b.sideStore = store
+
+		return nil
+	}
+}
+
+// Storage is the framework's default persistence: Anvil regions for the world,
+// a chunk-keyed sidecar beside them, and one JSON file per player.
+type Storage struct {
+	world   WorldStore
+	side    SideStore
+	players PlayerStore
+}
+
+// World, Side, and Players are the three halves, for an application that wants
+// to keep two of the defaults and replace the third.
+func (s *Storage) World() WorldStore    { return s.world }
+func (s *Storage) Side() SideStore      { return s.side }
+func (s *Storage) Players() PlayerStore { return s.players }
+
+// Options returns the three options that install this storage, so the common
+// case is one line at the call site.
+func (s *Storage) Options() []Option {
+	return []Option{
+		WithWorldStore(s.world),
+		WithSideStore(s.side),
+		WithPlayerStore(s.players),
+	}
+}
+
+// Close shuts all three down, returning the first failure.
+func (s *Storage) Close() error {
+	var first error
+	for _, closer := range []interface{ Close() error }{s.world, s.side, s.players} {
+		if err := closer.Close(); err != nil && first == nil {
+			first = err
+		}
+	}
+
+	return first
+}
+
+// FileStore returns the framework's default storage, rooted at dir.
 //
-// It exists so an application in another module can use the default without
-// importing an internal package. A nil logger is replaced with a discarding
-// one.
-func FileStore(dir string, log *slog.Logger) (Store, error) {
+// A nil logger is replaced with a discarding one.
+func FileStore(dir string, log *slog.Logger) (*Storage, error) {
 	if log == nil {
 		log = slog.New(slog.DiscardHandler)
 	}
 
-	store, err := storage.New(dir, log)
+	worldStore, err := newAnvilStore(dir, log)
 	if err != nil {
-		return nil, fmt.Errorf("create file store: %w", err)
+		return nil, err
+	}
+	sideStore, err := newSidecarStore(dir)
+	if err != nil {
+		return nil, err
+	}
+	playerStore, err := FilePlayerStore(dir)
+	if err != nil {
+		return nil, err
 	}
 
-	return store, nil
+	return &Storage{world: worldStore, side: sideStore, players: playerStore}, nil
 }

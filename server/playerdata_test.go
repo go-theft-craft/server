@@ -1,6 +1,7 @@
 package server_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -55,11 +56,11 @@ func TestLegacyPlayerJSONLoads(t *testing.T) {
 		t.Fatalf("FilePlayerStore: %v", err)
 	}
 
-	data, err := store.LoadPlayer(uuid)
+	data, found, err := store.LoadPlayer(context.Background(), uuid)
 	if err != nil {
 		t.Fatalf("LoadPlayer: %v", err)
 	}
-	if data == nil {
+	if !found {
 		t.Fatal("the fixture loaded as an absent player")
 	}
 
@@ -102,16 +103,16 @@ func TestAPlayerRoundTripsThroughTheFileStore(t *testing.T) {
 	want.Inventory.Slots[35] = world.ItemStack{ID: 264, Count: 12, Damage: 1}
 	want.Inventory.Armor[3] = world.ItemStack{ID: 310, Count: 1}
 
-	if err := store.SavePlayer(want); err != nil {
+	if err := store.SavePlayer(context.Background(), want); err != nil {
 		t.Fatalf("SavePlayer: %v", err)
 	}
 
-	got, err := store.LoadPlayer(want.UUID)
+	got, found, err := store.LoadPlayer(context.Background(), want.UUID)
 	if err != nil {
 		t.Fatalf("LoadPlayer: %v", err)
 	}
-	if got == nil || *got != want {
-		t.Fatalf("round trip gave %+v, want %+v", got, want)
+	if !found || got != want {
+		t.Fatalf("round trip gave %+v (found=%v), want %+v", got, found, want)
 	}
 }
 
@@ -121,11 +122,11 @@ func TestAnUnknownPlayerIsAbsentRatherThanAnError(t *testing.T) {
 		t.Fatalf("FilePlayerStore: %v", err)
 	}
 
-	data, err := store.LoadPlayer("00000000-0000-3000-8000-000000000009")
+	data, found, err := store.LoadPlayer(context.Background(), "00000000-0000-3000-8000-000000000009")
 	if err != nil {
 		t.Fatalf("LoadPlayer: %v", err)
 	}
-	if data != nil {
+	if found {
 		t.Fatalf("an unknown player loaded as %+v", data)
 	}
 }
@@ -136,20 +137,19 @@ type externalPlayerStore struct {
 	saved map[string]server.PlayerData
 }
 
-func (s *externalPlayerStore) LoadPlayer(uuid string) (*server.PlayerData, error) {
+func (s *externalPlayerStore) LoadPlayer(_ context.Context, uuid string) (server.PlayerData, bool, error) {
 	data, ok := s.saved[uuid]
-	if !ok {
-		return nil, nil
-	}
 
-	return &data, nil
+	return data, ok, nil
 }
 
-func (s *externalPlayerStore) SavePlayer(data server.PlayerData) error {
+func (s *externalPlayerStore) SavePlayer(_ context.Context, data server.PlayerData) error {
 	s.saved[data.UUID] = data
 
 	return nil
 }
+
+func (s *externalPlayerStore) Close() error { return nil }
 
 func TestAnExternalTypeSatisfiesPlayerStore(t *testing.T) {
 	store := &externalPlayerStore{saved: map[string]server.PlayerData{}}

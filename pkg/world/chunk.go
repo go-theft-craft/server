@@ -8,6 +8,11 @@ type Chunk struct {
 	Sections []*Section // len == dim.Sections(); a nil entry is all air
 	Biomes   [256]Biome
 	Gen      Generation
+
+	// Unreadable marks a column the store failed to read. It is empty, and it
+	// must never be written back: doing so would replace data that is there
+	// with the nothing that could not be loaded.
+	Unreadable bool
 }
 
 // At returns the state at chunk-local x, z and world y. A y outside the
@@ -40,10 +45,11 @@ func (c *Chunk) with(dim Dimension, pos BlockPos, state, air State, gen Generati
 	}
 
 	next := &Chunk{
-		Pos:      c.Pos,
-		Sections: make([]*Section, len(c.Sections)),
-		Biomes:   c.Biomes,
-		Gen:      gen,
+		Pos:        c.Pos,
+		Sections:   make([]*Section, len(c.Sections)),
+		Biomes:     c.Biomes,
+		Gen:        gen,
+		Unreadable: c.Unreadable,
 	}
 	copy(next.Sections, c.Sections)
 	if sec == nil {

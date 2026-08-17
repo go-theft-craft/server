@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -26,27 +27,26 @@ func (s filePlayerStore) path(uuid string) string {
 	return filepath.Join(s.dir, uuid+".json")
 }
 
-func (s filePlayerStore) LoadPlayer(uuid string) (*PlayerData, error) {
+func (s filePlayerStore) LoadPlayer(_ context.Context, uuid string) (PlayerData, bool, error) {
 	var data PlayerData
 
 	found, err := storage.ReadJSON(s.path(uuid), &data)
 	if err != nil {
-		return nil, fmt.Errorf("read player %s: %w", uuid, err)
-	}
-	if !found {
-		return nil, nil
+		return PlayerData{}, false, fmt.Errorf("read player %s: %w", uuid, err)
 	}
 
-	return &data, nil
+	return data, found, nil
 }
 
-func (s filePlayerStore) SavePlayer(data PlayerData) error {
+func (s filePlayerStore) SavePlayer(_ context.Context, data PlayerData) error {
 	if data.UUID == "" {
 		return fmt.Errorf("save player: no UUID")
 	}
 
 	return storage.WriteJSONAtomic(s.path(data.UUID), data)
 }
+
+func (s filePlayerStore) Close() error { return nil }
 
 // playerBridge adapts the public PlayerStore, which speaks PlayerData, to what
 // a connection needs, which is the runtime player.
@@ -60,8 +60,8 @@ type playerBridge struct{ store PlayerStore }
 var _ conn.PlayerStore = playerBridge{}
 
 func (b playerBridge) LoadPlayer(p *player.Player) (bool, error) {
-	data, err := b.store.LoadPlayer(p.UUID)
-	if err != nil || data == nil {
+	data, found, err := b.store.LoadPlayer(context.Background(), p.UUID)
+	if err != nil || !found {
 		return false, err
 	}
 
@@ -86,7 +86,7 @@ func (b playerBridge) LoadPlayer(p *player.Player) (bool, error) {
 }
 
 func (b playerBridge) SavePlayer(p *player.Player) error {
-	return b.store.SavePlayer(snapshotPlayer(p))
+	return b.store.SavePlayer(context.Background(), snapshotPlayer(p))
 }
 
 // snapshotPlayer is what a player carries between logins.

@@ -22,13 +22,14 @@ import (
 
 // Server is the main Minecraft server that accepts TCP connections.
 type Server struct {
-	cfg       *config.Config
-	log       *slog.Logger
-	world     *world.World
-	players   *player.Manager
-	store     Store
-	gameData  *data.Set
-	generator gen.Generator
+	cfg        *config.Config
+	log        *slog.Logger
+	world      *world.World
+	players    *player.Manager
+	worldStore WorldStore
+	sideStore  SideStore
+	gameData   *data.Set
+	generator  gen.Generator
 
 	// dispatch delivers samples to the observer the server was built with. It
 	// is nil when no observer was supplied, and every sampling path checks
@@ -104,13 +105,31 @@ func New(opts ...Option) (*Server, error) {
 	}
 
 	srv := &Server{
-		cfg:       b.settings,
-		log:       b.log,
-		world:     w,
-		players:   player.NewManager(b.settings.ViewDistance),
-		store:     b.store,
-		gameData:  gameData,
-		generator: generator,
+		cfg:        b.settings,
+		log:        b.log,
+		world:      w,
+		players:    player.NewManager(b.settings.ViewDistance),
+		worldStore: b.worldStore,
+		sideStore:  b.sideStore,
+		gameData:   gameData,
+		generator:  generator,
+	}
+
+	// A store is built by the application, before this function ran, so it
+	// learns the world's shape and its state encoding here.
+	for _, store := range []any{b.worldStore, b.sideStore, b.playerStore} {
+		binder, ok := store.(StoreBinder)
+		if !ok {
+			continue
+		}
+		if err := binder.BindWorld(w); err != nil {
+			return nil, fmt.Errorf("bind store: %w", err)
+		}
+	}
+
+	// The world reads a column from the store before generating one.
+	if b.worldStore != nil {
+		w.SetLoader(storeLoader{store: b.worldStore, name: DefaultWorld})
 	}
 
 	if b.playerStore != nil {
@@ -124,9 +143,20 @@ func New(opts ...Option) (*Server, error) {
 	return srv, nil
 }
 
-// Store returns the store the server was built with, or nil if it runs
-// without persistence.
-func (s *Server) Store() Store { return s.store }
+// WorldStore returns the world persistence the server was built with, or nil
+// if it runs without any.
+func (s *Server) WorldStore() WorldStore { return s.worldStore }
+
+// storeLoader is the adapter between the world's Loader seam, which knows
+// nothing about contexts or world names, and a WorldStore, which needs both.
+type storeLoader struct {
+	store WorldStore
+	name  string
+}
+
+func (l storeLoader) LoadChunk(pos world.ChunkPos) (*world.Chunk, error) {
+	return l.store.LoadChunk(context.Background(), l.name, pos)
+}
 
 // Settings returns a copy of the effective settings. It is a copy because the
 // server keeps using its own, and a caller that mutated the returned value
@@ -147,15 +177,16 @@ func (s *Server) World() *world.World { return s.world }
 // Start begins listening for connections and blocks until the context is cancelled.
 func (s *Server) Start(ctx context.Context) error {
 	// Load saved world data (time + block overrides).
-	if s.store != nil {
-		if err := s.store.LoadWorld(s.world); err != nil {
-			s.log.Error("failed to load world data", "error", err)
+	savedWorld := false
+	if s.worldStore != nil {
+		level, found, err := s.worldStore.Level(ctx, DefaultWorld)
+		if err != nil {
+			s.log.Error("failed to load level data", "error", err)
 		}
-		if err := s.store.LoadBlockOverrides(s.world); err != nil {
-			s.log.Error("failed to load block overrides", "error", err)
-		}
-		if err := s.store.LoadChests(s.world); err != nil {
-			s.log.Error("failed to load chests", "error", err)
+		if found {
+			savedWorld = true
+			s.world.SetTime(level.Age, level.TimeOfDay)
+			s.log.Info("loaded level data", "age", level.Age, "timeOfDay", level.TimeOfDay)
 		}
 	}
 
@@ -169,7 +200,7 @@ func (s *Server) Start(ctx context.Context) error {
 	defer listener.Close()
 
 	if s.cfg.WorldRadius > 0 {
-		if s.store != nil && s.store.HasSavedWorld() {
+		if savedWorld {
 			s.log.Info("world already saved, skipping pre-generation")
 		} else {
 			total := (2*s.cfg.WorldRadius + 1) * (2*s.cfg.WorldRadius + 1)
@@ -192,7 +223,7 @@ func (s *Server) Start(ctx context.Context) error {
 	go s.tickLoop(ctx)
 
 	// Start auto-save goroutine.
-	if s.store != nil && s.cfg.AutoSaveMinutes > 0 {
+	if s.worldStore != nil && s.cfg.AutoSaveMinutes > 0 {
 		go s.autoSave(ctx)
 	}
 
@@ -352,34 +383,39 @@ func (s *Server) autoSave(ctx context.Context) {
 	}
 }
 
-// saveAll saves world and all connected player data.
+// saveAll writes the world and every connected player.
+//
+// The snapshot is the only part that touches the world, and taking one is a
+// map copy of immutable chunk pointers. Everything after it works from that
+// copy, so a save cannot see the world half-written and the world does not
+// wait for the save.
 func (s *Server) saveAll() {
-	if s.store == nil {
-		return
-	}
+	ctx := context.Background()
 
-	if err := s.store.SaveWorld(s.world); err != nil {
-		s.log.Error("auto-save world failed", "error", err)
-	} else {
-		s.log.Info("world saved")
-	}
+	if s.worldStore != nil {
+		snap := s.world.Snapshot()
+		age, timeOfDay := s.world.GetTime()
 
-	if err := s.store.SaveBlockOverrides(s.world); err != nil {
-		s.log.Error("auto-save block overrides failed", "error", err)
-	} else {
-		s.log.Info("block overrides saved")
-	}
+		if err := s.worldStore.SaveSnapshot(ctx, DefaultWorld, snap); err != nil {
+			s.log.Error("save world failed", "error", err)
+		} else {
+			s.log.Info("world saved", "chunks", len(snap.Chunks))
+		}
 
-	if err := s.store.SaveChests(s.world); err != nil {
-		s.log.Error("auto-save chests failed", "error", err)
-	} else {
-		s.log.Info("chests saved")
-	}
+		if s.sideStore != nil {
+			if err := s.sideStore.SaveSnapshot(ctx, DefaultWorld, snap); err != nil {
+				s.log.Error("save sidecar failed", "error", err)
+			}
+		}
 
-	if err := s.store.SaveWorldAnvil(s.world); err != nil {
-		s.log.Error("auto-save anvil failed", "error", err)
-	} else {
-		s.log.Info("anvil region files saved")
+		if err := s.worldStore.SaveLevel(ctx, DefaultWorld, LevelData{
+			Age:           age,
+			TimeOfDay:     timeOfDay,
+			Seed:          s.cfg.Seed,
+			GeneratorType: s.cfg.GeneratorType,
+		}); err != nil {
+			s.log.Error("save level data failed", "error", err)
+		}
 	}
 
 	if s.playerStore == nil {

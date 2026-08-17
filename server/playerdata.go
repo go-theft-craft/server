@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+
 	"github.com/go-theft-craft/server/pkg/world"
 )
 
@@ -46,9 +48,10 @@ type Inventory struct {
 
 // PlayerStore is per-player persistence.
 //
-// LoadPlayer returns nil, nil for a player who has never logged in, which the
+// LoadPlayer reports false for a player who has never logged in, which the
 // server treats as a new player rather than as an error.
 type PlayerStore interface {
-	LoadPlayer(uuid string) (*PlayerData, error)
-	SavePlayer(data PlayerData) error
+	LoadPlayer(ctx context.Context, uuid string) (PlayerData, bool, error)
+	SavePlayer(ctx context.Context, data PlayerData) error
+	Close() error
 }

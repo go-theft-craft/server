@@ -24,10 +24,15 @@ tasks:
       - rm -rf {{.BUILD_PATH}}/
 
   build:
-    desc: Build service
+    desc: Build the example servers
     deps: [ deps, cleanup ]
+    dir: examples
     cmds:
-      - cmd: go build -ldflags="-w -s -X 'main.Version=1.0.0' -X 'main.Commit=$COMMIT_HASH' -X 'main.BuildTime=$BUILD_TIME'" -trimpath -mod vendor -o {{.BUILD_PATH}}/app ./cmd/server
+      - cmd: go build -ldflags="-w -s" -trimpath -o ../{{.BUILD_PATH}}/vanilla ./vanilla
+        platforms: [linux/amd64,linux/arm64]
+      - cmd: go build -ldflags="-w -s" -trimpath -o ../{{.BUILD_PATH}}/minimal ./minimal
+        platforms: [linux/amd64,linux/arm64]
+      - cmd: go build -ldflags="-w -s" -trimpath -o ../{{.BUILD_PATH}}/flat ./flat
         platforms: [linux/amd64,linux/arm64]
 
   deps:
@@ -49,7 +54,7 @@ tasks:
     desc: Format go code
     deps: [ deps ]
     cmds:
-      - gci write -s standard -s default -s "prefix(github.com/openserbia)" -s "prefix({{.PACKAGE_NAME}})" --skip-generated internal cmd server config pkg
+      - gci write -s standard -s default -s "prefix(github.com/openserbia)" -s "prefix({{.PACKAGE_NAME}})" --skip-generated internal server config pkg examples
       - gofumpt -l -w .
 
   lint:
@@ -82,10 +87,11 @@ tasks:
       - go test -race -mod vendor -covermode=atomic -coverprofile=../service-unit-race.cov -coverpkg ./... ./...
 
   server:
-    desc: Run the Minecraft server
+    desc: Run the vanilla example server
     deps: [ deps ]
+    dir: examples
     cmds:
-      - go run -mod vendor ./cmd/server {{.CLI_ARGS}}
+      - go run ./vanilla {{.CLI_ARGS}}
 
   default:
     cmds:

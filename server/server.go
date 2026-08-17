@@ -150,6 +150,11 @@ func (s *Server) Logger() *slog.Logger { return s.log }
 // Generator returns the world generator the server was built with.
 func (s *Server) Generator() gen.Generator { return s.generator }
 
+// World returns the world the server serves. It is the same value a Store is
+// handed, so an application that wants to read or write blocks outside a
+// connection has one place to get it.
+func (s *Server) World() *world.World { return s.world }
+
 // Start begins listening for connections and blocks until the context is cancelled.
 func (s *Server) Start(ctx context.Context) error {
 	// Load saved world data (time + block overrides).

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/go-theft-craft/server/config"
+	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 	"github.com/go-theft-craft/server/server"
 )
@@ -96,6 +97,40 @@ func TestWithGeneratorReplacesTheOneSettingsWouldHaveChosen(t *testing.T) {
 
 	if srv.Generator() != custom {
 		t.Error("New built its own generator instead of using the supplied one")
+	}
+}
+
+func TestWithDimensionSetsTheWorldsExtent(t *testing.T) {
+	deep := world.Dimension{Name: "minecraft:overworld", MinY: -64, Height: 384}
+
+	srv, err := server.New(server.WithDimension(deep))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if got := srv.World().Dimension(); got != deep {
+		t.Fatalf("world dimension is %+v, want %+v", got, deep)
+	}
+}
+
+func TestTheDefaultDimensionIsJava18sOverworld(t *testing.T) {
+	srv, err := server.New()
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if got := srv.World().Dimension(); got != world.Overworld18() {
+		t.Fatalf("world dimension is %+v, want %+v", got, world.Overworld18())
+	}
+}
+
+func TestADimensionThatIsNotSectionAlignedIsRejected(t *testing.T) {
+	for _, d := range []world.Dimension{
+		{Name: "x", MinY: 0, Height: 100},
+		{Name: "x", MinY: -3, Height: 256},
+		{Name: "x", MinY: 0, Height: 0},
+	} {
+		if _, err := server.New(server.WithDimension(d)); !errors.Is(err, server.ErrInvalidOption) {
+			t.Errorf("WithDimension(%+v) returned %v, want ErrInvalidOption", d, err)
+		}
 	}
 }
 

@@ -9,8 +9,30 @@ import (
 	"path/filepath"
 	"testing"
 
+	protocol "github.com/go-theft-craft/minecraft-protocol"
+	"github.com/go-theft-craft/minecraft-protocol/wire/java"
+
 	"github.com/go-theft-craft/server/pkg/world"
 )
+
+// assertUpstreamAccepts runs a chunk payload through minecraft-protocol's own
+// NBT validator.
+//
+// It is a second opinion on this package's writer from code that has no stake
+// in it: the validator is what the wire uses, it is strict, and it caught the
+// malformed Sections list this writer emitted for as long as nothing read a
+// region file back. A payload vanilla could not parse should fail here first.
+func assertUpstreamAccepts(t *testing.T, payload []byte) {
+	t.Helper()
+
+	limits, err := protocol.NewLimits()
+	if err != nil {
+		t.Fatalf("limits: %v", err)
+	}
+	if _, err := java.NewNBT(payload, limits); err != nil {
+		t.Fatalf("minecraft-protocol rejects what this writer produced: %v", err)
+	}
+}
 
 // identityEncoder makes a handle its own wire value, so these tests can name a
 // protocol 47 block state directly instead of building a whole registry.
@@ -72,6 +94,8 @@ func TestEncodeChunkNBT(t *testing.T) {
 		t.Fatalf("EncodeChunkNBT failed: %v", err)
 	}
 
+	assertUpstreamAccepts(t, data)
+
 	// Basic structural checks: should start with compound tag (10).
 	if len(data) == 0 {
 		t.Fatal("empty NBT output")
@@ -100,6 +124,8 @@ func TestEncodeChunkNBTWithHighBlockID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EncodeChunkNBT failed: %v", err)
 	}
+
+	assertUpstreamAccepts(t, data)
 
 	// Should contain "Add" byte array for high block IDs.
 	if !bytes.Contains(data, []byte("Add")) {

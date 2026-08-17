@@ -1,9 +1,8 @@
 # M6.1 play-state client verification
 
-Status: **NOT RUN.** This is a prepared record. The manual vanilla-client play
-session below has not been performed, and every scenario is unticked. Fill it
-in when the session is run; until then M6.1 is "Client checks pending", not
-Complete.
+Status: **RUN, and it passed.** A vanilla client played every scenario below on
+2026-08-17 and the generated codec rejected nothing: **zero decode errors**
+across the whole session. M6.1 is Complete.
 
 M6.1 moved the server's play state off its own protocol 47 packet structs and
 onto `minecraft-protocol`'s generated types, deleting the server's remaining
@@ -36,49 +35,111 @@ below is the only outstanding gate.
 | `task build` | pass |
 | Byte-parity fixtures | unchanged — all six fixtures captured from the unmigrated server are byte-identical, and all five parity tests still compare produced bytes against them |
 
-The strict generated decode has been proven only against the pinned Node
-loopback interop lane, **not** against a real client. That is what the session
-below exists to establish.
+Before the session below, the strict generated decode had been proven only
+against the pinned Node loopback interop lane. It is now proven against a real
+client too.
 
-## Session record (to be filled in)
+## Session record
 
-Run a vanilla 1.8.9 client against a server started with `-online-mode=false`
-and drive a full play session. Record the client build, and for every scenario
-record the result and every decode error observed (record zero if there are
-none).
+The session ran against a server started from this working tree with
+`-online-mode=false` and the world in `data/`. It spanned several server builds
+rather than one: gameplay defects the session surfaced were fixed as they were
+found and the server was restarted, so the scenarios below were played across
+nine server processes. That does not weaken what this check measures. Every
+build decoded every serverbound play packet with the same generated codec, and
+none of the fixes touched decoding.
 
 | Field | Value |
 | --- | --- |
-| Date run | _not run_ |
-| Client build | _not run_ |
-| Server mode | _e.g. offline, compression 256_ |
-| Total decode errors | _not run_ |
+| Date run | 2026-08-17 |
+| Client build | vanilla Minecraft 1.8, protocol 47, client brand `vanilla`, locale `en_US`, view distance 32 |
+| Server mode | offline, compression threshold 1, view distance 12, generator `default`, seed 12345 |
+| Total decode errors | **0** |
+
+The compression threshold is worth noting: 1, not the 256 default, so
+practically every packet in the session travelled compressed. That exercises
+the compressed path harder than the default would, and no scenario was run at
+256.
 
 ### Scenario checklist
 
-- [ ] **Join** — decode errors: _n/a, not run_
-- [ ] **Move** — decode errors: _n/a, not run_
-- [ ] **Break a block** — decode errors: _n/a, not run_
-- [ ] **Place a block** — decode errors: _n/a, not run_
-- [ ] **Open a chest** — decode errors: _n/a, not run_
-- [ ] **Craft in the 2x2 grid** — decode errors: _n/a, not run_
-- [ ] **Craft in the 3x3 grid** — decode errors: _n/a, not run_
-- [ ] **Shift-click the crafting output** — decode errors: _n/a, not run_
-- [ ] **Take damage** — decode errors: _n/a, not run_
-- [ ] **Die** — decode errors: _n/a, not run_
-- [ ] **Respawn** — decode errors: _n/a, not run_
-- [ ] **Chat** — decode errors: _n/a, not run_
-- [ ] **Run a command with tab completion** — decode errors: _n/a, not run_
-- [ ] **Disconnect** — decode errors: _n/a, not run_
+- [x] **Join** — decode errors: 0. Several joins across the session, each
+  reaching `join sequence complete`.
+- [x] **Move** — decode errors: 0
+- [x] **Break a block** — decode errors: 0
+- [x] **Place a block** — decode errors: 0
+- [x] **Open a chest** — decode errors: 0. Chests were **not implemented** when
+  the session began; the server opened no container window and a right-click
+  fell through to the placement path. They were implemented during the session,
+  and the scenario was then played for a single chest, a double chest, and a
+  trapped chest.
+- [x] **Craft in the 2x2 grid** — decode errors: 0
+- [x] **Craft in the 3x3 grid** — decode errors: 0. A chest was crafted at a
+  table, which is a 3x3-only recipe.
+- [x] **Shift-click the crafting output** — decode errors: 0. Shift-click was
+  also exercised in the player window and in a chest window, and the drag
+  (paint) click mode carried most of the session's clicks.
+- [x] **Take damage** — decode errors: 0. Contact damage did **not exist** when
+  the session began: the server had no health state at all, and nothing could
+  hurt a player. Cactus damage was implemented during the session and the
+  scenario played after it.
+- [x] **Die** — decode errors: 0. By `/kill` and by cactus.
+- [x] **Respawn** — decode errors: 0
+- [x] **Chat** — decode errors: 0
+- [x] **Run a command with tab completion** — decode errors: 0. `/kill` and
+  `/gamemode` were run, and tab completion was exercised in chat.
+- [x] **Disconnect** — decode errors: 0. Clean disconnects and reconnects
+  throughout.
 
 ### Decode errors observed
 
-_None recorded yet — the session has not been run. Record each rejected packet
-here with its packet name and the codec error, then fix the codec in
-`minecraft-protocol`, add a byte fixture there, and re-run._
+**None.** No `level=ERROR` line appeared in any of the nine server logs, and
+the read loop never dropped a connection on a rejected packet — which is what a
+decode failure looks like here, since `handleNextPacket` returning an error
+ends the connection.
+
+This is the property the check exists to establish: the strict generated decode
+accepts everything a real client sends in play, not just what the pinned Node
+interop lane sends. Together with M3's zero errors for handshake, status and
+login, protocol 47's serverbound surface is now covered by a real client end to
+end.
 
 ### Notes
 
-_Record here any scenario the server does not implement (mark N/A rather than
-leaving it looking unrun, as M3's record did for chests and environmental
-damage), and any gameplay defect the session surfaces._
+Nothing was marked N/A. Every scenario was played, though three of them only
+after the feature they exercise was built during the session.
+
+The session was a decode check that turned into a gameplay bug hunt. What it
+found, none of it a decode failure:
+
+- **A placed chest vanished on the next chunk load.** The server stored chests
+  as `id<<4` with metadata 0, and a chest's facing is horizontal only — so
+  metadata 0 is not a chest state. A 1.8 client resolves each chunk section
+  value against its registry of valid states and falls back to air when there
+  is no match, so it drew air, and only the client's own placement prediction
+  ever made a chest visible. Placement now follows
+  `BlockChest.onBlockPlacedBy`. This is the general shape of the defect:
+  **a state this server invents that the client cannot resolve is not a wrong
+  block, it is no block at all.**
+- **A double chest could face two ways.** `BlockChest.onBlockAdded` re-orients
+  the placed chest and every neighbouring chest, which the server never did, so
+  a pair could disagree and a broken pair left its survivor oriented for a
+  partner it no longer had.
+- **Chests could be placed in impossible arrangements**, which
+  `BlockChest.canPlaceBlockAt` forbids: no chest may join a pair, and none may
+  have two chest neighbours.
+- **Blocks placed above the generated terrain were dropped from every chunk
+  send.** `EncodeChunk` built its section bitmap from the sections the
+  generator filled, so an override in an empty section was stored, broadcast,
+  and then never sent again. The anvil writer already handled this; the network
+  encoder did not.
+- **Items could be placed as blocks.** An apple, seeds and a diamond pickaxe
+  were in the world as block states. Protocol 47 numbers blocks 0-255 and items
+  above, and the check now refuses anything past the block range.
+
+Two limits carried out of the session. Vanilla-parity behaviour was read from
+the deobfuscated 1.8.9 client in `minecraft-reference` rather than guessed at,
+and doing that earlier would have saved most of the hunt. And
+`TestDisconnectSendsAPlayDisconnectPacket` is flaky — it fails roughly a third
+of full-suite runs on unmodified `main`, measured in a clean worktree, and
+wants its own fix.

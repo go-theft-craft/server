@@ -20,7 +20,7 @@ import (
 const startTimeout = 30 * time.Second
 
 func TestEachExampleBuildsAndStarts(t *testing.T) {
-	for _, name := range []string{"minimal", "flat", "vanilla"} {
+	for _, name := range []string{"minimal", "flat", "vanilla", "custom"} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -72,6 +72,8 @@ func arguments(t *testing.T, name string) []string {
 		return []string{"-port", "25701", "-data-dir", t.TempDir(), "-world-radius", "0"}
 	case "flat":
 		return []string{"-port", "25702"}
+	case "custom":
+		return []string{"-port", "25704"}
 	default:
 		return []string{"-port", "25703"}
 	}

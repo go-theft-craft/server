@@ -12,7 +12,7 @@ import (
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
-func newAdapter(t *testing.T) *Adapter {
+func newAdapter(t testing.TB) *Adapter {
 	t.Helper()
 
 	set, err := v1_8.Data()

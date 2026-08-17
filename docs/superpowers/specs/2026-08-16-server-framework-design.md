@@ -443,3 +443,26 @@ location is added to `.gitignore` in M11.5.
 | 7 | A world saved with provenance on is readable by an unmodified vanilla tool, and a world edited by one is reconciled at load with every discrepancy recorded |
 | 8 | Every vanilla command name resolves, and every unimplemented one says so |
 | 9 | Turning provenance and observability off returns the server to its M6.1 resource profile |
+
+## Amendments
+
+**2026-08-17, Decision 7.** This document cites the M3 session findings'
+survival block duplication as an open case the ID index would settle. It is not
+open. Both duplications from that session were explained and fixed before the
+sub-milestone designs were written: the inventory one was `tryAddToSection`
+depositing part of a stack and returning false, and the block one was
+`handleBlockPlace` never consuming the held item in survival, fixed in
+`e67ec09`. The index remains worth building as a prospective instrument, which
+is a weaker argument than the one made above.
+[The M11.5 design](2026-08-17-m11-5-provenance-design.md) records it.
+
+**2026-08-17, the track table.** Every sub-milestone now has a design:
+
+| | Design |
+| --- | --- |
+| M11.2 | [World model and chunk ownership](2026-08-17-m11-2-world-model-design.md) |
+| M11.3 | [Storage](2026-08-17-m11-3-storage-design.md) |
+| M11.4 | [World generation](2026-08-17-m11-4-world-generation-design.md) |
+| M11.5 | [Provenance](2026-08-17-m11-5-provenance-design.md) |
+| M11.6 | [Observability](2026-08-17-m11-6-observability-design.md) |
+| M11.7 | [Commands](2026-08-17-m11-7-commands-design.md) |

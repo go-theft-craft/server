@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -20,10 +21,14 @@ import (
 const seed = 1
 
 func main() {
+	port := flag.Int("port", 25565, "server port")
+	flag.Parse()
+
 	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	srv, err := server.New(
 		server.WithLogger(log),
+		server.WithPort(*port),
 		server.WithGenerator(gen.NewFlatGenerator(seed)),
 		server.WithMOTD("flat example"),
 		server.WithWorldRadius(8),

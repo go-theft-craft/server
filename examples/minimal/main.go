@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -16,10 +17,14 @@ import (
 )
 
 func main() {
+	port := flag.Int("port", 25565, "server port")
+	flag.Parse()
+
 	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	srv, err := server.New(
 		server.WithLogger(log),
+		server.WithPort(*port),
 		server.WithMOTD("minimal example"),
 		server.WithWorldRadius(4),
 	)

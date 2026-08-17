@@ -70,11 +70,22 @@ tasks:
       - npm ci --prefix interop/node
       - go test -mod vendor -count=1 ./interop
 
+  test:examples:
+    desc: Build and start each example in the nested examples module
+    deps: [ deps ]
+    dir: examples
+    cmds:
+      - go mod tidy
+      - go test -count=1 ./...
+
   test:
     desc: Run go unit tests
     deps: [ deps ]
     cmds:
       - go test -mod vendor -covermode=count -coverprofile=../service-unit.cov -coverpkg ./... ./...
+      # The examples are a nested module, so `go test ./...` from the root
+      # cannot see them. Running them here is what stops them rotting.
+      - task: test:examples
 
   test:race:
     desc: Run go unit tests with the race detector

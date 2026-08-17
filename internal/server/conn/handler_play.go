@@ -10,7 +10,7 @@ import (
 	"time"
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
-	gamedata "github.com/go-theft-craft/minecraft-protocol/data"
+	"github.com/go-theft-craft/minecraft-protocol/data"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
 	"github.com/go-theft-craft/server/internal/server/packet"
@@ -430,9 +430,9 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 
 	// Sprint particles: send block crack particles at player's feet.
 	if posChanged && c.self.IsSprinting() {
-		blockBelow := c.world.GetBlockID(int(math.Floor(x)), int(math.Floor(y))-1, int(math.Floor(z)))
-		if blockBelow != 0 {
-			particles := sprintParticles(x, y, z, blockBelow)
+		blockBelow := c.blockAt(int(math.Floor(x)), int(math.Floor(y))-1, int(math.Floor(z)))
+		if !c.isAir(blockBelow) {
+			particles := sprintParticles(x, y, z, c.wireState(blockBelow))
 			c.players.BroadcastToTrackers(&particles, eid)
 		}
 	}
@@ -480,10 +480,9 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 			c.breakBlock(x, y, z)
 		} else {
 			// Check if block is instant-break (hardness 0) in survival.
-			stateID := c.world.GetBlockID(x, y, z)
-			if block, ok := c.lookupBlock(stateID); ok {
+			if block, ok := c.blockOf(c.blockAt(x, y, z)); ok {
 				heldItem := c.self.Inventory.HeldItem()
-				var materials gamedata.MaterialRegistry
+				var materials data.MaterialRegistry
 				if c.gameData != nil {
 					materials = c.gameData.Materials()
 				}
@@ -518,11 +517,15 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 
 	case 2: // Finished digging
 		// Validate that the block is actually diggable.
-		stateID := c.world.GetBlockID(x, y, z)
-		if block, ok := c.lookupBlock(stateID); ok {
+		state := c.blockAt(x, y, z)
+		if block, ok := c.blockOf(state); ok {
 			if !block.Diggable || block.Hardness == nil {
 				// Unbreakable — resend the block to the client.
-				_ = c.send(&v1_8.PlayClientboundBlockChange{Location: blockPos(x, y, z), Type: stateID})
+				_ = c.send(&v1_8.PlayClientboundBlockChange{
+					Location: blockPos(x, y, z),
+					Type:     c.wireState(state),
+				})
+
 				return nil
 			}
 		}
@@ -573,29 +576,30 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 // breakBlock removes a block from the world, broadcasts the change + break effect,
 // and spawns item drops in survival mode.
 func (c *Connection) breakBlock(x, y, z int) {
-	oldBlockState := c.world.GetBlockID(x, y, z)
+	oldState := c.blockAt(x, y, z)
+	oldName := c.blockName(oldState)
 
 	// A broken container spills what it held, in every game mode: creative
 	// suppresses the block's own drop, not the contents someone put inside.
-	if isChestBlock(oldBlockState >> 4) {
+	if isChestBlock(oldName) {
 		c.spillChest(x, y, z)
 		// The survivor of a broken pair is no longer half of anything, so it
 		// re-orients once the block is gone. Deferred for that reason.
-		defer c.refreshChestCluster(oldBlockState>>4, world.BlockPos{X: x, Y: y, Z: z})
+		defer c.refreshChestCluster(oldName, world.BlockPos{X: x, Y: y, Z: z})
 	}
 
-	c.world.SetBlockID(x, y, z, 0)
+	c.setBlockAt(x, y, z, c.states.air)
 	blockChange := &v1_8.PlayClientboundBlockChange{
 		Location: blockPos(x, y, z),
-		Type:     0,
+		Type:     c.wireState(c.states.air),
 	}
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
 
-	if oldBlockState != 0 {
+	if !c.isAir(oldState) {
 		c.players.BroadcastToTrackers(&v1_8.PlayClientboundWorldEvent{
 			EffectID: 2001,
 			Location: blockPos(x, y, z),
-			Data:     oldBlockState,
+			Data:     c.wireState(oldState),
 			Global:   false,
 		}, c.self.EntityID)
 	}
@@ -604,7 +608,7 @@ func (c *Connection) breakBlock(x, y, z int) {
 
 	// Spawn item drops in survival mode.
 	if c.self.GetGameMode() != packet.GameModeCreative {
-		if block, ok := c.lookupBlock(oldBlockState); ok {
+		if block, ok := c.blockOf(oldState); ok {
 			heldItem := c.self.Inventory.HeldItem()
 			drops := blockDrops(block, heldItem.BlockID)
 			for _, drop := range drops {
@@ -623,7 +627,7 @@ func (c *Connection) findGroundLevel(x, startY, z int) int {
 		startY = maxY
 	}
 	for y := startY - 1; y >= 0; y-- {
-		if c.world.GetBlockID(x, y, z) != 0 {
+		if !c.isAir(c.blockAt(x, y, z)) {
 			return y + 1
 		}
 	}
@@ -663,10 +667,10 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 	// the player is sneaking — which is how vanilla lets you build against a
 	// crafting table instead of opening it.
 	if !c.self.IsSneaking() {
-		switch c.world.GetBlockID(clickedX, clickedY, clickedZ) >> 4 {
-		case craftingTableBlockID:
+		switch c.blockName(c.blockAt(clickedX, clickedY, clickedZ)) {
+		case craftingTableName:
 			return c.openCraftingTable()
-		case chestBlockID, trappedChestBlockID:
+		case chestName, trappedChestName:
 			return c.openChest(clickedX, clickedY, clickedZ)
 		}
 	}
@@ -705,19 +709,24 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 		return c.revertPlacement(x, y, z)
 	}
 
+	placedName := c.blockNameForItem(held.BlockID)
+
 	// Some blocks refuse positions that are legal for everything else. A chest
 	// is one: it may join a lone chest but never a pair, so three never meet.
-	if isChestBlock(int32(held.BlockID)) &&
-		!c.canPlaceChestAt(int32(held.BlockID), world.BlockPos{X: x, Y: y, Z: z}) {
+	if isChestBlock(placedName) &&
+		!c.canPlaceChestAt(placedName, world.BlockPos{X: x, Y: y, Z: z}) {
 		return c.revertPlacement(x, y, z)
 	}
 
-	stateID := c.placementState(held)
-	c.world.SetBlockID(x, y, z, stateID)
+	state, ok := c.placementState(held)
+	if !ok {
+		return c.revertPlacement(x, y, z)
+	}
+	c.setBlockAt(x, y, z, state)
 
 	blockChange := &v1_8.PlayClientboundBlockChange{
 		Location: blockPos(x, y, z),
-		Type:     stateID,
+		Type:     c.wireState(state),
 	}
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
 	if err := c.send(blockChange); err != nil {
@@ -726,8 +735,8 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 
 	// A new chest re-orients itself and its partner, so a pair never ends up
 	// with two halves facing different ways.
-	if isChestBlock(int32(held.BlockID)) {
-		c.refreshChestCluster(int32(held.BlockID), world.BlockPos{X: x, Y: y, Z: z})
+	if isChestBlock(placedName) {
+		c.refreshChestCluster(placedName, world.BlockPos{X: x, Y: y, Z: z})
 	}
 
 	// Survival pays for the block. The client already decremented its own copy
@@ -760,14 +769,33 @@ const maxBlockID = 255
 // block actually has. A 1.8 client resolves a chunk section value against the
 // registry of valid states and draws air when it finds none, so a state
 // invented here does not merely look wrong — the block is not there at all.
-func (c *Connection) placementState(held player.Slot) int32 {
-	meta := int32(held.ItemDamage) & 0xF
+func (c *Connection) placementState(held player.Slot) (world.State, bool) {
+	name := c.blockNameForItem(held.BlockID)
+	if name == "" {
+		return c.states.air, false
+	}
 
-	if isChestBlock(int32(held.BlockID)) {
+	meta := int32(held.ItemDamage) & 0xF
+	if isChestBlock(name) {
 		meta = chestFacing(c.self.GetPosition().Yaw)
 	}
 
-	return int32(held.BlockID)<<4 | meta
+	return c.blockState(name, meta), true
+}
+
+// blockNameForItem is the canonical name of the block a protocol 47 item ID
+// places. On 1.8 an item ID below 256 is the block's own ID, and this is the
+// one place the package still crosses from an inventory number to a block.
+func (c *Connection) blockNameForItem(itemID int16) string {
+	if itemID <= 0 || itemID > maxBlockID || c.states.blocks == nil {
+		return ""
+	}
+	block, ok := c.states.blocks.ByID(data.BlockID(itemID))
+	if !ok {
+		return ""
+	}
+
+	return "minecraft:" + block.Name
 }
 
 // isPlaceable reports whether an item ID names a block. Items — a sword, a
@@ -787,9 +815,7 @@ func (c *Connection) isPlaceable(itemID int16) bool {
 		return true
 	}
 
-	_, ok := c.lookupBlock(int32(itemID) << 4)
-
-	return ok
+	return c.blockNameForItem(itemID) != ""
 }
 
 // revertPlacement tells the client what is really at the position it just
@@ -798,7 +824,7 @@ func (c *Connection) isPlaceable(itemID int16) bool {
 func (c *Connection) revertPlacement(x, y, z int) error {
 	if err := c.send(&v1_8.PlayClientboundBlockChange{
 		Location: blockPos(x, y, z),
-		Type:     c.world.GetBlockID(x, y, z),
+		Type:     c.wireState(c.blockAt(x, y, z)),
 	}); err != nil {
 		return err
 	}

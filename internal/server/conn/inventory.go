@@ -53,7 +53,9 @@ const (
 	tableAdvertisedSlots = 0
 )
 
-// craftingTableBlockID is the block a right-click opens the 3x3 window on.
+// craftingTableBlockID is the inventory item ID of the block a right-click
+// opens the 3x3 window on. It is a protocol 47 number because the inventory is
+// protocol 47 throughout; the world names the block instead. See blockstate.go.
 const craftingTableBlockID = 58
 
 // windowLayout gives the slot ranges of whichever window is open. Every click

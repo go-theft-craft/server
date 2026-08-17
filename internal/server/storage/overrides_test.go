@@ -36,6 +36,29 @@ func newWorld(t *testing.T) *world.World {
 	return w
 }
 
+// setBlockID and blockID name a block the way protocol 47 does, which is what
+// overrides.json still holds.
+func setBlockID(t *testing.T, w *world.World, x, y, z int, stateID int32) {
+	t.Helper()
+
+	state, err := w.Adapter().DecodeState(stateID)
+	if err != nil {
+		t.Fatalf("DecodeState(%d): %v", stateID, err)
+	}
+	w.SetBlock(world.BlockPos{X: x, Y: y, Z: z}, state)
+}
+
+func blockID(t *testing.T, w *world.World, x, y, z int) int32 {
+	t.Helper()
+
+	v, err := w.Adapter().EncodeState(w.Block(world.BlockPos{X: x, Y: y, Z: z}))
+	if err != nil {
+		t.Fatalf("EncodeState: %v", err)
+	}
+
+	return v
+}
+
 func newStorage(t *testing.T) (*Storage, string) {
 	t.Helper()
 
@@ -62,10 +85,10 @@ func TestOverridesRoundTripThroughTheChunkModel(t *testing.T) {
 	first := newWorld(t)
 	// A block in a section the generator filled, one in a section it left
 	// empty, one in a neighbouring chunk, and one broken back to air.
-	first.SetBlockID(1, 2, 3, cobblestone)
-	first.SetBlockID(5, 130, 5, chest)
-	first.SetBlockID(-20, 40, 70, cobblestone)
-	first.SetBlockID(0, 4, 0, 0)
+	setBlockID(t, first, 1, 2, 3, cobblestone)
+	setBlockID(t, first, 5, 130, 5, chest)
+	setBlockID(t, first, -20, 40, 70, cobblestone)
+	setBlockID(t, first, 0, 4, 0, 0)
 
 	if err := s.SaveBlockOverrides(first); err != nil {
 		t.Fatalf("SaveBlockOverrides: %v", err)
@@ -90,7 +113,7 @@ func TestOverridesRoundTripThroughTheChunkModel(t *testing.T) {
 		{0, 4, 0, 0},
 		{1, 4, 1, 2 << 4}, // untouched grass from the generator
 	} {
-		if got := second.GetBlockID(tc.x, tc.y, tc.z); got != tc.want {
+		if got := blockID(t, second, tc.x, tc.y, tc.z); got != tc.want {
 			t.Errorf("reloaded block at (%d,%d,%d) = %d, want %d", tc.x, tc.y, tc.z, got, tc.want)
 		}
 	}

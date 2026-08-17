@@ -41,8 +41,9 @@ type World struct {
 	air       State
 	generator Generator
 
-	// adapter serves GetBlockID and SetBlockID, the protocol 47 shims the
-	// connection and the Anvil writer still call.
+	// adapter renders the world for the version its clients speak. The world
+	// itself never calls it: it holds it so a connection and a saver can ask
+	// one place which encoding this world is served in.
 	adapter Adapter
 
 	chunks     sync.Map // ChunkPos -> *atomic.Pointer[Chunk]
@@ -178,30 +179,6 @@ func (w *World) SetBlock(pos BlockPos, state State) bool {
 		// Lost the race: loop, reload, and rebuild from the winner's chunk.
 		// Rebuilding from `old` here is how writes get lost.
 	}
-}
-
-// GetBlockID returns the block at a position as protocol 47 encodes it.
-//
-// It is a shim for the callers that still speak the wire's numbers — the
-// connection handlers and the Anvil writer. M11.2 Task 6 replaces them with
-// Block, and this goes with them.
-func (w *World) GetBlockID(x, y, z int) int32 {
-	v, err := w.adapter.EncodeState(w.Block(BlockPos{X: x, Y: y, Z: z}))
-	if err != nil {
-		return 0
-	}
-
-	return v
-}
-
-// SetBlockID writes a block from protocol 47's encoding. It is the setter half
-// of the GetBlockID shim and is deleted with it.
-func (w *World) SetBlockID(x, y, z int, stateID int32) {
-	state, err := w.adapter.DecodeState(stateID)
-	if err != nil {
-		return
-	}
-	w.SetBlock(BlockPos{X: x, Y: y, Z: z}, state)
 }
 
 // Snapshot is a consistent view of every resident chunk. Chunks are immutable,

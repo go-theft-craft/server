@@ -18,17 +18,14 @@ import (
 // shares. The layout below therefore describes a container section, and
 // getSlotIn and setSlotIn read and write it through the world.
 
-// The blocks a right-click opens a container window on. A trapped chest holds
-// items exactly as a plain one does — the difference is a redstone signal this
-// server does not model — and vanilla gives it the same window.
-const (
-	chestBlockID        = 54
-	trappedChestBlockID = 146
-)
+// A trapped chest holds items exactly as a plain one does — the difference is
+// a redstone signal this server does not model — and vanilla gives it the same
+// window.
 
-// isChestBlock reports whether a block ID is a chest of either kind.
-func isChestBlock(blockID int32) bool {
-	return blockID == chestBlockID || blockID == trappedChestBlockID
+// isChestBlock reports whether a canonical block name is a chest of either
+// kind.
+func isChestBlock(name string) bool {
+	return name == chestName || name == trappedChestName
 }
 
 // Chest window slot layout for a single chest: the container first, then the
@@ -124,10 +121,10 @@ func horizontalNeighbours(pos world.BlockPos) [4]world.BlockPos {
 // two partners and vanilla has no such thing. And the kind is the exact block:
 // a trapped chest neither pairs with nor blocks a plain one, because vanilla
 // compares against the block instance and they are two different blocks.
-func (c *Connection) canPlaceChestAt(kind int32, pos world.BlockPos) bool {
+func (c *Connection) canPlaceChestAt(kind string, pos world.BlockPos) bool {
 	adjacent := 0
 	for _, neighbour := range horizontalNeighbours(pos) {
-		if c.world.GetBlockID(neighbour.X, neighbour.Y, neighbour.Z)>>4 != kind {
+		if c.blockName(c.blockAt(neighbour.X, neighbour.Y, neighbour.Z)) != kind {
 			continue
 		}
 
@@ -146,13 +143,13 @@ func (c *Connection) canPlaceChestAt(kind int32, pos world.BlockPos) bool {
 // The position being placed into is still empty while this runs, so a chest
 // does not count itself as its neighbour's partner — which is what makes the
 // rule allow a second chest beside a lone one and refuse a third.
-func (c *Connection) isDoubleChestAt(kind int32, pos world.BlockPos) bool {
-	if c.world.GetBlockID(pos.X, pos.Y, pos.Z)>>4 != kind {
+func (c *Connection) isDoubleChestAt(kind string, pos world.BlockPos) bool {
+	if c.blockName(c.blockAt(pos.X, pos.Y, pos.Z)) != kind {
 		return false
 	}
 
 	for _, neighbour := range horizontalNeighbours(pos) {
-		if c.world.GetBlockID(neighbour.X, neighbour.Y, neighbour.Z)>>4 == kind {
+		if c.blockName(c.blockAt(neighbour.X, neighbour.Y, neighbour.Z)) == kind {
 			return true
 		}
 	}
@@ -176,7 +173,7 @@ const (
 // can end up with two halves facing different ways, which is not a shape the
 // model has: breaking one half of a pair and placing a chest nearby left the
 // survivor still oriented for a partner it no longer had.
-func (c *Connection) refreshChestCluster(kind int32, pos world.BlockPos) {
+func (c *Connection) refreshChestCluster(kind string, pos world.BlockPos) {
 	c.refreshChestFacing(kind, pos)
 	for _, neighbour := range horizontalNeighbours(pos) {
 		c.refreshChestFacing(kind, neighbour)
@@ -185,22 +182,22 @@ func (c *Connection) refreshChestCluster(kind int32, pos world.BlockPos) {
 
 // refreshChestFacing writes the facing a chest should have, if it is not
 // already the one it has.
-func (c *Connection) refreshChestFacing(kind int32, pos world.BlockPos) {
-	state := c.world.GetBlockID(pos.X, pos.Y, pos.Z)
-	if state>>4 != kind {
+func (c *Connection) refreshChestFacing(kind string, pos world.BlockPos) {
+	state := c.blockAt(pos.X, pos.Y, pos.Z)
+	if c.blockName(state) != kind {
 		return
 	}
 
-	next := kind<<4 | c.surroundingChestFacing(kind, pos, state&0xF)
+	next := c.blockState(kind, c.surroundingChestFacing(kind, pos, c.blockMetadata(state)))
 	if next == state {
 		return
 	}
 
-	c.world.SetBlockID(pos.X, pos.Y, pos.Z, next)
+	c.setBlockAt(pos.X, pos.Y, pos.Z, next)
 
 	change := &v1_8.PlayClientboundBlockChange{
 		Location: blockPos(pos.X, pos.Y, pos.Z),
-		Type:     next,
+		Type:     c.wireState(next),
 	}
 	c.players.BroadcastExcept(change, c.self.EntityID)
 	_ = c.send(change)
@@ -215,7 +212,7 @@ func (c *Connection) refreshChestFacing(kind int32, pos world.BlockPos) {
 // the partner's current facing and then by what is solid around the pair: a
 // chest turns away from a wall, so a double chest against a north wall opens
 // south.
-func (c *Connection) surroundingChestFacing(kind int32, pos world.BlockPos, current int32) int32 {
+func (c *Connection) surroundingChestFacing(kind string, pos world.BlockPos, current int32) int32 {
 	north := world.BlockPos{X: pos.X, Y: pos.Y, Z: pos.Z - 1}
 	south := world.BlockPos{X: pos.X, Y: pos.Y, Z: pos.Z + 1}
 	west := world.BlockPos{X: pos.X - 1, Y: pos.Y, Z: pos.Z}
@@ -230,7 +227,7 @@ func (c *Connection) surroundingChestFacing(kind int32, pos world.BlockPos, curr
 		}
 
 		facing := facingEast
-		if c.world.GetBlockID(partner.X, partner.Y, partner.Z)&0xF == facingWest {
+		if c.blockMetadata(c.blockAt(partner.X, partner.Y, partner.Z)) == facingWest {
 			facing = facingWest
 		}
 
@@ -256,7 +253,7 @@ func (c *Connection) surroundingChestFacing(kind int32, pos world.BlockPos, curr
 		}
 
 		facing := facingSouth
-		if c.world.GetBlockID(partner.X, partner.Y, partner.Z)&0xF == facingNorth {
+		if c.blockMetadata(c.blockAt(partner.X, partner.Y, partner.Z)) == facingNorth {
 			facing = facingNorth
 		}
 
@@ -281,19 +278,19 @@ func (c *Connection) surroundingChestFacing(kind int32, pos world.BlockPos, curr
 }
 
 // isChestAt reports whether a position holds a chest of the given kind.
-func (c *Connection) isChestAt(kind int32, pos world.BlockPos) bool {
-	return c.world.GetBlockID(pos.X, pos.Y, pos.Z)>>4 == kind
+func (c *Connection) isChestAt(kind string, pos world.BlockPos) bool {
+	return c.blockName(c.blockAt(pos.X, pos.Y, pos.Z)) == kind
 }
 
 // isFullBlock reports whether a position holds a solid opaque cube, which is
 // what a chest turns away from.
 func (c *Connection) isFullBlock(pos world.BlockPos) bool {
-	state := c.world.GetBlockID(pos.X, pos.Y, pos.Z)
-	if state>>4 == 0 {
+	state := c.blockAt(pos.X, pos.Y, pos.Z)
+	if c.isAir(state) {
 		return false
 	}
 
-	block, ok := c.lookupBlock(state)
+	block, ok := c.blockOf(state)
 	if !ok {
 		return false
 	}
@@ -311,10 +308,10 @@ func (c *Connection) isFullBlock(pos world.BlockPos) bool {
 func (c *Connection) chestPair(pos world.BlockPos) []world.BlockPos {
 	// A chest pairs only with its own kind: vanilla never joins a plain chest
 	// to a trapped one.
-	kind := c.world.GetBlockID(pos.X, pos.Y, pos.Z) >> 4
+	kind := c.blockName(c.blockAt(pos.X, pos.Y, pos.Z))
 
 	for _, neighbour := range horizontalNeighbours(pos) {
-		if c.world.GetBlockID(neighbour.X, neighbour.Y, neighbour.Z)>>4 != kind {
+		if c.blockName(c.blockAt(neighbour.X, neighbour.Y, neighbour.Z)) != kind {
 			continue
 		}
 

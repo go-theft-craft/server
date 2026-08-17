@@ -21,8 +21,8 @@ const (
 	maxHealth = 20.0
 	maxFood   = 20
 
-	// cactusBlockID is the only contact-damage block so far.
-	cactusBlockID = 81
+	// cactusName is the only contact-damage block so far.
+	cactusDamageBlock = cactusName
 
 	// cactusDamage is a half heart, which is what a cactus deals per hit.
 	cactusDamage = 1.0
@@ -79,7 +79,7 @@ func (c *Connection) checkContactDamage(x, y, z float64) {
 	for bx := minX; bx <= maxX; bx++ {
 		for by := minY; by <= maxY; by++ {
 			for bz := minZ; bz <= maxZ; bz++ {
-				if c.world.GetBlockID(bx, by, bz)>>4 == cactusBlockID {
+				if c.blockName(c.blockAt(bx, by, bz)) == cactusDamageBlock {
 					c.applyDamage(cactusDamage, "death.attack.cactus")
 
 					return

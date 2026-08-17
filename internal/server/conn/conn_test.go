@@ -791,3 +791,21 @@ func newTestWorld(t *testing.T) *world.World {
 
 	return w
 }
+
+// setBlockID and blockID let a test name a block the way protocol 47 does,
+// which is how the inventory and the wire still name it.
+func setBlockID(t *testing.T, c *Connection, x, y, z int, stateID int32) {
+	t.Helper()
+
+	state, err := c.states.adapter.DecodeState(stateID)
+	if err != nil {
+		t.Fatalf("no block state encodes to %d: %v", stateID, err)
+	}
+	c.setBlockAt(x, y, z, state)
+}
+
+func blockID(t *testing.T, c *Connection, x, y, z int) int32 {
+	t.Helper()
+
+	return c.wireState(c.blockAt(x, y, z))
+}

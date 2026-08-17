@@ -167,6 +167,7 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 		cursorSlot:     player.EmptySlot,
 		craftingOutput: player.EmptySlot,
 		craftingGrid:   emptyCraftingGrid(),
+		states:         newBlockStates(w, gameData),
 	}
 
 	return c, sp, m, written

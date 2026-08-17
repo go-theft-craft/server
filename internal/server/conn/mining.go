@@ -105,12 +105,3 @@ func blockDrops(block data.Block, heldItemID int16) []player.Slot {
 	}
 	return drops
 }
-
-// lookupBlock finds a block by its state ID (stateID = blockID << 4 | metadata).
-func (c *Connection) lookupBlock(stateID int32) (data.Block, bool) {
-	if c.gameData == nil || c.gameData.Blocks() == nil {
-		return data.Block{}, false
-	}
-
-	return c.gameData.Blocks().ByID(data.BlockID(stateID >> 4))
-}

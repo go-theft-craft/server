@@ -102,6 +102,11 @@ type Connection struct {
 	// Game data registries (blocks, materials, recipes, etc.)
 	gameData *data.Set
 
+	// states is the connection's block state vocabulary: the registry the
+	// world interns into and the adapter that turns a handle into what a
+	// client is told. See blockstate.go.
+	states blockStates
+
 	// SaveAll triggers a server-wide save (set by Server).
 	SaveAll func()
 }
@@ -167,6 +172,7 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		craftingOutput: player.EmptySlot,
 		craftingGrid:   emptyCraftingGrid(),
 		gameData:       gd,
+		states:         newBlockStates(w, gd),
 	}, nil
 }
 

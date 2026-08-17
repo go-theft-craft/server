@@ -23,7 +23,7 @@ func newDamageTestConn(t *testing.T) *Connection {
 // putCactus places one cactus and returns the position the player has to stand
 // at to be pressed against its -X face.
 func putCactus(c *Connection, x, y, z int) {
-	c.world.SetBlockID(x, y, z, int32(cactusBlockID)<<4)
+	c.setBlockAt(x, y, z, c.blockState(cactusName, 0))
 }
 
 func TestCactus_TouchingTheSideHurts(t *testing.T) {

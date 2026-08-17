@@ -252,16 +252,3 @@ func TestWorldGetSetTime(t *testing.T) {
 		t.Errorf("after SetTimeOfDay = (%d, %d), want (5000, 18000)", age, tod)
 	}
 }
-
-func TestTheProtocolShimsRoundTrip(t *testing.T) {
-	w, _, reg := newTestWorld(t)
-	cobble := reg.Intern("minecraft:cobblestone", nil)
-
-	w.SetBlockID(1, 20, 1, int32(cobble))
-	if got := w.GetBlockID(1, 20, 1); got != int32(cobble) {
-		t.Fatalf("GetBlockID = %d, want %d", got, cobble)
-	}
-	if got := w.Block(BlockPos{1, 20, 1}); got != cobble {
-		t.Fatalf("Block = %d, want %d", got, cobble)
-	}
-}

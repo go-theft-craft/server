@@ -1,8 +1,5 @@
 package gen
 
-// seaLevel is where the generators fill water to.
-const seaLevel = 62
-
 // Biome IDs matching Minecraft 1.8 protocol.
 const (
 	biomeOcean      byte = 0
@@ -19,45 +16,86 @@ const (
 	biomeTundra     byte = 12
 )
 
+// biomeNames maps this generator's biome IDs to the names its parameters use.
+//
+// The names are the modern ones — "minecraft:mountains" rather than 1.8's
+// "extreme_hills" — because a parameter file outlives a protocol version and
+// the ID is what belongs to the version.
+var biomeNames = map[byte]string{
+	biomeOcean:      "minecraft:ocean",
+	biomePlains:     "minecraft:plains",
+	biomeDesert:     "minecraft:desert",
+	biomeMountains:  "minecraft:mountains",
+	biomeForest:     "minecraft:forest",
+	biomeTaiga:      "minecraft:taiga",
+	biomeTundra:     "minecraft:tundra",
+	biomeBeach:      "minecraft:beach",
+	biomeJungle:     "minecraft:jungle",
+	biomeDarkForest: "minecraft:dark_forest",
+	biomeSnowyTaiga: "minecraft:snowy_taiga",
+	biomeSavanna:    "minecraft:savanna",
+}
+
+// biomeName is the parameter key for a biome ID.
+func biomeName(id byte) string { return biomeNames[id] }
+
 // BiomeGenerator selects biomes using temperature/rainfall noise fields.
 type BiomeGenerator struct {
 	tempNoise *NoiseGenerator
 	rainNoise *NoiseGenerator
 	terrain   *NoiseGenerator
+
+	params       BiomeParams
+	seaLevel     float64
+	terrainScale float64
 }
 
-// NewBiomeGenerator creates a BiomeGenerator from a seed.
-func NewBiomeGenerator(seed int64) *BiomeGenerator {
+// NewBiomeGenerator creates a BiomeGenerator from a seed and the parameters
+// that shape it.
+func NewBiomeGenerator(seed int64, params BiomeParams, seaLevel int, terrainScale float64) *BiomeGenerator {
 	return &BiomeGenerator{
-		tempNoise: NewNoiseGenerator(seed + 100),
-		rainNoise: NewNoiseGenerator(seed + 200),
-		terrain:   NewNoiseGenerator(seed),
+		tempNoise:    NewNoiseGenerator(seed + 100),
+		rainNoise:    NewNoiseGenerator(seed + 200),
+		terrain:      NewNoiseGenerator(seed),
+		params:       params,
+		seaLevel:     float64(seaLevel),
+		terrainScale: terrainScale,
 	}
 }
 
 // BiomeAt returns the biome ID at the given world block coordinates.
 func (bg *BiomeGenerator) BiomeAt(bx, bz int) byte {
 	// Sample temperature and rainfall at large scale.
-	tx := float64(bx) / 512.0
-	tz := float64(bz) / 512.0
+	tx := float64(bx) / bg.params.TemperatureScale
+	tz := float64(bz) / bg.params.RainfallScale
 	temp := bg.tempNoise.OctaveNoise2D(tx, tz, 4, 0.5)*0.8 + 0.75 // center around 0.75
 	rain := bg.rainNoise.OctaveNoise2D(tx+100, tz+100, 4, 0.5)*0.5 + 0.5
 
 	// Check for ocean: very low terrain at this position.
-	nx := float64(bx) / 128.0
-	nz := float64(bz) / 128.0
+	nx := float64(bx) / bg.terrainScale
+	nz := float64(bz) / bg.terrainScale
 	terrainBase := bg.terrain.OctaveNoise2D(nx, nz, 6, 0.5)
-	terrainHeight := 62.0 + terrainBase*8.0
-	if terrainHeight < float64(seaLevel)-8 {
+	terrainHeight := bg.seaLevel + terrainBase*8.0
+	if terrainHeight < bg.seaLevel-bg.params.OceanBelow {
 		return biomeOcean
 	}
 
 	// Check for beach: terrain near sea level.
-	if terrainHeight >= float64(seaLevel)-8 && terrainHeight < float64(seaLevel)-2 {
+	if terrainHeight < bg.seaLevel-bg.params.BeachBelow {
 		return biomeBeach
 	}
 
 	return selectBiome(temp, rain)
+}
+
+// terrainFor is a biome's height shape, falling back to the default for a
+// biome the parameters do not name.
+func (bg *BiomeGenerator) terrainFor(biome byte) BiomeTerrain {
+	if t, ok := bg.params.Terrain[biomeName(biome)]; ok {
+		return t
+	}
+
+	return bg.params.DefaultTerrain
 }
 
 // selectBiome maps temperature and rainfall to a biome ID.

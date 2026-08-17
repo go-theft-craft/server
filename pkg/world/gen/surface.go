@@ -1,70 +1,79 @@
 package gen
 
-// applySurface places the biome-specific surface blocks on top of the stone column.
-func applySurface(c setter, x, z, height int, biome byte) {
+// The surface pass.
+//
+// Every literal here used to be a constant: the 4 is the surface depth, and
+// the 3 that guards every loop is the bedrock depth — the surface never eats
+// into the layers the bedrock pass wrote.
+
+// applySurface places the biome-specific surface blocks on top of the stone
+// column.
+func (g *DefaultGenerator) applySurface(c setter, x, z, height int, biome byte) {
+	depth := g.params.Surface.Depth
+	floor := g.params.BedrockDepth
+
 	switch biome {
 	case biomeDesert:
 		// Sand on top, sandstone below.
-		for y := height; y > height-4 && y > 3; y-- {
-			c.set(x, y, z, c.p.sand)
+		for y := height; y > height-depth && y > floor; y-- {
+			c.set(x, y, z, g.surface.sand)
 		}
-		if height-4 > 3 {
-			c.set(x, height-4, z, c.p.sandstone)
+		if height-depth > floor {
+			c.set(x, height-depth, z, g.surface.sandstone)
 		}
-		if height-5 > 3 {
-			c.set(x, height-5, z, c.p.sandstone)
+		if height-depth-1 > floor {
+			c.set(x, height-depth-1, z, g.surface.sandstone)
 		}
 
 	case biomeOcean:
-		// Gravel on the ocean floor.
-		for y := height; y > height-3 && y > 3; y-- {
-			c.set(x, y, z, c.p.gravel)
+		// Gravel on the ocean floor, dirt under it.
+		for y := height; y > height-(depth-1) && y > floor; y-- {
+			c.set(x, y, z, g.surface.gravel)
 		}
-		for y := height - 3; y > height-5 && y > 3; y-- {
-			c.set(x, y, z, c.p.dirt)
+		for y := height - (depth - 1); y > height-(depth+1) && y > floor; y-- {
+			c.set(x, y, z, g.surface.underwater)
 		}
 
 	case biomeBeach:
 		// Sand on beaches.
-		for y := height; y > height-4 && y > 3; y-- {
-			c.set(x, y, z, c.p.sand)
+		for y := height; y > height-depth && y > floor; y-- {
+			c.set(x, y, z, g.surface.sand)
 		}
-		if height-4 > 3 {
-			c.set(x, height-4, z, c.p.sandstone)
+		if height-depth > floor {
+			c.set(x, height-depth, z, g.surface.sandstone)
 		}
 
 	case biomeMountains:
-		// Stone with thin dirt/grass cap above tree line, normal below.
-		if height > 100 {
-			// Bare stone peaks.
-			for y := height; y > height-4 && y > 3; y-- {
-				c.set(x, y, z, c.p.stone)
+		// Bare stone peaks above the tree line, normal ground below.
+		if height > g.params.Surface.BareStoneAbove {
+			for y := height; y > height-depth && y > floor; y-- {
+				c.set(x, y, z, g.surface.stone)
 			}
 		} else {
-			applyDefaultSurface(c, x, z, height)
+			g.applyDefaultSurface(c, x, z, height)
 		}
 
-	case biomeSnowyTaiga, biomeTundra:
-		// Grass + dirt, snow will be added later via decoration if needed.
-		applyDefaultSurface(c, x, z, height)
-
 	default:
-		applyDefaultSurface(c, x, z, height)
+		// Snowy taiga and tundra included: snow is decoration, not surface.
+		g.applyDefaultSurface(c, x, z, height)
 	}
 }
 
-// applyDefaultSurface places grass on top with dirt below.
-func applyDefaultSurface(c setter, x, z, height int) {
-	if height <= 3 {
+// applyDefaultSurface places the top block with filler below it.
+func (g *DefaultGenerator) applyDefaultSurface(c setter, x, z, height int) {
+	depth := g.params.Surface.Depth
+	floor := g.params.BedrockDepth
+
+	if height <= floor {
 		return
 	}
-	if height > seaLevel {
-		c.set(x, height, z, c.p.grass)
+	if height > g.params.SeaLevel {
+		c.set(x, height, z, g.surface.top)
 	} else {
-		// Underwater: dirt instead of grass.
-		c.set(x, height, z, c.p.dirt)
+		// Underwater: the filler block instead of the top one.
+		c.set(x, height, z, g.surface.underwater)
 	}
-	for y := height - 1; y > height-4 && y > 3; y-- {
-		c.set(x, y, z, c.p.dirt)
+	for y := height - 1; y > height-depth && y > floor; y-- {
+		c.set(x, y, z, g.surface.filler)
 	}
 }

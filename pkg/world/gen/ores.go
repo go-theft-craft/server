@@ -1,6 +1,8 @@
 package gen
 
 import (
+	"fmt"
+
 	"github.com/go-theft-craft/server/pkg/world"
 )
 
@@ -14,41 +16,45 @@ func NewOreGenerator(seed int64) *OreGenerator {
 	return &OreGenerator{seed: seed}
 }
 
-type oreConfig struct {
-	// block picks the ore out of the palette, since a palette is only known
-	// once the generator is bound and this table is package state.
-	block    func(palette) world.State
-	minY     int
-	maxY     int
-	veinSize int // max blocks per vein
-	attempts int // veins per chunk
+// resolvedOre is one OreParams entry with its block turned into a handle.
+type resolvedOre struct {
+	block  world.State
+	params OreParams
 }
 
-var ores = []oreConfig{
-	{func(p palette) world.State { return p.coalOre }, 0, 128, 12, 20},
-	{func(p palette) world.State { return p.ironOre }, 0, 64, 8, 20},
-	{func(p palette) world.State { return p.goldOre }, 0, 32, 8, 2},
-	{func(p palette) world.State { return p.diamondOre }, 0, 16, 6, 1},
-	{func(p palette) world.State { return p.redstoneOre }, 0, 16, 6, 8},
-	{func(p palette) world.State { return p.lapisOre }, 0, 32, 6, 1},
+func resolveOres(reg world.StateRegistry, params []OreParams) ([]resolvedOre, error) {
+	out := make([]resolvedOre, 0, len(params))
+	for i, p := range params {
+		if p.MaxY <= p.MinY {
+			return nil, fmt.Errorf("gen: ore %d (%s) has max_y %d at or below min_y %d",
+				i, p.Block, p.MaxY, p.MinY)
+		}
+		state, err := resolveBlock(reg, p.Block)
+		if err != nil {
+			return nil, fmt.Errorf("gen: ore %d: %w", i, err)
+		}
+		out = append(out, resolvedOre{block: state, params: p})
+	}
+
+	return out, nil
 }
 
 // Place scatters ore veins within the chunk.
-func (og *OreGenerator) Place(c setter, chunkX, chunkZ int, heights *[16][16]int) {
+func (og *OreGenerator) Place(c setter, chunkX, chunkZ int, heights *[16][16]int, ores []resolvedOre) {
 	// Seed RNG deterministically per chunk.
 	rng := newChunkRNG(og.seed, chunkX, chunkZ, 500)
 
 	for _, ore := range ores {
-		for range ore.attempts {
+		for range ore.params.Attempts {
 			x := rng.nextN(16)
-			y := ore.minY + rng.nextN(ore.maxY-ore.minY)
+			y := ore.params.MinY + rng.nextN(ore.params.MaxY-ore.params.MinY)
 			z := rng.nextN(16)
 
 			if y >= heights[x][z] {
 				continue
 			}
 
-			og.placeVein(c, x, y, z, ore.block(c.p), ore.veinSize, heights, rng)
+			og.placeVein(c, x, y, z, ore.block, ore.params.VeinSize, heights, rng)
 		}
 	}
 }

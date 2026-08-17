@@ -6,12 +6,14 @@ import (
 
 // TreeGenerator places trees and vegetation per biome.
 type TreeGenerator struct {
-	seed int64
+	seed     int64
+	params   TreeParams
+	seaLevel int
 }
 
-// NewTreeGenerator creates a TreeGenerator from a seed.
-func NewTreeGenerator(seed int64) *TreeGenerator {
-	return &TreeGenerator{seed: seed}
+// NewTreeGenerator creates a TreeGenerator from a seed and its parameters.
+func NewTreeGenerator(seed int64, params TreeParams, seaLevel int) *TreeGenerator {
+	return &TreeGenerator{seed: seed, params: params, seaLevel: seaLevel}
 }
 
 // Decorate places trees and vegetation in the chunk.
@@ -22,13 +24,13 @@ func (tg *TreeGenerator) Decorate(c setter, chunkX, chunkZ int, heights *[16][16
 	centerBiome := byte(c.b.Biome(8, 8))
 
 	// Place trees.
-	treeCount := treesForBiome(centerBiome)
+	treeCount := tg.treesForBiome(centerBiome)
 	for range treeCount {
 		x := rng.nextN(16)
 		z := rng.nextN(16)
 		y := heights[x][z]
 
-		if y <= seaLevel || y >= 250 {
+		if y <= tg.seaLevel || y >= 250 {
 			continue
 		}
 
@@ -45,27 +47,14 @@ func (tg *TreeGenerator) Decorate(c setter, chunkX, chunkZ int, heights *[16][16
 	tg.placeVegetation(c, chunkX, chunkZ, heights, rng)
 }
 
-func treesForBiome(biome byte) int {
-	switch biome {
-	case biomeDesert:
-		return 0
-	case biomeOcean, biomeBeach:
-		return 0
-	case biomePlains, biomeSavanna:
-		return 1
-	case biomeTundra, biomeSnowyTaiga:
-		return 4
-	case biomeTaiga:
-		return 6
-	case biomeForest:
-		return 8
-	case biomeDarkForest:
-		return 10
-	case biomeJungle:
-		return 12
-	default:
-		return 2
+// treesForBiome is how many trees a biome gets per chunk, from the parameters
+// rather than from a switch.
+func (tg *TreeGenerator) treesForBiome(biome byte) int {
+	if count, ok := tg.params.Density[biomeName(biome)]; ok {
+		return count
 	}
+
+	return tg.params.DefaultDensity
 }
 
 // placeTree places a single tree at the given position. Constrained to chunk bounds.
@@ -219,11 +208,11 @@ func (tg *TreeGenerator) placeSpruce(c setter, x, baseY, z int, rng *chunkRNG) {
 
 // placeVegetation scatters grass, flowers, cacti, and dead bushes.
 func (tg *TreeGenerator) placeVegetation(c setter, _, _ int, heights *[16][16]int, rng *chunkRNG) {
-	for range 20 {
+	for range tg.params.VegetationAttempts {
 		x := rng.nextN(16)
 		z := rng.nextN(16)
 		y := heights[x][z]
-		if y <= seaLevel || y >= 255 {
+		if y <= tg.seaLevel || y >= 255 {
 			continue
 		}
 		biome := byte(c.b.Biome(x, z))

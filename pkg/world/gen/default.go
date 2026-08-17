@@ -1,6 +1,8 @@
 package gen
 
 import (
+	"fmt"
+
 	"github.com/go-theft-craft/server/pkg/world"
 )
 
@@ -8,24 +10,71 @@ import (
 type DefaultGenerator struct {
 	bound
 
+	seed   int64
+	params DefaultParams
+
 	terrain  *NoiseGenerator
 	detail   *NoiseGenerator
 	biomeGen *BiomeGenerator
 	caveGen  *CaveGenerator
 	oreGen   *OreGenerator
 	treeGen  *TreeGenerator
+
+	surface surfacePalette
+	ores    []resolvedOre
 }
 
-// NewDefaultGenerator creates a DefaultGenerator from a seed.
+// NewDefaultGenerator creates a DefaultGenerator from a seed, with the
+// parameters the constants used to hold. Its palette is resolved when the
+// world binds it.
 func NewDefaultGenerator(seed int64) *DefaultGenerator {
+	return newDefault(seed, DefaultDefaults())
+}
+
+// NewDefaultGeneratorWith creates one from explicit parameters and resolves
+// every block they name straight away, so a name the registry does not know is
+// an error here rather than a wrong block a thousand chunks later.
+func NewDefaultGeneratorWith(seed int64, params DefaultParams, reg world.StateRegistry) (*DefaultGenerator, error) {
+	g := newDefault(seed, params)
+	if reg == nil {
+		return g, nil
+	}
+	if err := g.Bind(reg); err != nil {
+		return nil, err
+	}
+
+	return g, nil
+}
+
+func newDefault(seed int64, params DefaultParams) *DefaultGenerator {
 	return &DefaultGenerator{
+		seed:     seed,
+		params:   params,
 		terrain:  NewNoiseGenerator(seed),
 		detail:   NewNoiseGenerator(seed + 1),
-		biomeGen: NewBiomeGenerator(seed),
-		caveGen:  NewCaveGenerator(seed),
+		biomeGen: NewBiomeGenerator(seed, params.Biomes, params.SeaLevel, params.TerrainScale),
+		caveGen:  NewCaveGenerator(seed, params.Caves),
 		oreGen:   NewOreGenerator(seed),
-		treeGen:  NewTreeGenerator(seed),
+		treeGen:  NewTreeGenerator(seed, params.Trees, params.SeaLevel),
 	}
+}
+
+// Params is what this generator was built from, for the world's metadata.
+func (g *DefaultGenerator) Params() Params { return g.params }
+
+// Bind resolves the palette and every block the parameters name.
+func (g *DefaultGenerator) Bind(reg world.StateRegistry) error {
+	if err := g.bound.Bind(reg); err != nil {
+		return err
+	}
+
+	var err error
+	if g.surface, err = resolveSurface(reg, g.params.Surface); err != nil {
+		return err
+	}
+	g.ores, err = resolveOres(reg, g.params.Ores)
+
+	return err
 }
 
 // Generate runs the four passes over one column.
@@ -53,7 +102,7 @@ func (g *DefaultGenerator) Generate(pos world.ChunkPos, into *world.Builder) err
 	g.caveGen.Carve(c, pos.X, pos.Z, &heights)
 
 	// Pass 3: place ores.
-	g.oreGen.Place(c, pos.X, pos.Z, &heights)
+	g.oreGen.Place(c, pos.X, pos.Z, &heights, g.ores)
 
 	// Pass 4: place trees and vegetation.
 	g.treeGen.Decorate(c, pos.X, pos.Z, &heights)
@@ -61,8 +110,15 @@ func (g *DefaultGenerator) Generate(pos world.ChunkPos, into *world.Builder) err
 	return nil
 }
 
+// HeightAt recomputes the terrain height at a world block coordinate.
+//
+// It does not read the generated chunk, so it does not know about caves: at a
+// cave mouth it reports the surface the terrain pass produced rather than the
+// hole the carving pass left. That gap is documented rather than fixed here;
+// it belongs to whoever owns where a dropped item lands.
 func (g *DefaultGenerator) HeightAt(blockX, blockZ int) int {
 	biome := g.biomeGen.BiomeAt(blockX, blockZ)
+
 	return g.terrainHeight(blockX, blockZ, biome)
 }
 
@@ -70,59 +126,28 @@ func (g *DefaultGenerator) HeightAt(blockX, blockZ int) int {
 // Different biomes scale noise amplitude differently.
 func (g *DefaultGenerator) terrainHeight(bx, bz int, biome byte) int {
 	// Base terrain noise.
-	nx := float64(bx) / 128.0
-	nz := float64(bz) / 128.0
+	nx := float64(bx) / g.params.TerrainScale
+	nz := float64(bz) / g.params.TerrainScale
 	base := g.terrain.OctaveNoise2D(nx, nz, 6, 0.5)
 
 	// Detail noise for small-scale variation.
-	dx := float64(bx) / 32.0
-	dz := float64(bz) / 32.0
+	dx := float64(bx) / g.params.DetailScale
+	dz := float64(bz) / g.params.DetailScale
 	detail := g.detail.OctaveNoise2D(dx, dz, 3, 0.5)
 
-	amplitude, baseHeight := biomeTerrainParams(biome)
+	shape := g.biomeGen.terrainFor(biome)
+	baseHeight := float64(g.params.SeaLevel) + shape.BaseOffset
 
-	height := baseHeight + base*amplitude + detail*4.0
-	h := int(height)
-	if h < 1 {
-		h = 1
-	}
-	if h > 250 {
-		h = 250
-	}
-	return h
-}
+	h := int(baseHeight + base*shape.Amplitude + detail*g.params.DetailAmplitude)
 
-// biomeTerrainParams returns (amplitude, baseHeight) for terrain noise scaling.
-func biomeTerrainParams(biome byte) (amplitude, baseHeight float64) {
-	switch biome {
-	case biomeOcean:
-		return 8.0, 40.0
-	case biomePlains, biomeSavanna:
-		return 12.0, float64(seaLevel)
-	case biomeForest, biomeDarkForest:
-		return 16.0, float64(seaLevel) + 2
-	case biomeTaiga, biomeSnowyTaiga:
-		return 18.0, float64(seaLevel) + 4
-	case biomeDesert:
-		return 10.0, float64(seaLevel) + 2
-	case biomeJungle:
-		return 18.0, float64(seaLevel) + 4
-	case biomeMountains:
-		return 40.0, float64(seaLevel) + 10
-	case biomeBeach:
-		return 3.0, float64(seaLevel)
-	case biomeTundra:
-		return 10.0, float64(seaLevel)
-	default:
-		return 14.0, float64(seaLevel)
-	}
+	return min(max(h, g.params.MinHeight), g.params.MaxHeight)
 }
 
 // fillColumn fills a single block column with terrain blocks.
 func (g *DefaultGenerator) fillColumn(c setter, x, z, height int, biome byte) {
-	// Bedrock layers: y=0 always, y=1..3 randomized.
+	// Bedrock layers: y=0 always, the next few randomized.
 	c.set(x, 0, z, c.p.bedrock)
-	for y := 1; y <= 3; y++ {
+	for y := 1; y <= g.params.BedrockDepth; y++ {
 		bx := x + y*7 // cheap variation
 		if g.terrain.Noise2D(float64(bx)*0.5, float64(z)*0.5) > 0.0 {
 			c.set(x, y, z, c.p.bedrock)
@@ -131,33 +156,79 @@ func (g *DefaultGenerator) fillColumn(c setter, x, z, height int, biome byte) {
 		}
 	}
 
-	// Stone fill from y=4 up to surface-4 (or surface if below sea level).
-	surfaceDepth := surfaceLayerDepth(biome)
-	stoneTop := height - surfaceDepth
-	if stoneTop < 4 {
-		stoneTop = 4
-	}
-	for y := 4; y <= stoneTop && y <= height; y++ {
+	// Stone fill from just above the bedrock up to surface minus the surface
+	// depth (or to the surface if the column is below sea level).
+	stoneBase := g.params.BedrockDepth + 1
+	stoneTop := max(height-g.surfaceDepth(biome), stoneBase)
+	for y := stoneBase; y <= stoneTop && y <= height; y++ {
 		c.set(x, y, z, c.p.stone)
 	}
 
 	// Surface layers.
-	applySurface(c, x, z, height, biome)
+	g.applySurface(c, x, z, height, biome)
 
 	// Water fill from surface+1 to sea level where terrain is below sea level.
-	if height < seaLevel {
-		for y := height + 1; y <= seaLevel; y++ {
+	if height < g.params.SeaLevel {
+		for y := height + 1; y <= g.params.SeaLevel; y++ {
 			c.set(x, y, z, c.p.water)
 		}
 	}
 }
 
-// surfaceLayerDepth returns how many blocks of surface material go below the top block.
-func surfaceLayerDepth(biome byte) int {
-	switch biome {
-	case biomeDesert:
-		return 5 // deep sand
-	default:
-		return 4
+// surfaceDepth is how many blocks of surface material go below the top block.
+func (g *DefaultGenerator) surfaceDepth(biome byte) int {
+	if biome == biomeDesert {
+		return g.params.Surface.DesertDepth
 	}
+
+	return g.params.Surface.Depth
+}
+
+// surfacePalette is the surface pass's blocks, resolved once.
+type surfacePalette struct {
+	top        world.State
+	filler     world.State
+	underwater world.State
+	sand       world.State
+	sandstone  world.State
+	gravel     world.State
+	stone      world.State
+}
+
+func resolveSurface(reg world.StateRegistry, p SurfaceParams) (surfacePalette, error) {
+	var out surfacePalette
+	for _, field := range []struct {
+		name string
+		into *world.State
+	}{
+		{p.Top, &out.top},
+		{p.Filler, &out.filler},
+		{p.Underwater, &out.underwater},
+		{p.Sand, &out.sand},
+		{p.Sandstone, &out.sandstone},
+		{p.Gravel, &out.gravel},
+		{p.Stone, &out.stone},
+	} {
+		state, err := resolveBlock(reg, field.name)
+		if err != nil {
+			return surfacePalette{}, err
+		}
+		*field.into = state
+	}
+
+	return out, nil
+}
+
+// resolveBlock turns a parameter's block name into a handle, reporting rather
+// than panicking: the name came from a file somebody wrote.
+func resolveBlock(reg world.StateRegistry, name string) (world.State, error) {
+	if name == "" {
+		return 0, fmt.Errorf("gen: empty block name")
+	}
+	state, ok := reg.TryIntern(name, nil)
+	if !ok {
+		return 0, fmt.Errorf("gen: no block is named %q", name)
+	}
+
+	return state, nil
 }

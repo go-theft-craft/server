@@ -32,6 +32,14 @@ type StateRegistry interface {
 	// flattening and DefaultState after it. Interning an identity a frozen
 	// registry does not know is a programming error and panics.
 	Intern(name string, props Properties) State
+	// TryIntern is Intern without the panic: it reports false for an identity
+	// a frozen registry does not know.
+	//
+	// Intern is right where the name is a literal in this repository's own
+	// code, because a typo there is a programming error. TryIntern is right
+	// where the name came from a parameter file, because a typo there is the
+	// user's and deserves an error naming it.
+	TryIntern(name string, props Properties) (State, bool)
 	// Lookup returns the canonical identity a handle stands for.
 	Lookup(s State) (name string, props Properties, ok bool)
 	// Air is the handle for the dimension's empty block.
@@ -173,6 +181,20 @@ func (r *stateRegistry) Intern(name string, props Properties) State {
 	}
 
 	return s
+}
+
+func (r *stateRegistry) TryIntern(name string, props Properties) (State, bool) {
+	name = canonicalName(name)
+	props = normalize(props)
+
+	if len(props) == 0 {
+		if s, ok := r.defaults[name]; ok {
+			return s, true
+		}
+	}
+	s, ok := r.byIdent[identity(name, props)]
+
+	return s, ok
 }
 
 func (r *stateRegistry) Lookup(s State) (string, Properties, bool) {

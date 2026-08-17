@@ -24,12 +24,13 @@ type Option func(*builder) error
 // set before constructing anything, rather than half-building a server and
 // discovering the port is negative.
 type builder struct {
-	settings  *config.Config
-	log       *slog.Logger
-	generator gen.Generator
-	dimension world.Dimension
-	store     Store
-	observer  Observer
+	settings    *config.Config
+	log         *slog.Logger
+	generator   gen.Generator
+	dimension   world.Dimension
+	store       Store
+	playerStore PlayerStore
+	observer    Observer
 }
 
 // WithSettings replaces the whole settings struct. The value is copied, so the
@@ -67,6 +68,21 @@ func WithGenerator(g gen.Generator) Option {
 			return fmt.Errorf("%w: nil generator", ErrInvalidOption)
 		}
 		b.generator = g
+
+		return nil
+	}
+}
+
+// WithPlayerStore supplies per-player persistence. Omit it to run without
+// player persistence; a nil store is an error rather than a silent no-op,
+// because "I passed a store and nothing was saved" is the harder failure to
+// diagnose.
+func WithPlayerStore(store PlayerStore) Option {
+	return func(b *builder) error {
+		if store == nil {
+			return fmt.Errorf("%w: nil player store, omit WithPlayerStore to run without one", ErrInvalidOption)
+		}
+		b.playerStore = store
 
 		return nil
 	}

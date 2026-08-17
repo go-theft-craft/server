@@ -15,7 +15,6 @@ import (
 
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
-	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
 )
 
@@ -26,47 +25,28 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	entityID := c.players.AllocateEntityID()
 	c.self = player.NewPlayer(entityID, uuid, uuidBytes, username, skinProps, c.writePlayerPacket)
 
-	// Try to load saved player data.
-	var savedData *storage.PlayerData
+	gameMode := uint8(packet.GameModeCreative)
+	spawnY := c.world.SpawnHeight()
+
+	// The store writes straight into the player, so the join path reads its
+	// starting position back out of the player rather than tracking two
+	// copies of it.
+	c.self.SetPosition(0.5, float64(spawnY), 0.5, 0, 0, true)
+
 	if c.storage != nil {
-		var err error
-		savedData, err = c.storage.LoadPlayer(uuid)
+		restored, err := c.storage.LoadPlayer(c.self)
 		if err != nil {
 			c.log.Error("load player data", "error", err)
 		}
+		if restored {
+			gameMode = c.self.GetGameMode()
+			c.log.Info("restored saved player data")
+		}
 	}
 
-	gameMode := uint8(packet.GameModeCreative)
-	spawnY := c.world.SpawnHeight()
-	posX, posY, posZ := 0.5, float64(spawnY), 0.5
-	var posYaw float32
-	var posPitch float32
-
-	if savedData != nil {
-		gameMode = savedData.GameMode
-		posX = savedData.Position.X
-		posY = savedData.Position.Y
-		posZ = savedData.Position.Z
-		posYaw = savedData.Position.Yaw
-		posPitch = savedData.Position.Pitch
-
-		// Convert saved inventory data to runtime types.
-		var slots [36]player.Slot
-		var armor [4]player.Slot
-		for i, s := range savedData.Inventory.Slots {
-			slots[i] = player.Slot{BlockID: s.BlockID, ItemCount: s.ItemCount, ItemDamage: s.ItemDamage}
-		}
-		for i, s := range savedData.Inventory.Armor {
-			armor[i] = player.Slot{BlockID: s.BlockID, ItemCount: s.ItemCount, ItemDamage: s.ItemDamage}
-		}
-
-		c.self.ApplyData(player.Position{
-			X: posX, Y: posY, Z: posZ,
-			Yaw: posYaw, Pitch: posPitch,
-		}, gameMode, slots, armor, savedData.Inventory.HeldSlot)
-
-		c.log.Info("restored saved player data")
-	}
+	saved := c.self.GetPosition()
+	posX, posY, posZ := saved.X, saved.Y, saved.Z
+	posYaw, posPitch := saved.Yaw, saved.Pitch
 
 	// Set player position so chunk loading uses the correct coordinates.
 	// For returning players ApplyData already did this, but for new players

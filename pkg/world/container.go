@@ -10,13 +10,18 @@ package world
 // ChestSlots is how many item slots a single chest shows.
 const ChestSlots = 27
 
-// ItemStack is one slot of a stored container. It is deliberately not
-// player.Slot: pkg/world sits below the player package and must not import it,
-// and the wire type belongs to the protocol, not to storage.
+// ItemStack is one slot of a stored container or a saved inventory. It is
+// deliberately not player.Slot: pkg/world sits below the player package and
+// must not import it, and the wire type belongs to the protocol, not to
+// storage.
+//
+// The JSON tags are the ones the pre-M11.3 server wrote for a player's
+// inventory slot, so an existing players/<uuid>.json still loads. They are not
+// the names this type would have chosen; compatibility outranks that.
 type ItemStack struct {
-	ID     int16
-	Count  int8
-	Damage int16
+	ID     int16 `json:"block_id"`
+	Count  int8  `json:"item_count"`
+	Damage int16 `json:"item_damage"`
 }
 
 // EmptyStack is the value of a slot holding nothing. The zero value will not

@@ -17,7 +17,6 @@ import (
 
 	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
-	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
 )
 
@@ -118,12 +117,18 @@ type Connection struct {
 	SaveAll func()
 }
 
-// PlayerStore is the per-connection half of persistence: a player's saved data
-// read at join and written back at disconnect. The connection depends on this
-// rather than on the concrete store, so a server built without persistence
-// passes nothing and the nil guards at both call sites hold.
+// PlayerStore is the per-connection half of persistence: a player's saved
+// state restored at join and written back at disconnect.
+//
+// It names only the runtime player. The public PlayerData shape lives in the
+// server package, which sits above both this package and whatever store an
+// application supplied, and the conversion between the two lives there with
+// it. A server built without persistence passes nothing, and the nil guards at
+// both call sites hold.
 type PlayerStore interface {
-	LoadPlayer(uuid string) (*storage.PlayerData, error)
+	// LoadPlayer restores saved state into p and reports whether there was
+	// any. A player who has never logged in is false with no error.
+	LoadPlayer(p *player.Player) (bool, error)
 	SavePlayer(p *player.Player) error
 }
 

@@ -9,7 +9,6 @@ import (
 	"slices"
 
 	"github.com/go-theft-craft/server/config"
-	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/anvil"
 )
@@ -322,33 +321,26 @@ func (s *Storage) SaveWorldAnvil(w *world.World) error {
 	return nil
 }
 
-// LoadPlayer reads players/<uuid>.json and returns the data, or nil if not found.
-func (s *Storage) LoadPlayer(uuid string) (*PlayerData, error) {
-	path := filepath.Join(s.dir, "players", uuid+".json")
-	data, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("read player %s: %w", uuid, err)
-	}
-
-	var pd PlayerData
-	if err := json.Unmarshal(data, &pd); err != nil {
-		return nil, fmt.Errorf("parse player %s: %w", uuid, err)
-	}
-	return &pd, nil
-}
-
-// SavePlayer persists the current state of a player to disk.
-func (s *Storage) SavePlayer(p *player.Player) error {
-	pd := PlayerDataFromPlayer(p)
-	path := filepath.Join(s.dir, "players", p.UUID+".json")
-	return s.atomicWriteJSON(path, pd)
-}
-
 // atomicWriteJSON marshals v to JSON and writes it atomically using a temp file + rename.
 func (s *Storage) atomicWriteJSON(path string, v any) error {
+	return WriteJSONAtomic(path, v)
+}
+
+// EnsureDir creates a directory and everything above it.
+func EnsureDir(dir string) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("create directory %s: %w", dir, err)
+	}
+
+	return nil
+}
+
+// WriteJSONAtomic marshals v and replaces path with it in one rename, so a
+// reader sees either the whole previous file or the whole new one.
+//
+// It is exported because the stores that keep public value types live in the
+// server package, which cannot be imported from here.
+func WriteJSONAtomic(path string, v any) error {
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshal json: %w", err)
@@ -361,7 +353,27 @@ func (s *Storage) atomicWriteJSON(path string, v any) error {
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
+
 		return fmt.Errorf("rename temp file: %w", err)
 	}
+
 	return nil
+}
+
+// ReadJSON decodes path into v. It reports false, and no error, for a file
+// that is not there, which is how a caller tells "never saved" from "broken".
+func ReadJSON(path string, v any) (bool, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+
+		return false, err
+	}
+	if err := json.Unmarshal(data, v); err != nil {
+		return false, fmt.Errorf("parse %s: %w", path, err)
+	}
+
+	return true, nil
 }

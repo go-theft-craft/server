@@ -49,6 +49,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	playerStore, err := server.FilePlayerStore(dataDir)
+	if err != nil {
+		log.Error("create player store", "error", err)
+		os.Exit(1)
+	}
+
 	// Load config from file, then merge with CLI flags.
 	// CLI flags take precedence when explicitly set.
 	//
@@ -96,6 +102,7 @@ func main() {
 		server.WithSettings(cfg),
 		server.WithLogger(log),
 		server.WithStore(store),
+		server.WithPlayerStore(playerStore),
 		server.WithPrivateKey(key),
 	)
 	if err != nil {

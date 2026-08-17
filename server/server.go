@@ -15,7 +15,6 @@ import (
 	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/conn"
 	"github.com/go-theft-craft/server/internal/server/player"
-	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 	"github.com/go-theft-craft/server/pkg/world/v47"
@@ -36,12 +35,10 @@ type Server struct {
 	// that rather than measuring for a no-op.
 	dispatch *dispatcher
 
-	// playerStore is the half of persistence Store cannot express yet,
-	// because loading and saving a player name internal types. It is
-	// unexported, so it names them legally: no external caller has to satisfy
-	// it, and a store that does not implement it simply does not persist
-	// players. M11.3 removes it by giving player data a public shape.
-	playerStore playerSaver
+	// playerStore is the bridge from the public PlayerStore an application
+	// supplied to what a connection needs. It is nil when the server runs
+	// without player persistence.
+	playerStore conn.PlayerStore
 
 	// live tracks the connections that are still open, so a shutdown can
 	// tell each of them why it is ending rather than dropping its socket.
@@ -116,8 +113,8 @@ func New(opts ...Option) (*Server, error) {
 		generator: generator,
 	}
 
-	if ps, ok := b.store.(playerSaver); ok {
-		srv.playerStore = ps
+	if b.playerStore != nil {
+		srv.playerStore = playerBridge{store: b.playerStore}
 	}
 
 	if b.observer != nil {
@@ -125,14 +122,6 @@ func New(opts ...Option) (*Server, error) {
 	}
 
 	return srv, nil
-}
-
-// playerSaver is the per-player half of persistence. The framework's own
-// FileStore satisfies it; an external store does not, and then players are not
-// persisted.
-type playerSaver interface {
-	LoadPlayer(uuid string) (*storage.PlayerData, error)
-	SavePlayer(p *player.Player) error
 }
 
 // Store returns the store the server was built with, or nil if it runs

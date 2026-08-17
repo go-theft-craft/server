@@ -1,0 +1,62 @@
+[
+  {
+    "generator": "default",
+    "version": 1,
+    "seed": 12345,
+    "params_sha256": "7da3f02a04181a99",
+    "chunks": {
+      "-40,60": "068be94b3df466c7ed7f55948eb3a8001ff8a3ab3adc219655ca940d3a8571cb",
+      "0,0": "1335818f12b00c61e83918a281b9842eeec6ef1b03c57099a8e301f3839a70f0",
+      "100,100": "fcb3df4db63bf93b7cb16aa50ace09340a265d1bf2e0c7bfe758993cb9a43257",
+      "7,-3": "9303cb8727e7af69d6ca94c19081efea2596f547840651400e09d96a1999aa31"
+    }
+  },
+  {
+    "generator": "default",
+    "version": 1,
+    "seed": 12345,
+    "params_sha256": "f956c5ec9da002b7",
+    "chunks": {
+      "-40,60": "b36659254ab2743eb3f5cfb6e4c5a6a4a3745f45ee345a468db0dbf5f6ae876e",
+      "0,0": "6327d6a05cee94f5c742ea8b9b8ed695f37fbb557ca360c9da3d19088984b567",
+      "100,100": "f4500a05edd3a12d9e7a458890ffeb638779aaf7333990906a83ce327b2034f8",
+      "7,-3": "2774cca908fdfa75bb1a46b10c3adfd9ca9a6d95c8fa2fcda3e6fb09232c5258"
+    }
+  },
+  {
+    "generator": "default",
+    "version": 1,
+    "seed": 7,
+    "params_sha256": "7da3f02a04181a99",
+    "chunks": {
+      "-40,60": "dfd2c37b2fa833eac4fb69adba5cad804db6796ac6f7937975eb8127395f16dc",
+      "0,0": "42f7c5c3c338f6814d08729af80e091a8508b565dae8afb667db8ae6bd10630c",
+      "100,100": "f770e6d50e2b27e3ae21f13283c87c255119422c3c2316aaa57e8ef8cb5c68d2",
+      "7,-3": "9f494718558e63c0e3d330d080b5eabe48730d06b83aca516737fa7913dea7f1"
+    }
+  },
+  {
+    "generator": "flat",
+    "version": 1,
+    "seed": 12345,
+    "params_sha256": "2a200378be46c75e",
+    "chunks": {
+      "-40,60": "b7837382aef0f8ade52d0f04bb9c65e955f01e885fc485161342ee0e8cab7a22",
+      "0,0": "b7837382aef0f8ade52d0f04bb9c65e955f01e885fc485161342ee0e8cab7a22",
+      "100,100": "b7837382aef0f8ade52d0f04bb9c65e955f01e885fc485161342ee0e8cab7a22",
+      "7,-3": "b7837382aef0f8ade52d0f04bb9c65e955f01e885fc485161342ee0e8cab7a22"
+    }
+  },
+  {
+    "generator": "flat",
+    "version": 1,
+    "seed": 12345,
+    "params_sha256": "2155507e8696b2d1",
+    "chunks": {
+      "-40,60": "59e20253a937edb1da2771cd5a89e4cb625dacbbc975d0684ccc65259f786de7",
+      "0,0": "59e20253a937edb1da2771cd5a89e4cb625dacbbc975d0684ccc65259f786de7",
+      "100,100": "59e20253a937edb1da2771cd5a89e4cb625dacbbc975d0684ccc65259f786de7",
+      "7,-3": "59e20253a937edb1da2771cd5a89e4cb625dacbbc975d0684ccc65259f786de7"
+    }
+  }
+]

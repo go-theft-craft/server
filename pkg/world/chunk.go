@@ -16,11 +16,27 @@ const (
 func (w *World) EncodeChunk(cx, cz int) v1_8.PlayClientboundMapChunk {
 	chunk := w.GetOrGenerateChunk(cx, cz)
 
+	// The overrides are read once. Reading them per section would rescan the
+	// whole world's overrides sixteen times per chunk sent.
+	overrides := w.OverridesForChunk(cx, cz)
+
 	// Determine which sections are non-nil.
 	var bitMap uint16
 	for i, sec := range chunk.Sections {
 		if sec != nil {
 			bitMap |= 1 << uint(i)
+		}
+	}
+
+	// A section the generator left empty still has to be sent when a player
+	// built in it. Without this, a block placed above the terrain — on a hill,
+	// on a roof, anywhere the column's top section is nil — is stored, is
+	// broadcast as a block change so it appears immediately, and then vanishes
+	// from every later chunk send: on reconnect, on respawn, or as soon as the
+	// chunk is reloaded.
+	for pos := range overrides {
+		if section := pos.Y >> 4; section >= 0 && section < 16 {
+			bitMap |= 1 << uint(section)
 		}
 	}
 
@@ -53,7 +69,7 @@ func (w *World) EncodeChunk(cx, cz int) v1_8.PlayClientboundMapChunk {
 			}
 		}
 		// Apply overrides for this section.
-		w.applyOverrides(blocks, cx, cz, i)
+		applyOverrides(blocks, overrides, i)
 		data = append(data, blocks...)
 	}
 
@@ -89,17 +105,12 @@ func (w *World) EncodeChunk(cx, cz int) v1_8.PlayClientboundMapChunk {
 	}
 }
 
-// applyOverrides writes block overrides into the section's block data.
-func (w *World) applyOverrides(blocks []byte, cx, cz, sectionIdx int) {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-
+// applyOverrides writes one chunk's block overrides into a section's block
+// data. The overrides are already filtered to the chunk, so the caller holds
+// no lock here.
+func applyOverrides(blocks []byte, overrides map[BlockPos]int32, sectionIdx int) {
 	baseY := sectionIdx * 16
-	for pos, stateID := range w.blocks {
-		pcx, pcz := pos.X>>4, pos.Z>>4
-		if pcx != cx || pcz != cz {
-			continue
-		}
+	for pos, stateID := range overrides {
 		if pos.Y < baseY || pos.Y >= baseY+16 {
 			continue
 		}

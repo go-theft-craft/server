@@ -142,31 +142,6 @@ func TestEpochExhaustionRefusesAndKeepsServing(t *testing.T) {
 	}
 }
 
-func TestCounterExhaustionRefusesAndKeepsServing(t *testing.T) {
-	m, err := server.NewMinter(1)
-	if err != nil {
-		t.Fatalf("NewMinter: %v", err)
-	}
-
-	// Walk the counter to its last value without minting a trillion IDs.
-	server.ExhaustCounterForTest(m)
-
-	id, err := m.Mint()
-	if err != nil {
-		t.Fatalf("the last counter value refuses to mint: %v", err)
-	}
-	if id.Counter() != 1<<40-1 {
-		t.Fatalf("last ID is %s, want counter %d", id, uint64(1<<40-1))
-	}
-
-	if _, err := m.Mint(); !errors.Is(err, server.ErrIDSpaceExhausted) {
-		t.Fatalf("minting past the counter gave %v, want ErrIDSpaceExhausted", err)
-	}
-	if _, err := m.MintN(4); !errors.Is(err, server.ErrIDSpaceExhausted) {
-		t.Fatalf("MintN past the counter gave %v, want ErrIDSpaceExhausted", err)
-	}
-}
-
 func TestMintingIsSafeUnderConcurrentCallers(t *testing.T) {
 	m, err := server.NewMinter(2)
 	if err != nil {

@@ -6,14 +6,14 @@ import (
 	"sync"
 
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+
+	"github.com/go-theft-craft/server/pkg/world"
 )
 
-// Slot represents a Minecraft inventory slot.
-type Slot struct {
-	BlockID    int16 // -1 = empty
-	ItemCount  int8
-	ItemDamage int16
-}
+// Slot is one inventory slot. It is an alias for world.ItemStack rather than
+// a type of its own: item identity attaches to a stack, and attaching it to
+// two types would guarantee they diverge.
+type Slot = world.ItemStack
 
 // ToGeneratedSlot converts a Slot to the generated protocol 47 Slot value.
 //
@@ -31,12 +31,14 @@ func ToGeneratedSlot(s Slot) v1_8.Slot {
 }
 
 // EmptySlot is a convenience value for an empty slot.
-var EmptySlot = Slot{BlockID: -1}
+var EmptySlot = world.EmptyStack
 
-// IsEmpty returns true if the slot contains no item.
-func (s Slot) IsEmpty() bool {
-	return s.BlockID == -1
-}
+// The two IsEmpty definitions that existed before the merge disagreed: this
+// package called a slot empty only when its block ID was -1, and pkg/world
+// called it empty when the ID was not positive *or* the count was not. The
+// stricter one won. A slot holding block 0 is air, and a slot holding a
+// positive count of nothing is a bug state that should read as empty rather
+// than as an item nobody can name.
 
 // Inventory holds a player's hotbar, main inventory, and armor.
 type Inventory struct {

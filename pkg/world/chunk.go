@@ -28,7 +28,7 @@ func (c *Chunk) withChest(pos BlockPos, contents ChestContents, empty bool, gen 
 	switch {
 	case empty && !had:
 		return c, false
-	case !empty && had && existing == contents:
+	case !empty && had && existing.Equal(contents):
 		return c, false
 	}
 

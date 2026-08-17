@@ -418,20 +418,22 @@ func (c *Connection) spillChest(x, y, z int) {
 	}
 }
 
-// stackToSlot converts stored contents into the runtime slot type.
+// stackToSlot and slotToStack are the seam that used to convert between a
+// stored stack and a runtime one. They are one type now, so both normalise an
+// empty slot to the single spelling of empty and otherwise hand the value
+// through — including its identity.
 func stackToSlot(s world.ItemStack) player.Slot {
 	if s.IsEmpty() {
 		return player.EmptySlot
 	}
 
-	return player.Slot{BlockID: s.ID, ItemCount: s.Count, ItemDamage: s.Damage}
+	return s
 }
 
-// slotToStack converts a runtime slot into stored contents.
 func slotToStack(s player.Slot) world.ItemStack {
 	if s.IsEmpty() {
 		return world.EmptyStack
 	}
 
-	return world.ItemStack{ID: s.BlockID, Count: s.ItemCount, Damage: s.ItemDamage}
+	return s
 }

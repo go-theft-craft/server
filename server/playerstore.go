@@ -8,7 +8,6 @@ import (
 	"github.com/go-theft-craft/server/internal/server/conn"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
-	"github.com/go-theft-craft/server/pkg/world"
 )
 
 // FilePlayerStore keeps one JSON file per player under dir/players.
@@ -65,14 +64,10 @@ func (b playerBridge) LoadPlayer(p *player.Player) (bool, error) {
 		return false, err
 	}
 
-	var slots [36]player.Slot
-	var armor [4]player.Slot
-	for i, s := range data.Inventory.Slots {
-		slots[i] = player.Slot{BlockID: s.ID, ItemCount: s.Count, ItemDamage: s.Damage}
-	}
-	for i, s := range data.Inventory.Armor {
-		armor[i] = player.Slot{BlockID: s.ID, ItemCount: s.Count, ItemDamage: s.Damage}
-	}
+	// A saved slot and a runtime one are the same type now, so this carries
+	// the stack through whole — identity included.
+	slots := data.Inventory.Slots
+	armor := data.Inventory.Armor
 
 	p.ApplyData(player.Position{
 		X:     data.Position.X,
@@ -104,12 +99,8 @@ func snapshotPlayer(p *player.Player) PlayerData {
 	}
 
 	p.Inventory.ReadSlots(func(slots [36]player.Slot, armor [4]player.Slot) {
-		for i, s := range slots {
-			data.Inventory.Slots[i] = world.ItemStack{ID: s.BlockID, Count: s.ItemCount, Damage: s.ItemDamage}
-		}
-		for i, s := range armor {
-			data.Inventory.Armor[i] = world.ItemStack{ID: s.BlockID, Count: s.ItemCount, Damage: s.ItemDamage}
-		}
+		data.Inventory.Slots = slots
+		data.Inventory.Armor = armor
 	})
 
 	return data

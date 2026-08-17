@@ -87,7 +87,7 @@ func TestMatchRecipe2x2_Deterministic(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			want := matchRecipe2x2(grid, recipes)
 			for range 200 {
-				if got := matchRecipe2x2(grid, recipes); got != want {
+				if got := matchRecipe2x2(grid, recipes); !got.Equal(want) {
 					t.Fatalf("got %+v, want %+v", got, want)
 				}
 			}
@@ -102,13 +102,13 @@ func TestCraftingOutput_TakenOneStackPerClick(t *testing.T) {
 	c.craftingGrid[0] = craftItem(17, 0, 8)
 	c.updateCraftingOutput()
 
-	if c.craftingOutput != craftItem(5, 0, 4) {
+	if !c.craftingOutput.Equal(craftItem(5, 0, 4)) {
 		t.Fatalf("output = %+v, want 4 oak planks", c.craftingOutput)
 	}
 
 	c.handleNormalClick(slotCraftOutput, 0)
 
-	if c.cursorSlot != craftItem(5, 0, 4) {
+	if !c.cursorSlot.Equal(craftItem(5, 0, 4)) {
 		t.Errorf("cursor = %+v, want 4 oak planks", c.cursorSlot)
 	}
 	if c.craftingGrid[0].ItemCount != 7 {
@@ -169,7 +169,7 @@ func TestShiftClickOutput_StopsWhenResultNoLongerFits(t *testing.T) {
 	if c.craftingGrid[0].ItemCount != 6 {
 		t.Errorf("grid kept %d logs, want 6", c.craftingGrid[0].ItemCount)
 	}
-	if c.craftingOutput != craftItem(5, 0, 4) {
+	if !c.craftingOutput.Equal(craftItem(5, 0, 4)) {
 		t.Errorf("output = %+v, want 4 planks still offered", c.craftingOutput)
 	}
 }

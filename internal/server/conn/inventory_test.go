@@ -31,7 +31,7 @@ func TestToProtocolSlots_Hotbar(t *testing.T) {
 	proto := inv.ToProtocolSlots()
 
 	// Hotbar slot 0 maps to protocol slot 36.
-	if proto[36] != sword() {
+	if !proto[36].Equal(sword()) {
 		t.Errorf("expected sword at proto 36, got %+v", proto[36])
 	}
 	// Protocol slot 0 (crafting output) should be empty.
@@ -47,7 +47,7 @@ func TestToProtocolSlots_Armor(t *testing.T) {
 	proto := inv.ToProtocolSlots()
 
 	// Helmet maps to protocol slot 5.
-	if proto[5] != ironHelmet() {
+	if !proto[5].Equal(ironHelmet()) {
 		t.Errorf("expected iron helmet at proto 5, got %+v", proto[5])
 	}
 }
@@ -59,12 +59,12 @@ func TestSetGetProtocolSlot_RoundTrip(t *testing.T) {
 	// Set via protocol index, read back.
 	inv.SetProtocolSlot(36, s) // hotbar 0
 	got := inv.GetProtocolSlot(36)
-	if got != s {
+	if !got.Equal(s) {
 		t.Errorf("expected %+v, got %+v", s, got)
 	}
 
 	// Verify internal: hotbar 0 = Slots[0].
-	if inv.GetSlot(0) != s {
+	if !inv.GetSlot(0).Equal(s) {
 		t.Errorf("internal Slots[0] expected %+v, got %+v", s, inv.GetSlot(0))
 	}
 }
@@ -75,11 +75,11 @@ func TestSetGetProtocolSlot_Armor(t *testing.T) {
 
 	inv.SetProtocolSlot(5, h) // helmet = proto 5 = Armor[3]
 	got := inv.GetProtocolSlot(5)
-	if got != h {
+	if !got.Equal(h) {
 		t.Errorf("expected %+v, got %+v", h, got)
 	}
 
-	if inv.GetArmor(3) != h {
+	if !inv.GetArmor(3).Equal(h) {
 		t.Errorf("internal Armor[3] expected %+v, got %+v", h, inv.GetArmor(3))
 	}
 }
@@ -108,7 +108,7 @@ func TestNormalClick_PickupAndPlace(t *testing.T) {
 
 	// Left-click to pick up.
 	c.handleNormalClick(36, 0)
-	if c.cursorSlot != stone(32) {
+	if !c.cursorSlot.Equal(stone(32)) {
 		t.Errorf("cursor should have stone(32), got %+v", c.cursorSlot)
 	}
 	if !c.getWindowSlot(36).IsEmpty() {
@@ -120,7 +120,7 @@ func TestNormalClick_PickupAndPlace(t *testing.T) {
 	if !c.cursorSlot.IsEmpty() {
 		t.Errorf("cursor should be empty after placing, got %+v", c.cursorSlot)
 	}
-	if c.getWindowSlot(37) != stone(32) {
+	if !c.getWindowSlot(37).Equal(stone(32)) {
 		t.Errorf("slot 37 should have stone(32), got %+v", c.getWindowSlot(37))
 	}
 }
@@ -132,10 +132,10 @@ func TestNormalClick_Swap(t *testing.T) {
 
 	// Left-click on slot with different item: swap.
 	c.handleNormalClick(36, 0)
-	if c.cursorSlot != stone(10) {
+	if !c.cursorSlot.Equal(stone(10)) {
 		t.Errorf("cursor should have stone(10), got %+v", c.cursorSlot)
 	}
-	if c.getWindowSlot(36) != dirt(5) {
+	if !c.getWindowSlot(36).Equal(dirt(5)) {
 		t.Errorf("slot 36 should have dirt(5), got %+v", c.getWindowSlot(36))
 	}
 }
@@ -147,7 +147,7 @@ func TestNormalClick_Merge(t *testing.T) {
 
 	// Left-click on same item: merge.
 	c.handleNormalClick(36, 0)
-	if c.getWindowSlot(36) != stone(30) {
+	if !c.getWindowSlot(36).Equal(stone(30)) {
 		t.Errorf("slot 36 should have stone(30), got %+v", c.getWindowSlot(36))
 	}
 	if !c.cursorSlot.IsEmpty() {
@@ -161,10 +161,10 @@ func TestNormalClick_RightHalfPickup(t *testing.T) {
 
 	// Right-click to pick up half.
 	c.handleNormalClick(36, 1)
-	if c.cursorSlot != stone(5) {
+	if !c.cursorSlot.Equal(stone(5)) {
 		t.Errorf("cursor should have stone(5), got %+v", c.cursorSlot)
 	}
-	if c.getWindowSlot(36) != stone(5) {
+	if !c.getWindowSlot(36).Equal(stone(5)) {
 		t.Errorf("slot 36 should have stone(5), got %+v", c.getWindowSlot(36))
 	}
 }
@@ -175,10 +175,10 @@ func TestNormalClick_RightPlaceOne(t *testing.T) {
 
 	// Right-click on empty slot: place one.
 	c.handleNormalClick(36, 1)
-	if c.cursorSlot != stone(9) {
+	if !c.cursorSlot.Equal(stone(9)) {
 		t.Errorf("cursor should have stone(9), got %+v", c.cursorSlot)
 	}
-	if c.getWindowSlot(36) != stone(1) {
+	if !c.getWindowSlot(36).Equal(stone(1)) {
 		t.Errorf("slot 36 should have stone(1), got %+v", c.getWindowSlot(36))
 	}
 }
@@ -194,7 +194,7 @@ func TestShiftClick_HotbarToMain(t *testing.T) {
 	// Should be in main inventory (9-35).
 	found := false
 	for s := int16(9); s <= 35; s++ {
-		if c.getWindowSlot(s) == stone(10) {
+		if c.getWindowSlot(s).Equal(stone(10)) {
 			found = true
 			break
 		}
@@ -215,7 +215,7 @@ func TestShiftClick_MainToHotbar(t *testing.T) {
 	// Should be in hotbar (36-44).
 	found := false
 	for s := int16(36); s <= 44; s++ {
-		if c.getWindowSlot(s) == stone(10) {
+		if c.getWindowSlot(s).Equal(stone(10)) {
 			found = true
 			break
 		}
@@ -232,10 +232,10 @@ func TestNumberKey_Swap(t *testing.T) {
 
 	// Press number key 1 (button=0) while hovering slot 9.
 	c.handleNumberKey(9, 0)
-	if c.getWindowSlot(9) != dirt(5) {
+	if !c.getWindowSlot(9).Equal(dirt(5)) {
 		t.Errorf("slot 9 should have dirt(5), got %+v", c.getWindowSlot(9))
 	}
-	if c.getWindowSlot(36) != stone(10) {
+	if !c.getWindowSlot(36).Equal(stone(10)) {
 		t.Errorf("slot 36 should have stone(10), got %+v", c.getWindowSlot(36))
 	}
 }
@@ -255,7 +255,7 @@ func TestDropClick_DropOne(t *testing.T) {
 	c.setWindowSlot(36, stone(10))
 
 	c.handleDropClick(36, 0) // Q key, drop one
-	if c.getWindowSlot(36) != stone(9) {
+	if !c.getWindowSlot(36).Equal(stone(9)) {
 		t.Errorf("slot should have 9 stone, got %+v", c.getWindowSlot(36))
 	}
 }

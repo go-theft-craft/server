@@ -194,16 +194,16 @@ func writeTileEntities(w *nbt.Writer, c *world.Chunk, enc StateEncoder) error {
 		w.BeginList("Items", nbt.TagCompound, int32(len(filled)))
 		for _, slot := range filled {
 			stack := contents[slot]
-			name, ok := namer.ItemName(stack.ID)
+			name, ok := namer.ItemName(stack.BlockID)
 			if !ok {
 				return fmt.Errorf("anvil: chunk %v chest %v slot %d: no item is numbered %d",
-					c.Pos, pos, slot, stack.ID)
+					c.Pos, pos, slot, stack.BlockID)
 			}
 			w.BeginListCompound()
 			w.WriteTagByte("Slot", byte(slot))
 			w.WriteString("id", name)
-			w.WriteTagByte("Count", byte(stack.Count))
-			w.WriteShort("Damage", stack.Damage)
+			w.WriteTagByte("Count", byte(stack.ItemCount))
+			w.WriteShort("Damage", stack.ItemDamage)
 			w.EndCompound()
 		}
 

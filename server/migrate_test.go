@@ -124,10 +124,10 @@ func assertMigratedWorld(t *testing.T, w *world.World) {
 	}
 
 	contents := w.Chest(world.BlockPos{X: 5, Y: 130, Z: 5})
-	if contents[0] != (world.ItemStack{ID: 1, Count: 64}) {
+	if !contents[0].Equal(world.ItemStack{BlockID: 1, ItemCount: 64}) {
 		t.Errorf("chest slot 0 = %+v, want 64 stone", contents[0])
 	}
-	if contents[7] != (world.ItemStack{ID: 264, Count: 3}) {
+	if !contents[7].Equal(world.ItemStack{BlockID: 264, ItemCount: 3}) {
 		t.Errorf("chest slot 7 = %+v, want 3 diamonds", contents[7])
 	}
 }

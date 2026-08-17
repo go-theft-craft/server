@@ -73,10 +73,10 @@ func TestLegacyPlayerJSONLoads(t *testing.T) {
 	if data.Position.Yaw != 90 || data.Position.Pitch != -12.5 {
 		t.Errorf("orientation = %v/%v, want 90/-12.5", data.Position.Yaw, data.Position.Pitch)
 	}
-	if want := (world.ItemStack{ID: 1, Count: 64}); data.Inventory.Slots[0] != want {
+	if want := (world.ItemStack{BlockID: 1, ItemCount: 64}); !data.Inventory.Slots[0].Equal(want) {
 		t.Errorf("slot 0 = %+v, want %+v", data.Inventory.Slots[0], want)
 	}
-	if want := (world.ItemStack{ID: 306, Count: 1, Damage: 3}); data.Inventory.Armor[0] != want {
+	if want := (world.ItemStack{BlockID: 306, ItemCount: 1, ItemDamage: 3}); !data.Inventory.Armor[0].Equal(want) {
 		t.Errorf("armor 0 = %+v, want %+v", data.Inventory.Armor[0], want)
 	}
 	if data.Inventory.HeldSlot != 4 {
@@ -100,8 +100,8 @@ func TestAPlayerRoundTripsThroughTheFileStore(t *testing.T) {
 			HeldSlot: 8,
 		},
 	}
-	want.Inventory.Slots[35] = world.ItemStack{ID: 264, Count: 12, Damage: 1}
-	want.Inventory.Armor[3] = world.ItemStack{ID: 310, Count: 1}
+	want.Inventory.Slots[35] = world.ItemStack{BlockID: 264, ItemCount: 12, ItemDamage: 1}
+	want.Inventory.Armor[3] = world.ItemStack{BlockID: 310, ItemCount: 1}
 
 	if err := store.SavePlayer(context.Background(), want); err != nil {
 		t.Fatalf("SavePlayer: %v", err)
@@ -111,7 +111,7 @@ func TestAPlayerRoundTripsThroughTheFileStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadPlayer: %v", err)
 	}
-	if !found || got != want {
+	if !found || !samePlayerData(got, want) {
 		t.Fatalf("round trip gave %+v (found=%v), want %+v", got, found, want)
 	}
 }
@@ -167,4 +167,25 @@ func TestWithPlayerStoreRejectsNil(t *testing.T) {
 	if _, err := server.New(server.WithPlayerStore(nil)); err == nil {
 		t.Error("WithPlayerStore accepted nil; use no option at all to run without it")
 	}
+}
+
+// samePlayerData compares two saved players. It exists because an ItemStack
+// stopped being comparable with == the moment it carried item identity.
+func samePlayerData(a, b server.PlayerData) bool {
+	if a.UUID != b.UUID || a.Username != b.Username || a.Position != b.Position ||
+		a.GameMode != b.GameMode || a.Inventory.HeldSlot != b.Inventory.HeldSlot {
+		return false
+	}
+	for i := range a.Inventory.Slots {
+		if !a.Inventory.Slots[i].Equal(b.Inventory.Slots[i]) {
+			return false
+		}
+	}
+	for i := range a.Inventory.Armor {
+		if !a.Inventory.Armor[i].Equal(b.Inventory.Armor[i]) {
+			return false
+		}
+	}
+
+	return true
 }

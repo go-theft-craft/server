@@ -127,7 +127,7 @@ func TestCraftingTable_InventorySlotsSitOneLower(t *testing.T) {
 
 	c.self.Inventory.SetSlot(0, stone(5)) // hotbar 0 == player-window slot 36
 
-	if got := c.getWindowSlot(tableHotbarStart); got != stone(5) {
+	if got := c.getWindowSlot(tableHotbarStart); !got.Equal(stone(5)) {
 		t.Errorf("table slot %d = %+v, want the hotbar's first stack", tableHotbarStart, got)
 	}
 	if got := c.getWindowSlot(tableMainStart); !got.IsEmpty() {
@@ -217,7 +217,7 @@ func TestCraftingTable_StaleWindowClickIsRefused(t *testing.T) {
 		t.Fatalf("handleWindowClick: %v", err)
 	}
 
-	if got := c.craftingGrid[0]; got != stone(4) {
+	if got := c.craftingGrid[0]; !got.Equal(stone(4)) {
 		t.Errorf("grid[0] = %+v, want the stack untouched by a stale click", got)
 	}
 	if !c.cursorSlot.IsEmpty() {

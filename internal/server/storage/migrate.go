@@ -149,7 +149,7 @@ func migrateChests(root string, w *world.World, report *Report) (string, error) 
 			if slot.ID <= 0 || slot.Count <= 0 {
 				continue
 			}
-			contents[i] = world.ItemStack{ID: slot.ID, Count: slot.Count, Damage: slot.Damage}
+			contents[i] = world.ItemStack{BlockID: slot.ID, ItemCount: slot.Count, ItemDamage: slot.Damage}
 		}
 		w.SetChest(world.BlockPos{X: e.X, Y: e.Y, Z: e.Z}, contents)
 	}

@@ -56,13 +56,13 @@ func TestChest_SlotZeroIsContainerNotCraftOutput(t *testing.T) {
 	c.craftingOutput = stone(1)
 	c.setWindowSlot(0, dirt(5))
 
-	if got := c.getWindowSlot(0); got != dirt(5) {
+	if got := c.getWindowSlot(0); !got.Equal(dirt(5)) {
 		t.Errorf("chest slot 0 = %+v, want dirt(5)", got)
 	}
-	if c.chestItems[0].ID != 3 || c.chestItems[0].Count != 5 {
+	if c.chestItems[0].BlockID != 3 || c.chestItems[0].ItemCount != 5 {
 		t.Errorf("stored slot 0 = %+v, want dirt(5)", c.chestItems[0])
 	}
-	if c.craftingOutput != stone(1) {
+	if !c.craftingOutput.Equal(stone(1)) {
 		t.Errorf("crafting output = %+v, want it untouched", c.craftingOutput)
 	}
 }
@@ -74,12 +74,12 @@ func TestChest_InventorySlotsMapToThePlayerInventory(t *testing.T) {
 	openChestAt(t, c, 0, 4, 0)
 
 	c.self.Inventory.SetSlot(0, stone(7)) // hotbar 0 is player proto slot 36
-	if got := c.getWindowSlot(chestHotbarStart); got != stone(7) {
+	if got := c.getWindowSlot(chestHotbarStart); !got.Equal(stone(7)) {
 		t.Errorf("chest slot %d = %+v, want stone(7)", chestHotbarStart, got)
 	}
 
 	c.setWindowSlot(chestMainStart, dirt(3)) // main 0 is player proto slot 9
-	if got := c.self.Inventory.GetProtocolSlot(slotMainStart); got != dirt(3) {
+	if got := c.self.Inventory.GetProtocolSlot(slotMainStart); !got.Equal(dirt(3)) {
 		t.Errorf("player main slot = %+v, want dirt(3)", got)
 	}
 }
@@ -99,7 +99,7 @@ func TestChest_ContentsPersistToTheWorldOnClose(t *testing.T) {
 	}
 
 	stored := c.world.Chest(pos)
-	if stored[0].ID != 3 || stored[0].Count != 12 {
+	if stored[0].BlockID != 3 || stored[0].ItemCount != 12 {
 		t.Errorf("stored slot 0 = %+v, want dirt(12)", stored[0])
 	}
 }
@@ -116,7 +116,7 @@ func TestChest_ReopenShowsStoredContents(t *testing.T) {
 
 	openChestAt(t, c, 3, 4, 5)
 
-	if got := c.getWindowSlot(0); got != dirt(12) {
+	if got := c.getWindowSlot(0); !got.Equal(dirt(12)) {
 		t.Errorf("reopened slot 0 = %+v, want dirt(12)", got)
 	}
 }
@@ -135,7 +135,7 @@ func TestChest_SecondChestIsSeparateStorage(t *testing.T) {
 	}
 
 	first := c.world.Chest(world.BlockPos{X: 3, Y: 4, Z: 5})
-	if first[0].ID != 3 || first[0].Count != 12 {
+	if first[0].BlockID != 3 || first[0].ItemCount != 12 {
 		t.Errorf("first chest slot 0 = %+v, want dirt(12) kept", first[0])
 	}
 }
@@ -151,7 +151,7 @@ func TestChest_ShiftClickMovesItemsBothWays(t *testing.T) {
 	if got := c.getWindowSlot(chestHotbarStart); !got.IsEmpty() {
 		t.Errorf("hotbar slot = %+v, want empty after shift-click into the chest", got)
 	}
-	if got := c.getWindowSlot(0); got != stone(20) {
+	if got := c.getWindowSlot(0); !got.Equal(stone(20)) {
 		t.Errorf("chest slot 0 = %+v, want stone(20)", got)
 	}
 
@@ -161,7 +161,7 @@ func TestChest_ShiftClickMovesItemsBothWays(t *testing.T) {
 	if got := c.getWindowSlot(0); !got.IsEmpty() {
 		t.Errorf("chest slot 0 = %+v, want empty after shift-click out", got)
 	}
-	if got := c.getWindowSlot(chestMainStart); got != stone(20) {
+	if got := c.getWindowSlot(chestMainStart); !got.Equal(stone(20)) {
 		t.Errorf("inventory slot = %+v, want stone(20)", got)
 	}
 }
@@ -359,10 +359,10 @@ func TestChest_DoubleChestHalvesStoreSeparately(t *testing.T) {
 
 	first := c.world.Chest(world.BlockPos{X: 4, Y: 4, Z: 4})
 	second := c.world.Chest(world.BlockPos{X: 5, Y: 4, Z: 4})
-	if first[0].ID != 3 || first[0].Count != 5 {
+	if first[0].BlockID != 3 || first[0].ItemCount != 5 {
 		t.Errorf("first half slot 0 = %+v, want dirt(5)", first[0])
 	}
-	if second[0].ID != 1 || second[0].Count != 7 {
+	if second[0].BlockID != 1 || second[0].ItemCount != 7 {
 		t.Errorf("second half slot 0 = %+v, want stone(7)", second[0])
 	}
 }

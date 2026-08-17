@@ -35,7 +35,7 @@ func TestClientFlow_PlaceAndCraft(t *testing.T) {
 	if err := c.handleWindowClick(clickPacket(t, 36, 0, 0, log)); err != nil {
 		t.Fatalf("pickup click: %v", err)
 	}
-	if c.cursorSlot != log {
+	if !c.cursorSlot.Equal(log) {
 		t.Fatalf("after pickup cursor = %+v, want %+v", c.cursorSlot, log)
 	}
 
@@ -43,7 +43,7 @@ func TestClientFlow_PlaceAndCraft(t *testing.T) {
 	if err := c.handleWindowClick(clickPacket(t, 1, 0, 0, player.EmptySlot)); err != nil {
 		t.Fatalf("place click: %v", err)
 	}
-	if got := c.craftingGrid[0]; got != log {
+	if got := c.craftingGrid[0]; !got.Equal(log) {
 		t.Fatalf("grid[0] = %+v, want %+v", got, log)
 	}
 	if got := c.craftingOutput; got.BlockID != 5 || got.ItemCount != 4 {

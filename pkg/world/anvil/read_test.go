@@ -296,8 +296,8 @@ func TestAChestRoundTripsThroughARegionFile(t *testing.T) {
 	setBlock(written, 4, 5, 6, reg.Intern("minecraft:chest", world.Properties{{Key: "metadata", Value: "2"}}))
 
 	contents := world.EmptyChest()
-	contents[0] = world.ItemStack{ID: 1, Count: 64}               // stone
-	contents[13] = world.ItemStack{ID: 278, Count: 1, Damage: 42} // a worn diamond pickaxe
+	contents[0] = world.ItemStack{BlockID: 1, ItemCount: 64}                   // stone
+	contents[13] = world.ItemStack{BlockID: 278, ItemCount: 1, ItemDamage: 42} // a worn diamond pickaxe
 	written.Chests = map[world.BlockPos]world.ChestContents{
 		{X: 1*16 + 4, Y: 5, Z: 1*16 + 6}: contents,
 	}
@@ -318,7 +318,7 @@ func TestAChestRoundTripsThroughARegionFile(t *testing.T) {
 	if !ok {
 		t.Fatalf("the chest at %v did not come back; chunk holds %v", pos, got.Chests)
 	}
-	if back != contents {
+	if !back.Equal(contents) {
 		t.Fatalf("chest contents came back as %v, want %v", back, contents)
 	}
 }

@@ -1,5 +1,7 @@
 package world
 
+import "slices"
+
 // Container storage.
 //
 // A chest's contents belong to the world, not to whoever opened it: two
@@ -10,23 +12,30 @@ package world
 // ChestSlots is how many item slots a single chest shows.
 const ChestSlots = 27
 
-// ItemStack is one slot of a stored container or a saved inventory. It is
-// deliberately not player.Slot: pkg/world sits below the player package and
-// must not import it, and the wire type belongs to the protocol, not to
-// storage.
+// ItemStack is one slot: of a stored container, of a saved inventory, or of a
+// player's own. It is the *only* item type — internal/server/player.Slot is an
+// alias for it — because attaching identity to two types would guarantee they
+// diverge.
 //
 // The JSON tags are the ones the pre-M11.3 server wrote for a player's
-// inventory slot, so an existing players/<uuid>.json still loads. They are not
-// the names this type would have chosen; compatibility outranks that.
+// inventory slot, so an existing players/<uuid>.json still loads.
 type ItemStack struct {
-	ID     int16 `json:"block_id"`
-	Count  int8  `json:"item_count"`
-	Damage int16 `json:"item_damage"`
+	BlockID    int16 `json:"block_id"`
+	ItemCount  int8  `json:"item_count"`
+	ItemDamage int16 `json:"item_damage"`
+
+	// IDs is one entry per item when item identity is enabled, and nil when it
+	// is not. The wire never carries it: the protocol has no field for it, and
+	// ToGeneratedSlot drops it.
+	//
+	// The invariant, when identity is on, is len(IDs) == int(ItemCount) on
+	// every stack, after any sequence of splits and merges.
+	IDs []ItemID `json:"ids,omitempty"`
 }
 
 // EmptyStack is the value of a slot holding nothing. The zero value will not
 // do — ID 0 is stone, and only -1 means empty on the wire.
-var EmptyStack = ItemStack{ID: -1}
+var EmptyStack = ItemStack{BlockID: -1}
 
 // ChestContents is the full contents of one chest.
 type ChestContents [ChestSlots]ItemStack
@@ -41,9 +50,104 @@ func EmptyChest() ChestContents {
 	return c
 }
 
+// Equal compares two chests, including item identity.
+func (c ChestContents) Equal(other ChestContents) bool {
+	for i := range c {
+		if !c[i].Equal(other[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // IsEmpty reports whether the stack holds nothing.
 func (s ItemStack) IsEmpty() bool {
-	return s.ID <= 0 || s.Count <= 0
+	return s.BlockID <= 0 || s.ItemCount <= 0
+}
+
+// SameItem reports whether two stacks hold the same thing, ignoring how many
+// and ignoring identity. It is what decides whether two stacks may merge.
+func (s ItemStack) SameItem(other ItemStack) bool {
+	return s.BlockID == other.BlockID && s.ItemDamage == other.ItemDamage
+}
+
+// Equal compares two stacks including their identity.
+//
+// It exists because ItemStack stopped being comparable with == the moment it
+// carried a slice.
+func (s ItemStack) Equal(other ItemStack) bool {
+	if s.BlockID != other.BlockID || s.ItemCount != other.ItemCount || s.ItemDamage != other.ItemDamage {
+		return false
+	}
+	if len(s.IDs) != len(other.IDs) {
+		return false
+	}
+	for i := range s.IDs {
+		if s.IDs[i] != other.IDs[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Clone returns a stack whose IDs do not alias the receiver's.
+func (s ItemStack) Clone() ItemStack {
+	s.IDs = slices.Clone(s.IDs)
+
+	return s
+}
+
+// Split takes n items off the stack and returns the two halves.
+//
+// The first n IDs go with the taken half, deterministically, because a replay
+// of the same click sequence has to produce the same assignment.
+func (s ItemStack) Split(n int) (taken, rest ItemStack) {
+	switch {
+	case n <= 0:
+		return EmptyStack, s.Clone()
+	case n >= int(s.ItemCount):
+		return s.Clone(), EmptyStack
+	}
+
+	taken = ItemStack{BlockID: s.BlockID, ItemCount: int8(n), ItemDamage: s.ItemDamage}
+	rest = ItemStack{BlockID: s.BlockID, ItemCount: s.ItemCount - int8(n), ItemDamage: s.ItemDamage}
+
+	if s.IDs != nil {
+		taken.IDs = slices.Clone(s.IDs[:min(n, len(s.IDs))])
+		rest.IDs = slices.Clone(s.IDs[min(n, len(s.IDs)):])
+	}
+
+	return taken, rest
+}
+
+// Merge moves up to n items from other onto the stack and returns both.
+//
+// It refuses to merge stacks of different items, which the caller is expected
+// to have checked with SameItem; the check is repeated here because a merge
+// that silently did nothing would look like item loss.
+func (s ItemStack) Merge(other ItemStack, n int) (merged, remainder ItemStack) {
+	if other.IsEmpty() || n <= 0 {
+		return s.Clone(), other.Clone()
+	}
+	if !s.IsEmpty() && !s.SameItem(other) {
+		return s.Clone(), other.Clone()
+	}
+
+	moving := min(n, int(other.ItemCount))
+	taken, rest := other.Split(moving)
+
+	merged = s.Clone()
+	if merged.IsEmpty() {
+		merged = ItemStack{BlockID: other.BlockID, ItemDamage: other.ItemDamage}
+	}
+	merged.ItemCount += taken.ItemCount
+	if taken.IDs != nil || merged.IDs != nil {
+		merged.IDs = append(merged.IDs, taken.IDs...)
+	}
+
+	return merged, rest
 }
 
 // isEmptyChest reports whether every slot holds nothing.

@@ -302,7 +302,7 @@ func (r *Region) decodeTileEntities(c *world.Chunk, pos world.ChunkPos, level nb
 			}
 			count, _ := item.Byte("Count")
 			damage, _ := item.Short("Damage")
-			contents[slot] = world.ItemStack{ID: id, Count: int8(count), Damage: damage}
+			contents[slot] = world.ItemStack{BlockID: id, ItemCount: int8(count), ItemDamage: damage}
 		}
 
 		if c.Chests == nil {

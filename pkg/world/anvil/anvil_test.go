@@ -40,6 +40,8 @@ type identityEncoder struct{}
 
 func (identityEncoder) EncodeState(s world.State) (int32, error) { return int32(s), nil }
 
+func (identityEncoder) DecodeState(v int32) (world.State, error) { return world.State(v), nil }
+
 // newChunk returns an empty column of Java 1.8's overworld.
 func newChunk(cx, cz int) *world.Chunk {
 	dim := world.Overworld18()

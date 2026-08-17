@@ -67,7 +67,7 @@ func EncodeChunkNBT(c *world.Chunk, enc StateEncoder) ([]byte, error) {
 			}
 		}
 
-		w.BeginCompound("")
+		w.BeginListCompound()
 		w.WriteTagByte("Y", byte(secY))
 		w.WriteByteArray("Blocks", blocks)
 

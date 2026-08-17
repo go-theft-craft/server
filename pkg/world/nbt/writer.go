@@ -77,10 +77,22 @@ func (w *Writer) writeTagHeader(tagType byte, name string) {
 	}
 }
 
-// BeginCompound writes a compound tag header. Use name="" for list elements.
+// BeginCompound writes a compound tag header.
+//
+// It is for a *named* compound. A compound that is an element of a list has no
+// header at all — see BeginListCompound.
 func (w *Writer) BeginCompound(name string) {
 	w.writeTagHeader(TagCompound, name)
 }
+
+// BeginListCompound starts a compound that is an element of a list.
+//
+// A list element carries only its payload: no tag type and no name. So this
+// writes nothing. It exists so a call site reads symmetrically with
+// EndCompound, and so nobody reaches for BeginCompound("") again — that is
+// what put a spurious three-byte header in front of every Sections entry this
+// server wrote, in files nothing read back until M11.3.
+func (w *Writer) BeginListCompound() {}
 
 // EndCompound writes an End tag to close a compound.
 func (w *Writer) EndCompound() {

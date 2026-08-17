@@ -43,6 +43,13 @@ type Connection struct {
 	world   *world.World
 	storage PlayerStore
 
+	// disconnectMu is held while a disconnect writes its reason. The stream
+	// runtime was started with c.ctx, so the read loop's teardown cancelling
+	// that context aborts a write still in flight — and the write in flight is
+	// the one carrying the kick message. Both sides take this, so whichever
+	// runs second finds the connection already ended rather than half-ended.
+	disconnectMu sync.Mutex
+
 	// state caches the session's protocol state so the write path can stamp a
 	// packet without a Snapshot round-trip. It is refreshed from the session
 	// (syncState) at each transition and read through streamState; c.mu guards
@@ -188,8 +195,10 @@ func (c *Connection) Handle() {
 			}
 			c.players.Remove(c.self)
 		}
+		c.disconnectMu.Lock()
 		c.cancel()
 		c.conn.Close()
+		c.disconnectMu.Unlock()
 		c.log.Info("connection closed")
 	}()
 
@@ -285,6 +294,9 @@ const disconnectTimeout = 5 * time.Second
 // can only report as a lost connection.
 func (c *Connection) disconnect(reason string) {
 	c.log.Info("disconnecting", "reason", reason)
+
+	c.disconnectMu.Lock()
+	defer c.disconnectMu.Unlock()
 
 	// Not c.ctx: a server-wide shutdown cancels it before this runs, and a
 	// cancelled context would abort the very write that carries the reason.

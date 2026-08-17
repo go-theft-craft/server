@@ -281,3 +281,72 @@ func TestAVanillaRegionReads(t *testing.T) {
 	}
 	t.Logf("read %d chunks from the vanilla fixture", found)
 }
+
+// TestAChestRoundTripsThroughARegionFile is where the containers live now:
+// inside the chunk, written where vanilla writes them, so a chunk save carries
+// them and an external tool can find them.
+func TestAChestRoundTripsThroughARegionFile(t *testing.T) {
+	a, reg := javaCodec(t)
+
+	written := newChunk(1, 1)
+	setBlock(written, 4, 5, 6, reg.Intern("minecraft:chest", world.Properties{{Key: "metadata", Value: "2"}}))
+
+	contents := world.EmptyChest()
+	contents[0] = world.ItemStack{ID: 1, Count: 64}               // stone
+	contents[13] = world.ItemStack{ID: 278, Count: 1, Damage: 42} // a worn diamond pickaxe
+	written.Chests = map[world.BlockPos]world.ChestContents{
+		{X: 1*16 + 4, Y: 5, Z: 1*16 + 6}: contents,
+	}
+
+	dir := writeRegion(t, a, written)
+	region, err := OpenRegion(dir, 0, 0, world.Overworld18(), a, reg.Air())
+	if err != nil {
+		t.Fatalf("OpenRegion: %v", err)
+	}
+
+	got, present, err := region.Chunk(written.Pos)
+	if err != nil || !present {
+		t.Fatalf("Chunk: %v (present=%v)", err, present)
+	}
+
+	pos := world.BlockPos{X: 1*16 + 4, Y: 5, Z: 1*16 + 6}
+	back, ok := got.Chests[pos]
+	if !ok {
+		t.Fatalf("the chest at %v did not come back; chunk holds %v", pos, got.Chests)
+	}
+	if back != contents {
+		t.Fatalf("chest contents came back as %v, want %v", back, contents)
+	}
+}
+
+// A chunk with no containers still round-trips, and an unknown tile entity is
+// skipped rather than refused: a world may hold furnaces and signs this server
+// has no idea about.
+func TestAChunkWithNoChestsRoundTrips(t *testing.T) {
+	a, reg := javaCodec(t)
+
+	written := newChunk(0, 0)
+	setBlock(written, 0, 0, 0, reg.Intern("minecraft:stone", nil))
+
+	dir := writeRegion(t, a, written)
+	region, err := OpenRegion(dir, 0, 0, world.Overworld18(), a, reg.Air())
+	if err != nil {
+		t.Fatalf("OpenRegion: %v", err)
+	}
+
+	got, present, err := region.Chunk(world.ChunkPos{})
+	if err != nil || !present {
+		t.Fatalf("Chunk: %v (present=%v)", err, present)
+	}
+	if len(got.Chests) != 0 {
+		t.Fatalf("a chunk with no chests came back with %v", got.Chests)
+	}
+}
+
+// TestAVanillaChestReads is the other half of the missing fixture: only a
+// region file a vanilla server wrote can confirm that the Items list, the Slot
+// byte, and the id string are what an external reader expects. See
+// TestAVanillaRegionReads for why it is not here.
+func TestAVanillaChestReads(t *testing.T) {
+	t.Skip("no vanilla-written region fixture: see TestAVanillaRegionReads")
+}

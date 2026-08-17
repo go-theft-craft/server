@@ -210,7 +210,75 @@ func (r *Region) decodeLevel(pos world.ChunkPos, level nbt.Compound) (*world.Chu
 		}
 	}
 
+	if err := r.decodeTileEntities(c, pos, level); err != nil {
+		return nil, err
+	}
+
 	return c, nil
+}
+
+// decodeTileEntities reads back the containers writeTileEntities wrote.
+//
+// A tile entity this server does not model is skipped rather than rejected: a
+// world may hold furnaces and signs this server has no idea about, and
+// refusing to load it would be worse than not showing them.
+func (r *Region) decodeTileEntities(c *world.Chunk, pos world.ChunkPos, level nbt.Compound) error {
+	entities, err := level.Compounds("TileEntities")
+	if err != nil {
+		return fmt.Errorf("anvil: chunk %v: %w", pos, err)
+	}
+
+	namer, ok := r.dec.(ItemNamer)
+
+	for _, entity := range entities {
+		if id, _ := entity.String("id"); id != chestTileEntityID {
+			continue
+		}
+		if !ok {
+			continue
+		}
+
+		x, okX := entity.Int("x")
+		y, okY := entity.Int("y")
+		z, okZ := entity.Int("z")
+		if !okX || !okY || !okZ {
+			return fmt.Errorf("%w: chunk %v has a chest with no position", ErrCorrupt, pos)
+		}
+
+		items, err := entity.Compounds("Items")
+		if err != nil {
+			return fmt.Errorf("anvil: chunk %v chest at %d,%d,%d: %w", pos, x, y, z, err)
+		}
+
+		contents := world.EmptyChest()
+		for _, item := range items {
+			slot, okSlot := item.Byte("Slot")
+			name, okName := item.String("id")
+			if !okSlot || !okName {
+				return fmt.Errorf("%w: chunk %v has a chest item with no slot or name", ErrCorrupt, pos)
+			}
+			if int(slot) >= len(contents) {
+				return fmt.Errorf("%w: chunk %v has a chest item in slot %d", ErrCorrupt, pos, slot)
+			}
+			id, okID := namer.ItemID(name)
+			if !okID {
+				// An item this version does not name is dropped rather than
+				// guessed at. Recorded here as a skipped slot; M11.5 gives
+				// that a durable destination.
+				continue
+			}
+			count, _ := item.Byte("Count")
+			damage, _ := item.Short("Damage")
+			contents[slot] = world.ItemStack{ID: id, Count: int8(count), Damage: damage}
+		}
+
+		if c.Chests == nil {
+			c.Chests = map[world.BlockPos]world.ChestContents{}
+		}
+		c.Chests[world.BlockPos{X: int(x), Y: int(y), Z: int(z)}] = contents
+	}
+
+	return nil
 }
 
 func (r *Region) decodeSection(c *world.Chunk, pos world.ChunkPos, section nbt.Compound) error {

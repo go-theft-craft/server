@@ -44,8 +44,8 @@ type Binder interface {
 // World holds the resident chunks of one dimension.
 //
 // A chunk is immutable and lives behind an atomic pointer, so a read is a
-// pointer load and a write is a compare-and-swap. Only time and containers
-// still take a mutex; they are not on the block path.
+// pointer load and a write is a compare-and-swap. Only the clock still takes a
+// mutex; it is not on the block path.
 type World struct {
 	dim       Dimension
 	reg       StateRegistry
@@ -63,7 +63,6 @@ type World struct {
 	genErr     atomic.Pointer[error]
 
 	mu        sync.RWMutex
-	chests    map[BlockPos]ChestContents
 	age       int64 // total ticks since world creation
 	timeOfDay int64 // 0-23999 cycle; negative = frozen
 }
@@ -85,7 +84,6 @@ func NewWorld(dim Dimension, adapter Adapter, generator Generator) (*World, erro
 		air:       reg.Air(),
 		generator: generator,
 		adapter:   adapter,
-		chests:    make(map[BlockPos]ChestContents),
 	}
 
 	if b, ok := generator.(Binder); ok {

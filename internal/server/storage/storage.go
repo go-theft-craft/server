@@ -227,7 +227,7 @@ func foldOverrides(w *world.World, entries []BlockOverrideEntry) error {
 
 // SaveChests writes every stored container to world/chests.json.
 func (s *Storage) SaveChests(w *world.World) error {
-	chests := w.GetChests()
+	chests := w.Chests()
 	entries := make([]ChestEntry, 0, len(chests))
 	for pos, contents := range chests {
 		slots := make([]ChestSlotEntry, world.ChestSlots)
@@ -275,7 +275,9 @@ func (s *Storage) LoadChests(w *world.World) error {
 		chests[world.BlockPos{X: e.X, Y: e.Y, Z: e.Z}] = contents
 	}
 
-	w.SetChests(chests)
+	for pos, contents := range chests {
+		w.SetChest(pos, contents)
+	}
 	s.log.Info("loaded chests", "count", len(chests))
 
 	return nil

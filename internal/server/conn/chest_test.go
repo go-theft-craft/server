@@ -194,13 +194,13 @@ func TestChest_EmptyContentsAreNotStored(t *testing.T) {
 
 	c.setWindowSlot(0, dirt(4))
 	c.flushChest()
-	if len(c.world.GetChests()) != 1 {
-		t.Fatalf("stored chests = %d, want 1", len(c.world.GetChests()))
+	if len(c.world.Chests()) != 1 {
+		t.Fatalf("stored chests = %d, want 1", len(c.world.Chests()))
 	}
 
 	c.setWindowSlot(0, player.EmptySlot)
 	c.flushChest()
-	if got := len(c.world.GetChests()); got != 0 {
+	if got := len(c.world.Chests()); got != 0 {
 		t.Errorf("stored chests = %d, want 0 once the chest is empty", got)
 	}
 }

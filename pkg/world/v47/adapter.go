@@ -39,6 +39,10 @@ type Adapter struct {
 	encode []uint16
 	decode map[uint16]world.State
 
+	// items is the version's item registry, which the storage format needs:
+	// since Java 1.8 an item inside a tile entity is named by string.
+	items data.ItemRegistry
+
 	// airSection is what a nil section renders as: one section of the empty
 	// block, built once rather than zeroed per encode.
 	airSection []byte
@@ -59,6 +63,7 @@ func New(reg world.StateRegistry, set *data.Set) (*Adapter, error) {
 
 	a := &Adapter{
 		reg:    reg,
+		items:  set.Items(),
 		dim:    world.Overworld18(),
 		encode: make([]uint16, reg.Len()),
 		decode: make(map[uint16]world.State, reg.Len()),
@@ -149,6 +154,32 @@ func (a *Adapter) DecodeState(v int32) (world.State, error) {
 	}
 
 	return s, nil
+}
+
+// ItemName is the name protocol 47's storage format writes for an item ID.
+func (a *Adapter) ItemName(id int16) (string, bool) {
+	if a.items == nil {
+		return "", false
+	}
+	item, ok := a.items.ByID(data.ItemID(id))
+	if !ok {
+		return "", false
+	}
+
+	return "minecraft:" + item.Name, true
+}
+
+// ItemID is the reverse.
+func (a *Adapter) ItemID(name string) (int16, bool) {
+	if a.items == nil {
+		return 0, false
+	}
+	item, ok := a.items.ByName(strings.TrimPrefix(name, "minecraft:"))
+	if !ok {
+		return 0, false
+	}
+
+	return int16(item.ID), true
 }
 
 // EncodeUnload implements world.Adapter. Protocol 47 unloads a column with a

@@ -9,10 +9,55 @@ type Chunk struct {
 	Biomes   [256]Biome
 	Gen      Generation
 
+	// Chests is the container contents inside this column, keyed by the block
+	// they live in. They belong to the chunk so that a chunk save carries
+	// them, which is what makes them incremental with everything else and is
+	// where the vanilla format keeps them.
+	Chests map[BlockPos]ChestContents
+
 	// Unreadable marks a column the store failed to read. It is empty, and it
 	// must never be written back: doing so would replace data that is there
 	// with the nothing that could not be loaded.
 	Unreadable bool
+}
+
+// withChest returns a chunk whose container at pos holds contents, or holds
+// nothing when contents is empty. It reports false when nothing changed.
+func (c *Chunk) withChest(pos BlockPos, contents ChestContents, empty bool, gen Generation) (*Chunk, bool) {
+	existing, had := c.Chests[pos]
+	switch {
+	case empty && !had:
+		return c, false
+	case !empty && had && existing == contents:
+		return c, false
+	}
+
+	next := c.clone(gen)
+	if empty {
+		delete(next.Chests, pos)
+	} else {
+		next.Chests[pos] = contents
+	}
+
+	return next, true
+}
+
+// clone copies a chunk's mutable parts, sharing every section.
+func (c *Chunk) clone(gen Generation) *Chunk {
+	next := &Chunk{
+		Pos:        c.Pos,
+		Sections:   make([]*Section, len(c.Sections)),
+		Biomes:     c.Biomes,
+		Gen:        gen,
+		Chests:     make(map[BlockPos]ChestContents, len(c.Chests)),
+		Unreadable: c.Unreadable,
+	}
+	copy(next.Sections, c.Sections)
+	for k, v := range c.Chests {
+		next.Chests[k] = v
+	}
+
+	return next
 }
 
 // At returns the state at chunk-local x, z and world y. A y outside the
@@ -44,14 +89,7 @@ func (c *Chunk) with(dim Dimension, pos BlockPos, state, air State, gen Generati
 		return c, false
 	}
 
-	next := &Chunk{
-		Pos:        c.Pos,
-		Sections:   make([]*Section, len(c.Sections)),
-		Biomes:     c.Biomes,
-		Gen:        gen,
-		Unreadable: c.Unreadable,
-	}
-	copy(next.Sections, c.Sections)
+	next := c.clone(gen)
 	if sec == nil {
 		sec = newAirSection(air)
 	}

@@ -3,6 +3,7 @@ package anvil
 import (
 	"bytes"
 	"fmt"
+	"slices"
 
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/nbt"
@@ -15,7 +16,33 @@ type StateEncoder interface {
 	EncodeState(world.State) (int32, error)
 }
 
+// ItemNamer resolves the name a stored item stack carries.
+//
+// Since Java 1.8 an item inside a tile entity is named by string — "minecraft:
+// stone" — rather than by the numeric ID older versions wrote. The name is
+// resolved through the version's item registry rather than assumed, because
+// that is the one thing an external tool reading these files depends on.
+type ItemNamer interface {
+	ItemName(id int16) (string, bool)
+	ItemID(name string) (int16, bool)
+}
+
+// Codec is everything the Anvil format needs that belongs to a version rather
+// than to the format.
+type Codec interface {
+	StateEncoder
+	StateDecoder
+	ItemNamer
+}
+
+// chestTileEntityID is what vanilla calls a chest's tile entity.
+const chestTileEntityID = "Chest"
+
 // EncodeChunkNBT encodes a chunk as MC 1.8 NBT format.
+//
+// enc may be a plain StateEncoder, in which case containers are not written:
+// naming an item needs the version's item registry, and a caller that has only
+// a block-state encoder has no chests to write either.
 func EncodeChunkNBT(c *world.Chunk, enc StateEncoder) ([]byte, error) {
 	if c == nil {
 		return nil, fmt.Errorf("anvil: nil chunk")
@@ -93,6 +120,10 @@ func EncodeChunkNBT(c *world.Chunk, enc StateEncoder) ([]byte, error) {
 		w.EndCompound()
 	}
 
+	if err := writeTileEntities(w, c, enc); err != nil {
+		return nil, err
+	}
+
 	biomes := make([]byte, len(c.Biomes))
 	for i, b := range c.Biomes {
 		biomes[i] = byte(b)
@@ -113,6 +144,73 @@ func EncodeChunkNBT(c *world.Chunk, enc StateEncoder) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// writeTileEntities writes the chunk's containers where vanilla keeps them.
+//
+// A chest is {id: "Chest", x, y, z, Items: [{Slot, id, Count, Damage}]}, in
+// world coordinates, and only the slots holding something are listed — which
+// is what vanilla does and what keeps an untouched chest cheap.
+func writeTileEntities(w *nbt.Writer, c *world.Chunk, enc StateEncoder) error {
+	namer, ok := enc.(ItemNamer)
+	if !ok || len(c.Chests) == 0 {
+		w.BeginList("TileEntities", nbt.TagCompound, 0)
+
+		return nil
+	}
+
+	positions := make([]world.BlockPos, 0, len(c.Chests))
+	for pos := range c.Chests {
+		positions = append(positions, pos)
+	}
+	// Sorted, so two saves of the same chunk produce the same bytes.
+	slices.SortFunc(positions, func(a, b world.BlockPos) int {
+		if a.Y != b.Y {
+			return a.Y - b.Y
+		}
+		if a.Z != b.Z {
+			return a.Z - b.Z
+		}
+
+		return a.X - b.X
+	})
+
+	w.BeginList("TileEntities", nbt.TagCompound, int32(len(positions)))
+	for _, pos := range positions {
+		w.BeginListCompound()
+		w.WriteString("id", chestTileEntityID)
+		w.WriteInt("x", int32(pos.X))
+		w.WriteInt("y", int32(pos.Y))
+		w.WriteInt("z", int32(pos.Z))
+
+		contents := c.Chests[pos]
+		filled := make([]int, 0, len(contents))
+		for slot, stack := range contents {
+			if !stack.IsEmpty() {
+				filled = append(filled, slot)
+			}
+		}
+
+		w.BeginList("Items", nbt.TagCompound, int32(len(filled)))
+		for _, slot := range filled {
+			stack := contents[slot]
+			name, ok := namer.ItemName(stack.ID)
+			if !ok {
+				return fmt.Errorf("anvil: chunk %v chest %v slot %d: no item is numbered %d",
+					c.Pos, pos, slot, stack.ID)
+			}
+			w.BeginListCompound()
+			w.WriteTagByte("Slot", byte(slot))
+			w.WriteString("id", name)
+			w.WriteTagByte("Count", byte(stack.Count))
+			w.WriteShort("Damage", stack.Damage)
+			w.EndCompound()
+		}
+
+		w.EndCompound()
+	}
+
+	return nil
 }
 
 // setNibble sets a 4-bit value at the given block index in a nibble array.

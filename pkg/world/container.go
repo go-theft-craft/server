@@ -46,14 +46,25 @@ func (s ItemStack) IsEmpty() bool {
 	return s.ID <= 0 || s.Count <= 0
 }
 
+// isEmptyChest reports whether every slot holds nothing.
+func isEmptyChest(contents ChestContents) bool {
+	for _, s := range contents {
+		if !s.IsEmpty() {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Chest returns the contents stored at a position. A chest that has never been
 // opened has no entry, and an empty one is returned rather than a zero value
 // that would read as 27 stone blocks.
 func (w *World) Chest(pos BlockPos) ChestContents {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-
-	if c, ok := w.chests[pos]; ok {
+	if !w.dim.Contains(pos.Y) {
+		return EmptyChest()
+	}
+	if c, ok := w.Chunk(pos.ChunkPos()).Chests[pos]; ok {
 		return c
 	}
 
@@ -64,52 +75,54 @@ func (w *World) Chest(pos BlockPos) ChestContents {
 // entirely empty are dropped rather than stored, so an untouched chest costs
 // nothing to save.
 func (w *World) SetChest(pos BlockPos, contents ChestContents) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	for _, s := range contents {
-		if !s.IsEmpty() {
-			w.chests[pos] = contents
-
-			return
-		}
-	}
-
-	delete(w.chests, pos)
+	w.writeChest(pos, contents, isEmptyChest(contents))
 }
 
 // RemoveChest deletes the contents stored at a position and returns what was
 // there, which is what a broken chest has to spill.
 func (w *World) RemoveChest(pos BlockPos) ChestContents {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	contents, ok := w.chests[pos]
-	if !ok {
+	if !w.dim.Contains(pos.Y) {
 		return EmptyChest()
 	}
-	delete(w.chests, pos)
+
+	contents := w.Chest(pos)
+	w.writeChest(pos, ChestContents{}, true)
 
 	return contents
 }
 
-// GetChests returns a copy of every stored chest (used for persistence).
-func (w *World) GetChests() map[BlockPos]ChestContents {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-
-	result := make(map[BlockPos]ChestContents, len(w.chests))
-	for k, v := range w.chests {
-		result[k] = v
+// writeChest publishes a container change the same way a block write is
+// published: by swapping the column, so a chunk save carries its containers
+// and a snapshot cannot see half of one.
+func (w *World) writeChest(pos BlockPos, contents ChestContents, empty bool) {
+	if !w.dim.Contains(pos.Y) {
+		return
 	}
 
-	return result
+	slot := w.chunkSlot(pos.ChunkPos())
+	for {
+		old := slot.Load()
+		next, changed := old.withChest(pos, contents, empty, Generation(w.generation.Add(1)))
+		if !changed {
+			return
+		}
+		if slot.CompareAndSwap(old, next) {
+			return
+		}
+		// Lost the race: reload and rebuild from the winner's chunk.
+	}
 }
 
-// SetChests replaces every stored chest (used when loading from storage).
-func (w *World) SetChests(chests map[BlockPos]ChestContents) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
+// Chests returns every container in the resident world. It exists for the
+// one-way migration off chests.json and for tests; a saver reads them from the
+// chunks a snapshot holds.
+func (w *World) Chests() map[BlockPos]ChestContents {
+	result := map[BlockPos]ChestContents{}
+	w.ForEachChunk(func(_ ChunkPos, c *Chunk) {
+		for pos, contents := range c.Chests {
+			result[pos] = contents
+		}
+	})
 
-	w.chests = chests
+	return result
 }

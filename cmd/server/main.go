@@ -83,12 +83,10 @@ func main() {
 
 	// Released explicitly rather than deferred: the failure path below exits
 	// the process, and a deferred release would not run before it did.
-	// Persistence is disconnected until the Store seam lands: the store is
-	// still loaded and written by the configuration path above, but the
-	// server does not save through it yet.
 	srv, err := server.New(
 		server.WithSettings(cfg),
 		server.WithLogger(log),
+		server.WithStore(store),
 	)
 	if err != nil {
 		cancel()

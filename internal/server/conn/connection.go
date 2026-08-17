@@ -42,7 +42,7 @@ type Connection struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
 	world   *world.World
-	storage *storage.Storage
+	storage PlayerStore
 
 	// state caches the session's protocol state so the write path can stamp a
 	// packet without a Snapshot round-trip. It is refreshed from the session
@@ -107,11 +107,20 @@ type Connection struct {
 	SaveAll func()
 }
 
+// PlayerStore is the per-connection half of persistence: a player's saved data
+// read at join and written back at disconnect. The connection depends on this
+// rather than on the concrete store, so a server built without persistence
+// passes nothing and the nil guards at both call sites hold.
+type PlayerStore interface {
+	LoadPlayer(uuid string) (*storage.PlayerData, error)
+	SavePlayer(p *player.Player) error
+}
+
 // NewConnection creates a new Connection from a raw TCP connection.
 //
 // It returns an error because the connection now owns a managed stream, and a
 // stream that cannot be built is a connection that cannot be served.
-func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World, players *player.Manager, store *storage.Storage, gd *data.Set) (*Connection, error) {
+func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *slog.Logger, w *world.World, players *player.Manager, store PlayerStore, gd *data.Set) (*Connection, error) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	limits, err := protocol.NewLimits()

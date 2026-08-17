@@ -25,9 +25,16 @@ type Server struct {
 	log       *slog.Logger
 	world     *world.World
 	players   *player.Manager
-	storage   *storage.Storage
+	store     Store
 	gameData  *data.Set
 	generator gen.Generator
+
+	// playerStore is the half of persistence Store cannot express yet,
+	// because loading and saving a player name internal types. It is
+	// unexported, so it names them legally: no external caller has to satisfy
+	// it, and a store that does not implement it simply does not persist
+	// players. M11.3 removes it by giving player data a public shape.
+	playerStore playerSaver
 
 	// live tracks the connections that are still open, so a shutdown can
 	// tell each of them why it is ending rather than dropping its socket.
@@ -71,15 +78,34 @@ func New(opts ...Option) (*Server, error) {
 		return nil, fmt.Errorf("load java 1.8 game data: %w", err)
 	}
 
-	return &Server{
+	srv := &Server{
 		cfg:       b.settings,
 		log:       b.log,
 		world:     world.NewWorld(generator),
 		players:   player.NewManager(b.settings.ViewDistance),
+		store:     b.store,
 		gameData:  gameData,
 		generator: generator,
-	}, nil
+	}
+
+	if ps, ok := b.store.(playerSaver); ok {
+		srv.playerStore = ps
+	}
+
+	return srv, nil
 }
+
+// playerSaver is the per-player half of persistence. The framework's own
+// FileStore satisfies it; an external store does not, and then players are not
+// persisted.
+type playerSaver interface {
+	LoadPlayer(uuid string) (*storage.PlayerData, error)
+	SavePlayer(p *player.Player) error
+}
+
+// Store returns the store the server was built with, or nil if it runs
+// without persistence.
+func (s *Server) Store() Store { return s.store }
 
 // Settings returns a copy of the effective settings. It is a copy because the
 // server keeps using its own, and a caller that mutated the returned value
@@ -95,14 +121,14 @@ func (s *Server) Generator() gen.Generator { return s.generator }
 // Start begins listening for connections and blocks until the context is cancelled.
 func (s *Server) Start(ctx context.Context) error {
 	// Load saved world data (time + block overrides).
-	if s.storage != nil {
-		if err := s.storage.LoadWorld(s.world); err != nil {
+	if s.store != nil {
+		if err := s.store.LoadWorld(s.world); err != nil {
 			s.log.Error("failed to load world data", "error", err)
 		}
-		if err := s.storage.LoadBlockOverrides(s.world); err != nil {
+		if err := s.store.LoadBlockOverrides(s.world); err != nil {
 			s.log.Error("failed to load block overrides", "error", err)
 		}
-		if err := s.storage.LoadChests(s.world); err != nil {
+		if err := s.store.LoadChests(s.world); err != nil {
 			s.log.Error("failed to load chests", "error", err)
 		}
 	}
@@ -117,7 +143,7 @@ func (s *Server) Start(ctx context.Context) error {
 	defer listener.Close()
 
 	if s.cfg.WorldRadius > 0 {
-		if s.storage != nil && s.storage.HasSavedWorld() {
+		if s.store != nil && s.store.HasSavedWorld() {
 			s.log.Info("world already saved, skipping pre-generation")
 		} else {
 			total := (2*s.cfg.WorldRadius + 1) * (2*s.cfg.WorldRadius + 1)
@@ -140,7 +166,7 @@ func (s *Server) Start(ctx context.Context) error {
 	go s.tickLoop(ctx)
 
 	// Start auto-save goroutine.
-	if s.storage != nil && s.cfg.AutoSaveMinutes > 0 {
+	if s.store != nil && s.cfg.AutoSaveMinutes > 0 {
 		go s.autoSave(ctx)
 	}
 
@@ -164,7 +190,7 @@ func (s *Server) Start(ctx context.Context) error {
 			continue
 		}
 
-		connection, err := conn.NewConnection(ctx, c, s.cfg, s.log, s.world, s.players, s.storage, s.gameData)
+		connection, err := conn.NewConnection(ctx, c, s.cfg, s.log, s.world, s.players, s.playerStore, s.gameData)
 		if err != nil {
 			s.log.Error("create connection", "error", err, "addr", c.RemoteAddr().String())
 			_ = c.Close()
@@ -280,37 +306,41 @@ func (s *Server) autoSave(ctx context.Context) {
 
 // saveAll saves world and all connected player data.
 func (s *Server) saveAll() {
-	if s.storage == nil {
+	if s.store == nil {
 		return
 	}
 
-	if err := s.storage.SaveWorld(s.world); err != nil {
+	if err := s.store.SaveWorld(s.world); err != nil {
 		s.log.Error("auto-save world failed", "error", err)
 	} else {
 		s.log.Info("world saved")
 	}
 
-	if err := s.storage.SaveBlockOverrides(s.world); err != nil {
+	if err := s.store.SaveBlockOverrides(s.world); err != nil {
 		s.log.Error("auto-save block overrides failed", "error", err)
 	} else {
 		s.log.Info("block overrides saved")
 	}
 
-	if err := s.storage.SaveChests(s.world); err != nil {
+	if err := s.store.SaveChests(s.world); err != nil {
 		s.log.Error("auto-save chests failed", "error", err)
 	} else {
 		s.log.Info("chests saved")
 	}
 
-	if err := s.storage.SaveWorldAnvil(s.world); err != nil {
+	if err := s.store.SaveWorldAnvil(s.world); err != nil {
 		s.log.Error("auto-save anvil failed", "error", err)
 	} else {
 		s.log.Info("anvil region files saved")
 	}
 
+	if s.playerStore == nil {
+		return
+	}
+
 	var saved int
 	s.players.ForEach(func(p *player.Player) {
-		if err := s.storage.SavePlayer(p); err != nil {
+		if err := s.playerStore.SavePlayer(p); err != nil {
 			s.log.Error("auto-save player failed", "player", p.Username, "error", err)
 		} else {
 			saved++

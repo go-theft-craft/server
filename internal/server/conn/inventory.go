@@ -71,6 +71,11 @@ type windowLayout struct {
 	armorStart int16
 	armorEnd   int16
 
+	// containerStart is -1 when the window shows no container of its own. A
+	// chest sets it; the player window and a crafting table do not.
+	containerStart int16
+	containerEnd   int16
+
 	mainStart   int16
 	mainEnd     int16
 	hotbarStart int16
@@ -85,35 +90,39 @@ type windowLayout struct {
 
 func playerWindowLayout() windowLayout {
 	return windowLayout{
-		id:          0,
-		gridSize:    2,
-		gridStart:   slotCraftStart,
-		gridEnd:     slotCraftEnd,
-		armorStart:  slotArmorStart,
-		armorEnd:    slotArmorEnd,
-		mainStart:   slotMainStart,
-		mainEnd:     slotMainEnd,
-		hotbarStart: slotHotbarStart,
-		hotbarEnd:   slotHotbarEnd,
-		invShift:    0,
-		total:       slotTotal,
+		id:             0,
+		gridSize:       2,
+		gridStart:      slotCraftStart,
+		gridEnd:        slotCraftEnd,
+		armorStart:     slotArmorStart,
+		armorEnd:       slotArmorEnd,
+		containerStart: -1,
+		containerEnd:   -1,
+		mainStart:      slotMainStart,
+		mainEnd:        slotMainEnd,
+		hotbarStart:    slotHotbarStart,
+		hotbarEnd:      slotHotbarEnd,
+		invShift:       0,
+		total:          slotTotal,
 	}
 }
 
 func tableWindowLayout(id int8) windowLayout {
 	return windowLayout{
-		id:          id,
-		gridSize:    3,
-		gridStart:   slotCraftStart,
-		gridEnd:     tableGridEnd,
-		armorStart:  -1,
-		armorEnd:    -1,
-		mainStart:   tableMainStart,
-		mainEnd:     tableMainEnd,
-		hotbarStart: tableHotbarStart,
-		hotbarEnd:   tableHotbarEnd,
-		invShift:    -1,
-		total:       tableSlotTotal,
+		id:             id,
+		gridSize:       3,
+		gridStart:      slotCraftStart,
+		gridEnd:        tableGridEnd,
+		armorStart:     -1,
+		armorEnd:       -1,
+		containerStart: -1,
+		containerEnd:   -1,
+		mainStart:      tableMainStart,
+		mainEnd:        tableMainEnd,
+		hotbarStart:    tableHotbarStart,
+		hotbarEnd:      tableHotbarEnd,
+		invShift:       -1,
+		total:          tableSlotTotal,
 	}
 }
 
@@ -124,15 +133,39 @@ func (l windowLayout) hasArmor() bool {
 	return l.armorStart >= 0
 }
 
+// hasCrafting reports whether the window has a crafting area. A chest has
+// none, and its slot 0 is a container slot rather than a crafting output.
+func (l windowLayout) hasCrafting() bool {
+	return l.gridStart >= 0
+}
+
+// hasContainer reports whether the window shows a container the world owns.
+func (l windowLayout) hasContainer() bool {
+	return l.containerStart >= 0
+}
+
+// isContainer reports whether a window slot addresses that container.
+func (l windowLayout) isContainer(slot int16) bool {
+	return l.hasContainer() && slot >= l.containerStart && slot <= l.containerEnd
+}
+
 // gridCells is how many slots the crafting grid has.
 func (l windowLayout) gridCells() int {
 	return l.gridSize * l.gridSize
 }
 
 // layout returns the layout of the window the player currently has open.
+//
+// The window ID alone no longer decides this: a chest and a crafting table
+// both hold a non-zero ID and their slots mean entirely different things, so
+// the kind is tracked beside the ID.
 func (c *Connection) layout() windowLayout {
 	if c.windowID == 0 {
 		return playerWindowLayout()
+	}
+
+	if c.windowKind == windowChest {
+		return chestWindowLayout(c.windowID, len(c.chestItems))
 	}
 
 	return tableWindowLayout(c.windowID)
@@ -189,6 +222,10 @@ func (c *Connection) handleWindowClick(value *v1_8.PlayServerboundWindowClick) e
 	c.log.Info("window click", "window", windowID, "slot", slotIndex, "button", button, "mode", mode, "craftOutput", c.craftingOutput, "cursor", c.cursorSlot)
 	c.dispatchClick(slotIndex, button, mode)
 	c.log.Info("after click", "craftOutput", c.craftingOutput, "cursor", c.cursorSlot)
+
+	// An open chest is written back after every click rather than only on
+	// close, so items are not lost if the session ends with the window open.
+	c.flushChest()
 
 	// Full inventory sync so client matches server state.
 	_ = c.sendWindowItems()
@@ -253,9 +290,11 @@ func (c *Connection) setWindowSlot(slot int16, item player.Slot) {
 // getSlotIn reads a slot in the coordinates of the given window.
 func (c *Connection) getSlotIn(l windowLayout, slot int16) player.Slot {
 	switch {
-	case slot == slotCraftOutput:
+	case l.isContainer(slot):
+		return stackToSlot(c.chestItems[slot-l.containerStart])
+	case l.hasCrafting() && slot == slotCraftOutput:
 		return c.craftingOutput
-	case slot >= l.gridStart && slot <= l.gridEnd:
+	case l.hasCrafting() && slot >= l.gridStart && slot <= l.gridEnd:
 		return c.craftingGrid[slot-l.gridStart]
 	default:
 		if proto, ok := l.inventorySlot(slot); ok {
@@ -270,9 +309,11 @@ func (c *Connection) getSlotIn(l windowLayout, slot int16) player.Slot {
 // broadcasts equipment changes to trackers if needed.
 func (c *Connection) setSlotIn(l windowLayout, slot int16, item player.Slot) {
 	switch {
-	case slot == slotCraftOutput:
+	case l.isContainer(slot):
+		c.chestItems[slot-l.containerStart] = slotToStack(item)
+	case l.hasCrafting() && slot == slotCraftOutput:
 		c.craftingOutput = item
-	case slot >= l.gridStart && slot <= l.gridEnd:
+	case l.hasCrafting() && slot >= l.gridStart && slot <= l.gridEnd:
 		c.craftingGrid[slot-l.gridStart] = item
 	default:
 		if proto, ok := l.inventorySlot(slot); ok {
@@ -341,7 +382,7 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 	}
 
 	// Clicking crafting output.
-	if slot == slotCraftOutput {
+	if l.hasCrafting() && slot == slotCraftOutput {
 		if c.craftingOutput.IsEmpty() {
 			return
 		}
@@ -453,7 +494,7 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 func (c *Connection) handleShiftClick(slot int16, _ int8) {
 	l := c.layout()
 
-	if slot == slotCraftOutput {
+	if l.hasCrafting() && slot == slotCraftOutput {
 		c.shiftCraftAll()
 		return
 	}
@@ -471,6 +512,15 @@ func (c *Connection) handleShiftClick(slot int16, _ int8) {
 	// have already been placed, so the source slot keeps only the remainder.
 	leftover := int(item.ItemCount)
 	switch {
+	// A container splits the window in two, and shift-clicking crosses the
+	// divide: out of the chest into the inventory, or out of the inventory
+	// into the chest. Armor is not equipped from a chest window, the same way
+	// a crafting table does not equip it.
+	case l.isContainer(slot):
+		leftover = c.addToSection(item, l.mainStart, l.hotbarEnd)
+	case l.hasContainer() && slot >= l.mainStart && slot <= l.hotbarEnd:
+		leftover = c.addToSection(item, l.containerStart, l.containerEnd)
+
 	case l.hasArmor() && slot >= l.armorStart && slot <= l.armorEnd:
 		// Armor → main inventory or hotbar.
 		leftover = c.addToSection(item, l.mainStart, l.hotbarEnd)
@@ -882,8 +932,11 @@ func (c *Connection) openCraftingTable() error {
 	c.emptyCraftingArea()
 
 	// Vanilla's getNextWindowId, which cycles 1-100 and never yields 0.
+	c.closeChest()
+
 	c.nextWindowID = c.nextWindowID%100 + 1
 	c.windowID = c.nextWindowID
+	c.windowKind = windowTable
 
 	if err := c.send(&v1_8.PlayClientboundOpenWindow{
 		WindowID:      uint8(c.windowID),
@@ -931,7 +984,9 @@ func (c *Connection) emptyCraftingArea() {
 // open still means the player is looking at their own inventory again.
 func (c *Connection) handleCloseWindow() error {
 	c.emptyCraftingArea()
+	c.closeChest()
 	c.windowID = 0
+	c.windowKind = windowPlayer
 
 	// Drop cursor item.
 	if !c.cursorSlot.IsEmpty() {
@@ -1004,6 +1059,13 @@ func (c *Connection) consumeCraftingIngredients() {
 
 // updateCraftingOutput checks the crafting grid against recipes and updates the output slot.
 func (c *Connection) updateCraftingOutput() {
+	// A window with no crafting area has no output slot, and slot 0 there
+	// belongs to a container: writing a recipe result into it would overwrite
+	// the first chest slot on the client.
+	if !c.layout().hasCrafting() {
+		return
+	}
+
 	result := c.matchCraftingRecipe()
 	c.craftingOutput = result
 	_ = c.sendSetSlot(c.windowID, slotCraftOutput, result)

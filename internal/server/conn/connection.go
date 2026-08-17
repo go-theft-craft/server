@@ -22,6 +22,16 @@ import (
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
+// windowKind names what the open window is. The player's own inventory is
+// always open underneath and is the zero value.
+type windowKind uint8
+
+const (
+	windowPlayer windowKind = iota
+	windowTable
+	windowChest
+)
+
 // Connection manages a single client connection through the protocol state machine.
 type Connection struct {
 	conn    net.Conn
@@ -64,6 +74,16 @@ type Connection struct {
 	// windowID is the window the player has open, or 0 for their own
 	// inventory, which is always open and never allocated an ID.
 	windowID int8
+	// windowKind says what that window is. A crafting table and a chest both
+	// carry a non-zero ID and their slot numbers mean different things, so the
+	// ID alone cannot decide the layout.
+	windowKind windowKind
+	// chestPositions is the open chest: one position, or two in window order
+	// for a double chest. chestItems is a working copy of their contents, 27
+	// slots per position. The world owns the stored copy; this one is written
+	// back on every click and when the window closes.
+	chestPositions []world.BlockPos
+	chestItems     []world.ItemStack
 	// nextWindowID is where the next allocation starts. Window IDs cycle
 	// through 1-100; 0 is reserved for the player's own inventory.
 	nextWindowID int8
@@ -73,8 +93,12 @@ type Connection struct {
 	dragSlots  []int16
 	dragActive bool
 
-	// Death state (only accessed from Handle goroutine)
-	dead bool
+	// Health and death state (only accessed from Handle goroutine).
+	// lastDamage is when the player was last hurt, which is what gives them
+	// the brief immunity every damage source shares.
+	health     float32
+	lastDamage time.Time
+	dead       bool
 
 	// Game data registries (blocks, materials, recipes, etc.)
 	gameData *data.Set

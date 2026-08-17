@@ -50,6 +50,23 @@ type BlockOverrideEntry struct {
 	StateID int32 `json:"state_id"`
 }
 
+// ChestEntry is one stored chest for JSON serialization. Slots is written in
+// window order and is always ChestSlots long, so a hand-edited file that is
+// short or long is rejected rather than silently shifting items.
+type ChestEntry struct {
+	X     int              `json:"x"`
+	Y     int              `json:"y"`
+	Z     int              `json:"z"`
+	Slots []ChestSlotEntry `json:"slots"`
+}
+
+// ChestSlotEntry is one item stack inside a stored chest.
+type ChestSlotEntry struct {
+	ID     int16 `json:"id"`
+	Count  int8  `json:"count"`
+	Damage int16 `json:"damage"`
+}
+
 // PlayerDataFromPlayer extracts serializable data from a runtime Player.
 func PlayerDataFromPlayer(p *player.Player) *PlayerData {
 	pos := p.GetPosition()

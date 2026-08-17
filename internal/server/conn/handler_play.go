@@ -16,6 +16,7 @@ import (
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
+	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
@@ -72,6 +73,10 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	// For returning players ApplyData already did this, but for new players
 	// the NewPlayer default (0.5, 4.0, 0.5) would be stale.
 	c.self.SetPosition(posX, posY, posZ, posYaw, posPitch, true)
+
+	// A joining player is whole. Health is session state and is not saved, so
+	// this is the only place a new session's bar is decided.
+	c.resetHealth()
 
 	// 1. Join Game
 	if err := c.send(&v1_8.PlayClientboundLogin{
@@ -239,7 +244,13 @@ func (c *Connection) handlePlay(inbound protocol.Packet) error {
 		return c.handleUseEntity(value)
 
 	case *v1_8.PlayServerboundFlying: // Player (ground state)
-		// heartbeat, ignore
+		// The heartbeat carries no position, but it is the only packet a
+		// player who stands still sends — and standing still inside a cactus
+		// has to keep hurting. The last known position is what to test.
+		if c.self != nil {
+			pos := c.self.GetPosition()
+			c.checkContactDamage(pos.X, pos.Y, pos.Z)
+		}
 
 	case *v1_8.PlayServerboundPosition:
 		c.handlePositionUpdate(value.X, value.Y, value.Z, 0, 0, value.OnGround, true, false)
@@ -362,6 +373,8 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 	}
 
 	oldFX, oldFY, oldFZ, newFX, newFY, newFZ := c.setPositionAndUpdateChunks(x, y, z, yaw, pitch, onGround)
+
+	c.checkContactDamage(x, y, z)
 
 	dx := newFX - oldFX
 	dy := newFY - oldFY
@@ -562,6 +575,16 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 // and spawns item drops in survival mode.
 func (c *Connection) breakBlock(x, y, z int) {
 	oldBlockState := c.world.GetBlock(x, y, z)
+
+	// A broken container spills what it held, in every game mode: creative
+	// suppresses the block's own drop, not the contents someone put inside.
+	if isChestBlock(oldBlockState >> 4) {
+		c.spillChest(x, y, z)
+		// The survivor of a broken pair is no longer half of anything, so it
+		// re-orients once the block is gone. Deferred for that reason.
+		defer c.refreshChestCluster(oldBlockState>>4, world.BlockPos{X: x, Y: y, Z: z})
+	}
+
 	c.world.SetBlock(x, y, z, 0)
 	blockChange := &v1_8.PlayClientboundBlockChange{
 		Location: blockPos(x, y, z),
@@ -641,8 +664,11 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 	// the player is sneaking — which is how vanilla lets you build against a
 	// crafting table instead of opening it.
 	if !c.self.IsSneaking() {
-		if c.world.GetBlock(clickedX, clickedY, clickedZ)>>4 == craftingTableBlockID {
+		switch c.world.GetBlock(clickedX, clickedY, clickedZ) >> 4 {
+		case craftingTableBlockID:
 			return c.openCraftingTable()
+		case chestBlockID, trappedChestBlockID:
+			return c.openChest(clickedX, clickedY, clickedZ)
 		}
 	}
 
@@ -680,7 +706,14 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 		return c.revertPlacement(x, y, z)
 	}
 
-	stateID := int32(held.BlockID)<<4 | int32(held.ItemDamage)&0xF
+	// Some blocks refuse positions that are legal for everything else. A chest
+	// is one: it may join a lone chest but never a pair, so three never meet.
+	if isChestBlock(int32(held.BlockID)) &&
+		!c.canPlaceChestAt(int32(held.BlockID), world.BlockPos{X: x, Y: y, Z: z}) {
+		return c.revertPlacement(x, y, z)
+	}
+
+	stateID := c.placementState(held)
 	c.world.SetBlock(x, y, z, stateID)
 
 	blockChange := &v1_8.PlayClientboundBlockChange{
@@ -690,6 +723,12 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
 	if err := c.send(blockChange); err != nil {
 		return err
+	}
+
+	// A new chest re-orients itself and its partner, so a pair never ends up
+	// with two halves facing different ways.
+	if isChestBlock(int32(held.BlockID)) {
+		c.refreshChestCluster(int32(held.BlockID), world.BlockPos{X: x, Y: y, Z: z})
 	}
 
 	// Survival pays for the block. The client already decremented its own copy
@@ -710,11 +749,41 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 	return nil
 }
 
+// maxBlockID is the last ID protocol 47 gives a block; everything above it is
+// an item.
+const maxBlockID = 255
+
+// placementState is the block state a held item becomes when it is placed.
+//
+// Most blocks take their metadata straight from the item's damage value, which
+// is what carries a variant like a wood type. A block with a facing does not:
+// its metadata says which way it points, and only some values are states the
+// block actually has. A 1.8 client resolves a chunk section value against the
+// registry of valid states and draws air when it finds none, so a state
+// invented here does not merely look wrong — the block is not there at all.
+func (c *Connection) placementState(held player.Slot) int32 {
+	meta := int32(held.ItemDamage) & 0xF
+
+	if isChestBlock(int32(held.BlockID)) {
+		meta = chestFacing(c.self.GetPosition().Yaw)
+	}
+
+	return int32(held.BlockID)<<4 | meta
+}
+
 // isPlaceable reports whether an item ID names a block. Items — a sword, a
 // bucket — are not placed by a right-click on a block face, and the state ID
 // built from one would be a block the world has no entry for. With no game
 // data loaded there is nothing to check against, so the caller is trusted.
 func (c *Connection) isPlaceable(itemID int16) bool {
+	// Protocol 47 numbers blocks 0 through 255 and items above them, so an ID
+	// past the block range names an item whatever the registry says. The
+	// world already holds an apple, some seeds and a diamond pickaxe stored as
+	// blocks, which a client draws as air because no such block state exists.
+	if itemID <= 0 || itemID > maxBlockID {
+		return false
+	}
+
 	if c.gameData == nil || c.gameData.Blocks() == nil {
 		return true
 	}
@@ -728,10 +797,19 @@ func (c *Connection) isPlaceable(itemID int16) bool {
 // predicted a block into, so a refused placement does not leave a ghost block
 // on screen until the chunk is reloaded.
 func (c *Connection) revertPlacement(x, y, z int) error {
-	return c.send(&v1_8.PlayClientboundBlockChange{
+	if err := c.send(&v1_8.PlayClientboundBlockChange{
 		Location: blockPos(x, y, z),
 		Type:     c.world.GetBlock(x, y, z),
-	})
+	}); err != nil {
+		return err
+	}
+
+	// The client decremented its own stack when it predicted the placement, so
+	// a refusal has to hand the item back. Without this the player watches the
+	// block reappear and the item stay gone until the next inventory sync.
+	heldSlot := int16(c.self.Inventory.GetHeldSlot())
+
+	return c.sendSetSlot(0, slotHotbarStart+heldSlot, c.self.Inventory.GetSlot(int(heldSlot)))
 }
 
 // parseUUID parses a hyphenated UUID string into 16 bytes.
@@ -1014,9 +1092,10 @@ func (c *Connection) handleRespawn() error {
 	}
 
 	// Restore health.
+	c.resetHealth()
 	_ = c.send(&v1_8.PlayClientboundUpdateHealth{
-		Health:         20,
-		Food:           20,
+		Health:         c.health,
+		Food:           maxFood,
 		FoodSaturation: 5,
 	})
 

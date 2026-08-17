@@ -73,6 +73,9 @@ func (s *Server) Start(ctx context.Context) error {
 		if err := s.storage.LoadBlockOverrides(s.world); err != nil {
 			s.log.Error("failed to load block overrides", "error", err)
 		}
+		if err := s.storage.LoadChests(s.world); err != nil {
+			s.log.Error("failed to load chests", "error", err)
+		}
 	}
 
 	addr := fmt.Sprintf(":%d", s.cfg.Port)
@@ -262,6 +265,12 @@ func (s *Server) saveAll() {
 		s.log.Error("auto-save block overrides failed", "error", err)
 	} else {
 		s.log.Info("block overrides saved")
+	}
+
+	if err := s.storage.SaveChests(s.world); err != nil {
+		s.log.Error("auto-save chests failed", "error", err)
+	} else {
+		s.log.Info("chests saved")
 	}
 
 	if err := s.storage.SaveWorldAnvil(s.world); err != nil {

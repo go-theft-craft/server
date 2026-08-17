@@ -268,17 +268,13 @@ func cmdMe(c *Connection, args []string) {
 }
 
 func cmdKill(c *Connection, _ []string) {
-	c.dead = true
+	c.health = 0
 	_ = c.send(&v1_8.PlayClientboundUpdateHealth{
 		Health:         0,
 		Food:           0,
 		FoodSaturation: 0,
 	})
-	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityStatus{
-		EntityID:     c.self.EntityID,
-		EntityStatus: 3, // death animation
-	}, c.self.EntityID)
-	c.sendSuccessMsg("You killed yourself.")
+	c.die("death.attack.generic")
 }
 
 func cmdSeed(c *Connection, _ []string) {

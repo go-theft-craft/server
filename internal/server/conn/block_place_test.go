@@ -164,3 +164,24 @@ func TestPlaceThenBreak_ReturnsExactlyWhatWasPlaced(t *testing.T) {
 // The pickup delay is unexported in player; this mirrors it with a margin so
 // the test does not depend on its exact value.
 const pickupDelayTicksForTest = 16
+
+// Items are not blocks. Right-clicking with an apple used to store block 260
+// in the world, which no client can draw: protocol 47 numbers blocks 0-255 and
+// items above that, so the state resolves to nothing and the client shows air.
+func TestBlockPlace_ItemsAreNotPlaced(t *testing.T) {
+	for _, item := range []int16{260, 295, 278, 276} { // apple, seeds, pickaxe, sword
+		c := newInventoryTestConn(t)
+		c.self.SetGameMode(packet.GameModeSurvival)
+		c.self.Inventory.SetSlot(0, player.Slot{BlockID: item, ItemCount: 1})
+		c.self.Inventory.SetHeldSlot(0)
+
+		c.world.SetBlock(5, 4, 5, int32(1)<<4)
+		if err := c.handleBlockPlace(placeOnTopOf(5, 4, 5, player.Slot{BlockID: item, ItemCount: 1})); err != nil {
+			t.Fatalf("handleBlockPlace: %v", err)
+		}
+
+		if got := c.world.GetBlock(5, 5, 5); got != 0 {
+			t.Errorf("item %d placed block state %d, want nothing placed", item, got)
+		}
+	}
+}

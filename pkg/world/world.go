@@ -18,6 +18,10 @@ type World struct {
 	generator gen.Generator
 	chunks    map[gen.ChunkPos]*gen.ChunkData
 
+	// chests holds the contents of every container placed in the world, keyed
+	// by the block it lives in. See container.go.
+	chests map[BlockPos]ChestContents
+
 	// Time tracking (protected by mu).
 	age       int64 // total ticks since world creation
 	timeOfDay int64 // 0-23999 cycle; negative = frozen
@@ -29,6 +33,7 @@ func NewWorld(generator gen.Generator) *World {
 		blocks:    make(map[BlockPos]int32),
 		generator: generator,
 		chunks:    make(map[gen.ChunkPos]*gen.ChunkData),
+		chests:    make(map[BlockPos]ChestContents),
 	}
 }
 

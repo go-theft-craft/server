@@ -138,6 +138,62 @@ func (s *Storage) LoadBlockOverrides(w *world.World) error {
 	return nil
 }
 
+// SaveChests writes every stored container to world/chests.json.
+func (s *Storage) SaveChests(w *world.World) error {
+	chests := w.GetChests()
+	entries := make([]ChestEntry, 0, len(chests))
+	for pos, contents := range chests {
+		slots := make([]ChestSlotEntry, world.ChestSlots)
+		for i, stack := range contents {
+			slots[i] = ChestSlotEntry{ID: stack.ID, Count: stack.Count, Damage: stack.Damage}
+		}
+		entries = append(entries, ChestEntry{X: pos.X, Y: pos.Y, Z: pos.Z, Slots: slots})
+	}
+
+	path := filepath.Join(s.dir, "world", "chests.json")
+
+	return s.atomicWriteJSON(path, entries)
+}
+
+// LoadChests reads world/chests.json and restores container contents.
+func (s *Storage) LoadChests(w *world.World) error {
+	path := filepath.Join(s.dir, "world", "chests.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+
+		return fmt.Errorf("read chests: %w", err)
+	}
+
+	var entries []ChestEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return fmt.Errorf("parse chests: %w", err)
+	}
+
+	chests := make(map[world.BlockPos]world.ChestContents, len(entries))
+	for _, e := range entries {
+		if len(e.Slots) != world.ChestSlots {
+			return fmt.Errorf("chest at %d,%d,%d has %d slots, want %d", e.X, e.Y, e.Z, len(e.Slots), world.ChestSlots)
+		}
+
+		contents := world.EmptyChest()
+		for i, slot := range e.Slots {
+			if slot.ID <= 0 || slot.Count <= 0 {
+				continue
+			}
+			contents[i] = world.ItemStack{ID: slot.ID, Count: slot.Count, Damage: slot.Damage}
+		}
+		chests[world.BlockPos{X: e.X, Y: e.Y, Z: e.Z}] = contents
+	}
+
+	w.SetChests(chests)
+	s.log.Info("loaded chests", "count", len(chests))
+
+	return nil
+}
+
 // SaveWorldAnvil writes the world in Minecraft's Anvil region file format (.mca).
 func (s *Storage) SaveWorldAnvil(w *world.World) error {
 	regionDir := filepath.Join(s.dir, "world", "region")

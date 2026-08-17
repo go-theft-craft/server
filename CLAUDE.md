@@ -35,11 +35,12 @@ All commands use [Task](https://taskfile.dev) (`task <name>`):
 
 | Command | Description |
 |---------|-------------|
-| `task build` | Build binary to `build/app` (linux/amd64,arm64, CGO disabled) |
+| `task build` | Build the three examples to `build/` (linux/amd64,arm64, CGO disabled) |
 | `task deps` | Download, tidy, and vendor Go dependencies |
 | `task fmt` | Format code (gci for imports, gofumpt for formatting) |
 | `task lint` | Run golangci-lint (runs fmt first) |
-| `task test` | Run all tests with coverage |
+| `task test` | Run all tests with coverage, then the examples lane |
+| `task test:examples` | Build and start each example in the nested `examples` module |
 | `task test:race` | Run all tests with the race detector |
 | `task cleanup` | Remove `build/` directory |
 | `task test:interop` | Run the pinned Node client against the server over loopback |
@@ -48,8 +49,14 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
 
 ## Architecture
 
-- **`cmd/server/`** — The server binary. `task build` builds this, not the repository root.
-- **`internal/server/`** — The server itself.
+- **`server/`** — the framework: `New` and its options, the `Store` and
+  `Observer` seams, and the process and network counters. It is public, so
+  another module can build a server from it.
+- **`config/`** — settings, their defaults, and the file-over-flags merge.
+- **`examples/`** — a nested module (its own `go.mod`, with a `replace` for the
+  parent) holding `minimal`, `flat`, and `vanilla`. `task build` builds these;
+  there is no `cmd/`.
+- **`internal/server/`** — the parts an outside module has no business naming.
   - `conn/` — one `Connection` per client. It owns a `protocol.Stream` from its
     first byte: the stream does framing, compression, and encryption, and the
     connection dispatches by state. Handshake, status, login, and play all run

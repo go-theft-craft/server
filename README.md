@@ -1,6 +1,52 @@
 # minecraft-server
 
-A Minecraft 1.8.9 (protocol 47) server implementation in Go.
+A Minecraft 1.8.9 (protocol 47) server framework in Go. It is a library first:
+the pieces — settings, persistence, world generation, observation — are
+composed by the application rather than wired together in a single binary, and
+the programs under `examples/` are what compose them.
+
+It is also the harness the protocol work runs against. A real client and the
+pinned Node client both connect to a server built from this package, so a
+change to [`minecraft-protocol`](https://github.com/go-theft-craft/minecraft-protocol)
+is exercised here before it is believed.
+
+```go
+srv, err := server.New(
+	server.WithLogger(log),
+	server.WithMOTD("minimal example"),
+	server.WithWorldRadius(4),
+)
+if err != nil {
+	return err
+}
+
+return srv.Start(ctx)
+```
+
+### Examples
+
+| Example | Demonstrates |
+|---------|--------------|
+| `examples/minimal` | The smallest server that still serves: logins into a generated world, no persistence, no configuration file |
+| `examples/flat` | A generator supplied directly through `WithGenerator` rather than selected by name in settings |
+| `examples/vanilla` | Everything at once: every flag, a configuration file, file-backed persistence, and a generated RSA keypair |
+
+```bash
+devbox run -- task build     # builds all three into build/
+./build/vanilla -port 25566
+```
+
+### Seams
+
+| Seam | What it replaces |
+|------|------------------|
+| `server.Store` | World persistence. `server.FileStore` is the default; supply your own to keep a world anywhere else |
+| `server.Observer` | Measurement. Receives CPU, memory, and per-frame network samples; delivery never blocks the server |
+| `gen.Generator` | World generation, through `server.WithGenerator` |
+
+`Store` still names Anvil in `SaveWorldAnvil`, and player persistence still runs
+on the concrete store. Both are M11.3's to fix, along with a version-neutral
+`WorldStore`; the command set becomes a seam in M11.7.
 
 ## Features
 
@@ -42,6 +88,8 @@ direnv allow   # or: devbox shell
 
 ## Run
 
+`task server` runs the vanilla example, which is the one that takes flags.
+
 ```bash
 # Offline mode (default)
 devbox run -- task server
@@ -61,7 +109,7 @@ devbox run -- task server -- -world-radius 32
 
 Connect with a Minecraft 1.8.x client to `localhost:25565`.
 
-### Server Flags
+### Vanilla Example Flags
 
 | Flag | Default | Description |
 |------|---------|-------------|
@@ -80,13 +128,14 @@ Connect with a Minecraft 1.8.x client to `localhost:25565`.
 
 | Command | Description |
 |---------|-------------|
-| `devbox run -- task server` | Run the server |
-| `devbox run -- task test` | Run all tests with coverage |
+| `devbox run -- task server` | Run the vanilla example |
+| `devbox run -- task test` | Run all tests with coverage, then the examples lane |
+| `devbox run -- task test:examples` | Build and start each example in the nested `examples` module |
 | `devbox run -- task test:race` | Run all tests under the race detector |
 | `devbox run -- task test:interop` | Loopback interop lane against the pinned Node client |
 | `devbox run -- task fmt` | Format code (gci + gofumpt) |
 | `devbox run -- task lint` | Run golangci-lint |
-| `devbox run -- task build` | Build binary to `build/app` |
+| `devbox run -- task build` | Build the three examples to `build/` |
 | `devbox run -- task deps` | Download, tidy, and vendor dependencies |
 | `devbox run -- task cleanup` | Remove build artifacts |
 
@@ -102,8 +151,9 @@ devbox run -- go test -mod vendor -run TestName ./path/to/package/...
 
 ```mermaid
 graph TB
-    subgraph CLI["Command-Line Tools"]
-        SERVER["cmd/server<br/>Entry point"]
+    subgraph CLI["examples (nested module)"]
+        SERVER["vanilla<br/>Flags, config file,<br/>store, keypair"]
+        MINIMAL["minimal / flat<br/>Subsets of the same seams"]
     end
 
     subgraph Protocol["minecraft-protocol (v0.1.0, vendored)"]
@@ -113,8 +163,12 @@ graph TB
         GENV18["generated/java/v1_8<br/>Packet codecs +<br/>game-data registries"]
     end
 
-    subgraph Server["internal/server"]
+    subgraph Framework["server + config (public)"]
+        FRAMEWORK["server<br/>New, options,<br/>Store and Observer seams,<br/>metrics"]
         CONFIG["config<br/>Port, MOTD, online-mode,<br/>max-players, view-dist"]
+    end
+
+    subgraph Server["internal/server"]
         CONN["conn<br/>Connection state machine,<br/>encryption, packet handlers,<br/>commands, crafting, mining"]
         PACKET["packet<br/>Protocol 47 constants<br/>(gamemode, dimension,<br/>ability, position flags)"]
         PROTOINFO["protocolinfo<br/>Protocol number, advertised<br/>version, metadata terminator"]
@@ -128,9 +182,11 @@ graph TB
         ANVIL["anvil / nbt<br/>Region file persistence"]
     end
 
-    SERVER --> CONFIG
-    SERVER --> CONN
-    SERVER --> STORAGE
+    SERVER --> FRAMEWORK
+    MINIMAL --> FRAMEWORK
+    FRAMEWORK --> CONFIG
+    FRAMEWORK --> CONN
+    FRAMEWORK --> STORAGE
     CONN --> STREAM
     CONN --> WIRE
     CONN --> LOGIN
@@ -248,11 +304,11 @@ graph LR
 ## Project Structure
 
 ```
-cmd/
-  server/          Minecraft server entry point
+server/            The framework: New, options, the Store and Observer seams, metrics
+config/            Server settings, defaults, and file/flag merge
+examples/          Nested module: minimal, flat, and vanilla programs
 internal/
   server/
-    config/        Server configuration and CLI flags
     conn/          Connection state machine, encryption, packet handlers, commands, crafting, mining
     packet/        Protocol 47 constants (gamemode, dimension, ability, position flags)
     protocolinfo/  Protocol number, advertised version name, metadata terminator

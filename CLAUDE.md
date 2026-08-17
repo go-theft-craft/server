@@ -64,7 +64,24 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
     `login.Acceptor`.
   - `player/`, `storage/`, `packet/` — player state, persistence, and the
     protocol constants the handlers name instead of writing hex literals.
-- **`pkg/world/`** — world storage, generation, Anvil region files, and NBT.
+- **`pkg/world/`** — the version-neutral world model, plus generation, Anvil
+  region files, and NBT.
+  - A block state is an opaque `world.State` handle minted by a
+    `StateRegistry` built from a `data.Set`. A handle never reaches disk or
+    wire: storage holds canonical names and the wire holds each version's own
+    encoding. Two registries may give the same block different handles, and a
+    test asserts they do.
+  - A `Section` is immutable and a `Chunk` holds `*Section` pointers, so a
+    write swaps a pointer under a compare-and-swap and a `Snapshot` is a map
+    copy. That is what lets `v47` memoize encoded section bytes on the section
+    pointer.
+  - `v47/` is the protocol 47 adapter and the only place a handle becomes a
+    number a client understands. `gen/`, `anvil/`, and `v47/` all depend on
+    `world`; `world` depends on none of them, which is why `world.Generator` is
+    declared in `world` and satisfied structurally by `gen.Generator`.
+  - The world has no override map. A player's edit lives in the chunk it
+    belongs to. `internal/server/storage` still writes `overrides.json`, behind
+    two shims marked `DELETE IN M11.3`.
 - **`interop/`** — the loopback lane that runs a pinned Node
   `minecraft-protocol` 1.66.2 client against this server.
 - **`vendor/`** — vendored Go dependencies. All builds use `-mod vendor`.

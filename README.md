@@ -66,7 +66,7 @@ on the concrete store. Both are M11.3's to fix, along with a version-neutral
 - **PvP combat** — Attack players with knockback and hurt animation
 - **Item drops** — Thrown items with physics simulation and auto-pickup
 - **Respawn** — Death screen and respawn flow via `/kill`
-- **Persistence** — Auto-save world state, block overrides, and player data (position, inventory, gamemode)
+- **Persistence** — Auto-save world state, player edits, and player data (position, inventory, gamemode)
 - **Configurable build height** — `max-build-height` flag (default 256)
 - **Smart pre-generation** — Skips world pre-generation on restart if already saved
 - **KeepAlive** — 30-second timeout enforcement
@@ -177,7 +177,8 @@ graph TB
     end
 
     subgraph World["pkg/world"]
-        WORLD["world<br/>Chunk cache, block overrides,<br/>dynamic loading"]
+        WORLD["world<br/>Interned state handles,<br/>immutable sections,<br/>atomic chunks, snapshots"]
+        V47["v47<br/>Protocol 47 adapter:<br/>chunk encoding and<br/>a per-section cache"]
         GEN["gen<br/>FlatGenerator,<br/>DefaultGenerator<br/>(noise, biomes, caves,<br/>ores, trees)"]
         ANVIL["anvil / nbt<br/>Region file persistence"]
     end
@@ -195,9 +196,17 @@ graph TB
     CONN --> PROTOINFO
     CONN --> PLAYER
     CONN --> WORLD
-    WORLD --> GEN
-    WORLD --> ANVIL
+    CONN --> V47
+    V47 --> WORLD
+    GEN --> WORLD
+    ANVIL --> WORLD
 ```
+
+The arrow directions in `pkg/world` are the point of the model. `world` holds
+block state as an opaque `State` handle minted by a `StateRegistry`; it knows
+nothing about protocol 47, about generators, or about the Anvil format. The
+three packages around it depend on `world` and not the other way round, so a
+second protocol version is a second adapter rather than a change to the world.
 
 ### Connection Lifecycle
 
@@ -315,7 +324,8 @@ internal/
     player/        Player state, inventory, entity tracking, broadcasts
     storage/       File persistence (JSON) for world and player data
 pkg/
-  world/           World state, chunk cache, dynamic loading
+  world/           Version-neutral world model: state handles, immutable sections, atomic chunks
+    v47/           Protocol 47 adapter: chunk encoding, state encoding, per-section encode cache
     gen/           World generators (default, flat, noise, biomes, caves, ores)
     anvil/         Anvil region file reader/writer
     nbt/           NBT encoding for persistence

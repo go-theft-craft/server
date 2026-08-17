@@ -43,19 +43,19 @@ func assertMatches(t *testing.T, got, want []string) {
 
 func TestCompleteCommandName(t *testing.T) {
 	m := testManager("Alice")
-	matches := computeCompletions("/t", m)
+	matches := computeCompletions("/t", m, player.Position{})
 	assertMatches(t, matches, []string{"/tp", "/time"})
 }
 
 func TestCompleteCommandNameFull(t *testing.T) {
 	m := testManager("Alice")
-	matches := computeCompletions("/he", m)
+	matches := computeCompletions("/he", m, player.Position{})
 	assertMatches(t, matches, []string{"/help"})
 }
 
 func TestCompleteCommandNameNoMatch(t *testing.T) {
 	m := testManager("Alice")
-	matches := computeCompletions("/zzz", m)
+	matches := computeCompletions("/zzz", m, player.Position{})
 	if len(matches) != 0 {
 		t.Errorf("expected no matches, got %v", matches)
 	}
@@ -63,57 +63,95 @@ func TestCompleteCommandNameNoMatch(t *testing.T) {
 
 func TestCompleteTpPlayerName(t *testing.T) {
 	m := testManager("Alice", "Bob", "Alex")
-	matches := computeCompletions("/tp Al", m)
+	matches := computeCompletions("/tp Al", m, player.Position{})
 	assertMatches(t, matches, []string{"Alice", "Alex"})
 }
 
 func TestCompleteTpPlayerNameTrailingSpace(t *testing.T) {
 	m := testManager("Alice", "Bob")
-	matches := computeCompletions("/tp ", m)
+	matches := computeCompletions("/tp ", m, player.Position{})
 	assertMatches(t, matches, []string{"Alice", "Bob"})
 }
 
 func TestCompleteGamemode(t *testing.T) {
 	m := testManager("Alice")
-	matches := computeCompletions("/gamemode s", m)
+	matches := computeCompletions("/gamemode s", m, player.Position{})
 	assertMatches(t, matches, []string{"survival", "spectator"})
 }
 
 func TestCompleteGamemodeAll(t *testing.T) {
 	m := testManager("Alice")
-	matches := computeCompletions("/gamemode ", m)
+	matches := computeCompletions("/gamemode ", m, player.Position{})
 	assertMatches(t, matches, []string{"survival", "creative", "adventure", "spectator"})
 }
 
 func TestCompleteTimeSet(t *testing.T) {
 	m := testManager("Alice")
-	matches := computeCompletions("/time ", m)
+	matches := computeCompletions("/time ", m, player.Position{})
 	assertMatches(t, matches, []string{"set"})
 }
 
 func TestCompleteTimeSetValues(t *testing.T) {
 	m := testManager("Alice")
-	matches := computeCompletions("/time set ", m)
+	matches := computeCompletions("/time set ", m, player.Position{})
 	assertMatches(t, matches, []string{"day", "night", "noon", "midnight"})
 }
 
 func TestCompleteTimeSetPartial(t *testing.T) {
 	m := testManager("Alice")
-	matches := computeCompletions("/time set n", m)
+	matches := computeCompletions("/time set n", m, player.Position{})
 	assertMatches(t, matches, []string{"night", "noon"})
 }
 
 func TestCompleteChatPlayerName(t *testing.T) {
 	m := testManager("Alice", "Bob")
-	matches := computeCompletions("Al", m)
+	matches := computeCompletions("Al", m, player.Position{})
 	assertMatches(t, matches, []string{"Alice"})
 }
 
 func TestCompleteSlash(t *testing.T) {
 	m := testManager("Alice")
-	matches := computeCompletions("/", m)
+	matches := computeCompletions("/", m, player.Position{})
 	// Should return all commands.
 	if len(matches) != len(commands) {
 		t.Errorf("expected %d matches, got %d", len(commands), len(matches))
+	}
+}
+
+// The suggestion list the 1.8 client draws above the chat box only appears
+// when the server returns more than one candidate, so an argument position
+// that returns nothing shows no suggestions at all. These cover the positions
+// that used to return nothing.
+
+func TestCompleteTpCoordinates(t *testing.T) {
+	m := testManager("Alice")
+	pos := player.Position{X: 12.7, Y: 64.2, Z: -3.4}
+
+	assertMatches(t, computeCompletions("/tp 12 ", m, pos), []string{"64"})
+	assertMatches(t, computeCompletions("/tp 12 64 ", m, pos), []string{"-4"})
+}
+
+// A coordinate that cannot extend what the player typed is not offered: the
+// client would otherwise replace their input with an unrelated number.
+func TestCompleteTpCoordinateMustExtendTheInput(t *testing.T) {
+	m := testManager("Alice")
+	pos := player.Position{X: 12.7, Y: 64.2, Z: -3.4}
+
+	if got := computeCompletions("/tp 12 9", m, pos); len(got) != 0 {
+		t.Errorf("got %v, want no match — 64 does not start with 9", got)
+	}
+}
+
+func TestCompleteHelpTakesACommandName(t *testing.T) {
+	m := testManager("Alice")
+
+	assertMatches(t, computeCompletions("/help t", m, player.Position{}), []string{"tp", "time"})
+}
+
+func TestCompleteSaveHasNoArguments(t *testing.T) {
+	m := testManager("Alice")
+
+	if got := computeCompletions("/save ", m, player.Position{}); len(got) != 0 {
+		t.Errorf("got %v, want no match — /save takes no arguments", got)
 	}
 }

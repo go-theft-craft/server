@@ -21,12 +21,13 @@ import (
 
 // Server is the main Minecraft server that accepts TCP connections.
 type Server struct {
-	cfg      *config.Config
-	log      *slog.Logger
-	world    *world.World
-	players  *player.Manager
-	storage  *storage.Storage
-	gameData *data.Set
+	cfg       *config.Config
+	log       *slog.Logger
+	world     *world.World
+	players   *player.Manager
+	storage   *storage.Storage
+	gameData  *data.Set
+	generator gen.Generator
 
 	// live tracks the connections that are still open, so a shutdown can
 	// tell each of them why it is ending rather than dropping its socket.
@@ -34,18 +35,35 @@ type Server struct {
 	live   map[*conn.Connection]struct{}
 }
 
-// New creates a new Server with the given config, logger, and storage.
+// New builds a server from options. It validates everything before doing any
+// work, so an invalid port is reported without a socket ever being opened.
 //
 // It returns an error because the game data now comes from
 // minecraft-protocol, which builds its registries rather than handing back a
 // package-level value, and a server with no registries cannot serve.
-func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) (*Server, error) {
-	var generator gen.Generator
-	switch cfg.GeneratorType {
-	case config.GeneratorFlat:
-		generator = gen.NewFlatGenerator(cfg.Seed)
-	default:
-		generator = gen.NewDefaultGenerator(cfg.Seed)
+func New(opts ...Option) (*Server, error) {
+	b := &builder{
+		settings: config.DefaultConfig(),
+		log:      slog.New(slog.DiscardHandler),
+	}
+
+	for i, opt := range opts {
+		if opt == nil {
+			return nil, fmt.Errorf("%w: option %d is nil", ErrInvalidOption, i)
+		}
+		if err := opt(b); err != nil {
+			return nil, err
+		}
+	}
+
+	generator := b.generator
+	if generator == nil {
+		switch b.settings.GeneratorType {
+		case config.GeneratorFlat:
+			generator = gen.NewFlatGenerator(b.settings.Seed)
+		default:
+			generator = gen.NewDefaultGenerator(b.settings.Seed)
+		}
 	}
 
 	gameData, err := v1_8.Data()
@@ -54,14 +72,25 @@ func New(cfg *config.Config, log *slog.Logger, store *storage.Storage) (*Server,
 	}
 
 	return &Server{
-		cfg:      cfg,
-		log:      log,
-		world:    world.NewWorld(generator),
-		players:  player.NewManager(cfg.ViewDistance),
-		storage:  store,
-		gameData: gameData,
+		cfg:       b.settings,
+		log:       b.log,
+		world:     world.NewWorld(generator),
+		players:   player.NewManager(b.settings.ViewDistance),
+		gameData:  gameData,
+		generator: generator,
 	}, nil
 }
+
+// Settings returns a copy of the effective settings. It is a copy because the
+// server keeps using its own, and a caller that mutated the returned value
+// would change behavior from outside with nothing to say it had.
+func (s *Server) Settings() config.Config { return *s.cfg }
+
+// Logger returns the logger the server was built with.
+func (s *Server) Logger() *slog.Logger { return s.log }
+
+// Generator returns the world generator the server was built with.
+func (s *Server) Generator() gen.Generator { return s.generator }
 
 // Start begins listening for connections and blocks until the context is cancelled.
 func (s *Server) Start(ctx context.Context) error {

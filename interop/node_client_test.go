@@ -84,7 +84,10 @@ func startServer(t *testing.T, threshold int) int {
 	settings.PrivateKey = key
 
 	// No storage: nothing this lane does should touch the developer's world.
-	instance, err := server.New(settings, slog.New(slog.DiscardHandler), nil)
+	instance, err := server.New(
+		server.WithSettings(settings),
+		server.WithLogger(slog.New(slog.DiscardHandler)),
+	)
 	if err != nil {
 		t.Fatalf("create server: %v", err)
 	}

@@ -80,6 +80,12 @@ type LevelData struct {
 	GeneratorName    string          `json:"generator_name,omitempty"`
 	GeneratorVersion int             `json:"generator_version,omitempty"`
 	GeneratorParams  json.RawMessage `json:"generator_params,omitempty"`
+
+	// ItemEpoch is the last run epoch this world handed out item IDs from.
+	// It is persisted rather than derived from the clock: a clock that moves
+	// backwards would mint colliding IDs, and collision is the one failure
+	// that makes item identity worthless. See server/itemid.go.
+	ItemEpoch uint32 `json:"item_epoch,omitempty"`
 }
 
 // Sidecar is the per-chunk record of everything vanilla cannot hold.

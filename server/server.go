@@ -37,8 +37,13 @@ type Server struct {
 	// hasLevel says whether there was any. Start writes the generator record
 	// into a world that had none, which is the migration path for every world
 	// that exists today.
-	level      LevelData
-	hasLevel   bool
+	level    LevelData
+	hasLevel bool
+
+	// minter hands out item IDs for this run. Its epoch is the world's stored
+	// one plus one, and the advance is written back at the first save.
+	minter *Minter
+
 	worldStore WorldStore
 	sideStore  SideStore
 	gameData   *data.Set
@@ -143,6 +148,17 @@ func New(opts ...Option) (*Server, error) {
 		genParams:   genParams,
 		hasLevel:    hasLevel,
 		level:       level,
+	}
+
+	// The epoch advances once per start. Exhaustion refuses to mint and keeps
+	// serving: a server that will not start is worse than an audit gap.
+	epoch, err := NextEpoch(level.ItemEpoch)
+	if err != nil {
+		b.log.Error("item identity is unavailable for this run", "error", err)
+		epoch = level.ItemEpoch
+	}
+	if srv.minter, err = NewMinter(epoch); err != nil {
+		b.log.Error("item identity is unavailable for this run", "error", err)
 	}
 
 	// A store is built by the application, before this function ran, so it
@@ -620,6 +636,11 @@ func (s *Server) saveLevel(ctx context.Context) error {
 
 	age, timeOfDay := s.world.GetTime()
 
+	epoch := s.level.ItemEpoch
+	if s.minter != nil {
+		epoch = s.minter.Epoch()
+	}
+
 	return s.worldStore.SaveLevel(ctx, DefaultWorld, LevelData{
 		Age:              age,
 		TimeOfDay:        timeOfDay,
@@ -627,5 +648,10 @@ func (s *Server) saveLevel(ctx context.Context) error {
 		GeneratorName:    s.genName,
 		GeneratorVersion: s.genVersion,
 		GeneratorParams:  s.genParams,
+		ItemEpoch:        epoch,
 	})
 }
+
+// Minter hands out item IDs for this run, or nil when the ID space is
+// exhausted and identity is unavailable.
+func (s *Server) Minter() *Minter { return s.minter }

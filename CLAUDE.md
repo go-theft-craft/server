@@ -85,6 +85,15 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
     back from its region files: `world.Loader` is the seam the store plugs
     into, and a load that *fails* marks the column `Unreadable` rather than
     generating over it.
+- **World generation** — `pkg/world/gen` is named types built from typed
+  parameters. A `Factory` owns a name, a version, defaults, a parser, and a
+  constructor; a `Registry` is a *value* passed through
+  `server.WithGeneratorRegistry`, never a package global, so two servers in one
+  test binary cannot see each other's generators. Every block a parameter names
+  is a canonical name resolved once through the state registry. The golden
+  table in `pkg/world/gen/testdata/golden.json` pins terrain per
+  (generator, version, seed, parameter hash) and is regenerated only with
+  `-update`, deliberately, in the commit that moves terrain.
 - **Persistence** — three seams in `server`, all naming public value types:
   `WorldStore` (Anvil regions), `SideStore` (a chunk-keyed sidecar, written
   empty for M11.5 to fill), and `PlayerStore` (`PlayerData` as JSON). The

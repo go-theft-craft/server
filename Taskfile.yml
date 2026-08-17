@@ -65,11 +65,23 @@ tasks:
     cmds:
       - golangci-lint run
 
-  test:interop:
-    desc: Run the loopback interoperability lane against the pinned Node client
-    deps: [ deps ]
+  interop:deps:
+    desc: Install the pinned Node dependencies the interop lane runs against
+    # Its own task so Task can skip it. npm ci deletes and reinstalls
+    # node_modules by design, which is what makes it reproducible and what makes
+    # it worth doing only when the lockfile moves.
+    sources:
+      - interop/node/package.json
+      - interop/node/package-lock.json
+    generates:
+      - interop/node/node_modules/.package-lock.json
     cmds:
       - npm ci --prefix interop/node
+
+  test:interop:
+    desc: Run the loopback interoperability lane against the pinned Node client
+    deps: [ deps, interop:deps ]
+    cmds:
       - go test -mod vendor -count=1 ./interop
 
   test:examples:

@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Status: complete, 2026-08-17.** The four inherited chunk hashes are
+> unchanged, so the defaults are what the constants were. The milestone record
+> in `MASTER_PLAN.md` has the parameter count and the four knobs that turned
+> out to be entangled.
+
 **Goal:** Turn the two hardcoded generators into named types built from typed parameters, resolved through a registry an application can extend, with a determinism contract a test enforces and a record in `level.dat` of what generated a world.
 
 **Architecture:** A `Factory` owns a name, its default parameters, a parser, and a constructor. A `Registry` value — not a package global — maps names to factories and is passed through `server.WithGeneratorRegistry`. Parameters are typed structs with JSON tags that round-trip through the world's own metadata, and every block they name is a canonical name resolved once at construction into an M11.2 state handle.
@@ -84,7 +89,7 @@ The design this plan implements is
 **Interfaces:**
 - Produces: `gen.Params`, `gen.DefaultParams`, `gen.FlatParams`, `gen.NewDefault(seed int64, p DefaultParams, reg world.StateRegistry) (Generator, error)`, same for flat.
 
-- [ ] **Step 1: Confirm the golden table is green before touching anything**
+- [x] **Step 1: Confirm the golden table is green before touching anything**
 
 ```bash
 devbox run -- go test -mod vendor -run TestGeneratorGolden ./pkg/world/gen/
@@ -95,7 +100,7 @@ say whether a transcribed constant is wrong. If it is red before this
 milestone starts, stop: something in M11.2 or M11.3 moved terrain and that has
 to be understood first.
 
-- [ ] **Step 2: Write the parameter types**
+- [x] **Step 2: Write the parameter types**
 
 ```go
 type DefaultParams struct {
@@ -121,7 +126,7 @@ type OreParams struct {
 every noise scale. Ore blocks are named, not numbered: `blockDiamondOre` (56)
 becomes `"minecraft:diamond_ore"`, resolved through the registry M11.2 built.
 
-- [ ] **Step 3: Convert one sub-generator per commit**
+- [x] **Step 3: Convert one sub-generator per commit**
 
 Order: ores, caves, surface, trees, biomes. Each takes its parameters as a
 struct field rather than reading package constants, and each is followed by:
@@ -133,7 +138,7 @@ devbox run -- go test -mod vendor -run TestGeneratorGolden ./pkg/world/gen/
 A hash that moves means a transcription error in that file, and the whole
 point of the ordering is that you know which one.
 
-- [ ] **Step 4: Convert flat to a layer list**
+- [x] **Step 4: Convert flat to a layer list**
 
 ```go
 func FlatDefaults() FlatParams {
@@ -152,7 +157,7 @@ func FlatDefaults() FlatParams {
 `HeightAt` becomes the sum of the layer thicknesses minus one, which for the
 defaults is 4 — the value it returns today.
 
-- [ ] **Step 5: Gate and commit**
+- [x] **Step 5: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -177,7 +182,7 @@ defaults are what the constants were."
 **Interfaces:**
 - Produces: `gen.Factory`, `gen.Registry`, `gen.DefaultRegistry()`, `server.WithGeneratorRegistry`, `server.WithGeneratorNamed`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```go
 func TestDefaultRegistryHasDefaultAndFlat(t *testing.T)
@@ -196,7 +201,7 @@ package-level map would let one test's generator leak into another's.
 naming: today `server.New` falls through a `switch` to the noise generator, so
 `-generator flta` silently gives you default terrain.
 
-- [ ] **Step 2: Implement**
+- [x] **Step 2: Implement**
 
 ```go
 type Factory interface {
@@ -217,7 +222,7 @@ type Registry interface {
 `Parse` uses a decoder with `DisallowUnknownFields`, which is what makes a
 typo in a parameter file an error rather than a silently ignored line.
 
-- [ ] **Step 3: Replace the switch**
+- [x] **Step 3: Replace the switch**
 
 ```go
 // Before
@@ -239,7 +244,7 @@ if !ok {
 The error names the registered generators, because the first thing anyone does
 with an unknown-name error is ask what the known ones are.
 
-- [ ] **Step 4: Carry parameters through config**
+- [x] **Step 4: Carry parameters through config**
 
 ```go
 GeneratorType   string          `json:"generator_type"`
@@ -250,7 +255,7 @@ Raw JSON because `config.Config` cannot name a type the application
 registered. `config.Merge` gains the field, following the existing pattern of
 "only when not set by a flag".
 
-- [ ] **Step 5: Gate and commit**
+- [x] **Step 5: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -269,7 +274,7 @@ git commit -m "feat(gen): resolve generators by name through a registry"
 **Interfaces:**
 - Consumes: `gen.Factory`, `gen.Registry`, `server.WithGeneratorRegistry`.
 
-- [ ] **Step 1: Write the example**
+- [x] **Step 1: Write the example**
 
 A generator worth about forty lines — checkerboard columns of two blocks at a
 parameterized period, say — registered under `"checker"` with its own
@@ -277,12 +282,12 @@ parameterized period, say — registered under `"checker"` with its own
 module, which is the only way to prove it: `examples/` is a separate module
 with a `replace`, so it sees exactly what an external consumer sees.
 
-- [ ] **Step 2: Add it to the examples lane**
+- [x] **Step 2: Add it to the examples lane**
 
 `examples_test.go`'s list becomes `{"minimal", "flat", "vanilla", "custom"}`
 with port 25704, and `task build` builds four binaries.
 
-- [ ] **Step 3: Gate and commit**
+- [x] **Step 3: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -301,13 +306,13 @@ git commit -m "feat(examples): register a named generator from outside the modul
 **Files:**
 - Modify: `pkg/world/gen/determinism_test.go`, `pkg/world/gen/testdata/golden.json`
 
-- [ ] **Step 1: Extend the table to cover parameters**
+- [x] **Step 1: Extend the table to cover parameters**
 
 M11.2's table covers the two generators at fixed seeds. It grows a dimension:
 each entry is `(generator, version, seed, params hash) → chunk hashes`, so a
 parameter change that alters terrain is caught rather than absorbed.
 
-- [ ] **Step 2: Make regeneration deliberate**
+- [x] **Step 2: Make regeneration deliberate**
 
 ```bash
 devbox run -- go test -mod vendor -run TestGeneratorGolden -update ./pkg/world/gen/
@@ -317,14 +322,14 @@ The `-update` flag is the same convention the byte-parity fixtures use, and
 the test's failure message says so, including the sentence that regenerating
 means terrain moved and the commit message has to say why.
 
-- [ ] **Step 3: Assert determinism across processes**
+- [x] **Step 3: Assert determinism across processes**
 
 Same seed and parameters, generated in this process and compared against the
 table, plus a subtest that runs the generator twice in one process and
 compares — which catches a generator that accumulated state between chunks,
 the failure a per-run hash would miss.
 
-- [ ] **Step 4: Gate and commit**
+- [x] **Step 4: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -341,14 +346,14 @@ git commit -m "test(gen): pin terrain to a golden table per seed and parameter s
 **Interfaces:**
 - Consumes: `LevelData` from M11.3, or `world.json` if M11.3 has not landed.
 
-- [ ] **Step 1: Decide where it goes**
+- [x] **Step 1: Decide where it goes**
 
 If M11.3 has landed, `LevelData` gains `GeneratorName`, `GeneratorVersion`,
 and `GeneratorParams`. If it has not, the same three fields go into
 `world.json` and M11.3 carries them into `LevelData` unchanged. Record which
 in the commit message so the next milestone does not have to infer it.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```go
 func TestANewWorldRecordsItsGenerator(t *testing.T)
@@ -364,7 +369,7 @@ config says `default` — uses the world's, because the alternative is
 superflat's grass plane growing mountains at the edge of what has been
 explored.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 At startup: read the record, compare with the configured generator, log the
 comparison, and construct from the world's record when they disagree. A world
@@ -372,7 +377,7 @@ with no record — every world that exists today — adopts the configured
 generator and writes it, which is the migration path and needs no separate
 step.
 
-- [ ] **Step 4: Gate and commit**
+- [x] **Step 4: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -387,7 +392,7 @@ git commit -m "feat(world): record the generator, its version, and its parameter
 **Files:**
 - Modify: `README.md`, `CLAUDE.md`, `../headless-minecraft/MASTER_PLAN.md`
 
-- [ ] **Step 1: Document the parameter surface**
+- [x] **Step 1: Document the parameter surface**
 
 `README.md` gains a generator section: the two named types, their parameters
 with defaults, how to put them in `config.json`, and how an application
@@ -398,7 +403,7 @@ terrain and does not try, which the design lists as a non-goal and which a
 README that lists "procedural world generation" as a feature currently leaves
 someone to discover.
 
-- [ ] **Step 2: Record the milestone**
+- [x] **Step 2: Record the milestone**
 
 In `MASTER_PLAN.md`, tick M11.4 and record:
 
@@ -410,7 +415,7 @@ In `MASTER_PLAN.md`, tick M11.4 and record:
 - whether the name-mismatch rule in Task 5 is the right one, which will only
   be known the first time someone hits it.
 
-- [ ] **Step 3: Final gate and commit**
+- [x] **Step 3: Final gate and commit**
 
 ```bash
 devbox run -- task lint

@@ -27,6 +27,7 @@ return srv.Start(ctx)
 
 | Example | Demonstrates |
 |---------|--------------|
+| `examples/custom` | A world generator defined and registered by the application, from outside the framework's module |
 | `examples/minimal` | The smallest server that still serves: logins into a generated world, no persistence, no configuration file |
 | `examples/flat` | A generator supplied directly through `WithGenerator` rather than selected by name in settings |
 | `examples/vanilla` | Everything at once: every flag, a configuration file, file-backed persistence, and a generated RSA keypair |
@@ -58,8 +59,8 @@ on the concrete store. Both are M11.3's to fix, along with a version-neutral
 - **Compression** — negotiated during login, threshold configurable with `-compression-threshold` (default 256, `-1` disables)
 - **Legacy server list** — answers the `FE 01` ping that 1.6 and older clients send
 - **Graceful disconnect** — kicked players and a shutting-down server send a reason before the socket closes
-- **Procedural world generation** — Perlin noise terrain with 11 biomes, caves, ores, and trees
-- **Flat world generator** — Classic bedrock/stone/grass layers
+- **Procedural world generation** — Perlin noise terrain with 11 biomes, caves, ores, and trees, every knob configurable
+- **Flat world generator** — A list of layers, defaulting to the classic bedrock/stone/dirt/grass
 - **Dynamic chunk loading** — View-distance-based loading/unloading with optional world boundary
 - **Block interaction** — Dig and place blocks with broadcast and persistence
 - **Multiplayer** — Player spawning, entity tracking, visibility streaming, movement sync
@@ -121,7 +122,7 @@ Connect with a Minecraft 1.8.x client to `localhost:25565`.
 | `-max-players` | 20 | Max players shown in server list |
 | `-view-distance` | 8 | Chunk view distance |
 | `-seed` | 0 | World generation seed |
-| `-generator` | "default" | World generator: `default` or `flat` |
+| `-generator` | "default" | Name of a registered generator: `default`, `flat`, or one the application added |
 | `-world-radius` | 0 (infinite) | World boundary in chunks |
 | `-auto-save` | 5 | Auto-save interval in minutes (0 = disabled) |
 | `-max-build-height` | 256 | Maximum Y axis |
@@ -354,6 +355,95 @@ generation.
 | `/kill` | Kill yourself (triggers death screen + respawn) |
 | `/seed` | Show world seed |
 | `/save` | Save world and player data |
+
+## World Generation
+
+A generator is selected by name and configured with typed parameters. Two ship
+with the framework, and an application can register its own.
+
+```jsonc
+// data/config.json
+{
+  "generator_type": "flat",
+  "generator_params": {
+    "layers": [
+      { "block": "minecraft:bedrock", "thickness": 1 },
+      { "block": "minecraft:sandstone", "thickness": 30 },
+      { "block": "minecraft:sand", "thickness": 4 }
+    ],
+    "biome": "minecraft:desert"
+  }
+}
+```
+
+`generator_params` is optional; omit it for the defaults. A key the generator
+does not have is an error rather than a line nobody reads, and so is a name no
+generator is registered under — before this, a misspelled `-generator` silently
+gave you the default terrain.
+
+**`flat`** takes a list of layers from the bottom up, and one biome:
+
+| Parameter | Default |
+| --- | --- |
+| `layers` | bedrock ×1, stone ×2, dirt ×1, grass ×1 |
+| `biome` | `minecraft:plains` |
+
+**`default`** is the noise generator. Its parameters are grouped:
+
+| Group | What it holds |
+| --- | --- |
+| top level | `sea_level` (62), `terrain_scale` (128), `detail_scale` (32), `detail_amplitude` (4), `min_height` (1), `max_height` (250), `bedrock_depth` (3) |
+| `surface` | the seven blocks the surface pass places, its `depth` (4) and `desert_depth` (5), and `bare_stone_above` (100) — the height a mountain loses its grass |
+| `caves` | `threshold` (0.55), `lava_level` (10), `min_y` (4), `surface_margin` (4), and the four noise scales |
+| `ores` | a list of `{block, min_y, max_y, vein_size, attempts}`; six entries by default |
+| `trees` | `density` per biome name, `default_density` (2), `vegetation_attempts` (20) |
+| `biomes` | `temperature_scale` and `rainfall_scale` (512), `ocean_below` (8), `beach_below` (2), and per-biome `{amplitude, base_offset}` |
+
+Every block is a canonical name — `minecraft:diamond_ore` — resolved once when
+the generator is built, so a name nothing knows is an error at startup rather
+than a wrong block a thousand chunks away. Biome heights are offsets from sea
+level, so moving `sea_level` moves the land with it.
+
+To see the whole surface, marshal the defaults:
+
+```go
+raw, _ := gen.MarshalParams(gen.DefaultDefaults())
+fmt.Println(string(raw))
+```
+
+### Registering your own
+
+`examples/custom` is a complete one in about a hundred lines: a checkerboard
+with a configurable square size, registered under `"checker"`. The shape is a
+`gen.Factory` — a name, a version, defaults, a parser, and a constructor —
+added to a registry the server is built with:
+
+```go
+registry := gen.DefaultRegistry()
+registry.Register(CheckerFactory{})
+
+srv, err := server.New(
+    server.WithGeneratorRegistry(registry),
+    server.WithGeneratorNamed("checker", CheckerParams{Period: 8}),
+)
+```
+
+`examples/` is a separate module with a `replace` for the parent, so what that
+example can reach is exactly what any consumer can reach.
+
+### What it is not
+
+This generator does not reproduce vanilla terrain and does not try. It shares
+vanilla's *shape* — noise heightmap, biomes, caves, ores, decoration — and none
+of its algorithms, so the same seed gives a different world here than it does
+in Minecraft. A world made here is a world made here.
+
+The world records which generator, which version, and which parameters made it.
+When the configuration disagrees, the world's record wins on the generator's
+name and its parameters, because a superflat plane that starts growing
+mountains at the edge of what has been explored is nobody's intent. A version
+mismatch warns and keeps generating with the running version, because
+regenerating the old chunks would rewrite terrain someone has built on.
 
 ## Persistence
 

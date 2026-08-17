@@ -4,6 +4,7 @@ import (
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
 	"github.com/go-theft-craft/server/internal/server/player"
+	"github.com/go-theft-craft/server/pkg/world"
 )
 
 // Player inventory window (window 0) slot layout.
@@ -292,6 +293,8 @@ func (c *Connection) setWindowSlot(slot int16, item player.Slot) {
 // getSlotIn reads a slot in the coordinates of the given window.
 func (c *Connection) getSlotIn(l windowLayout, slot int16) player.Slot {
 	switch {
+	case slot == slotCursor:
+		return c.cursorSlot
 	case l.isContainer(slot):
 		return stackToSlot(c.chestItems[slot-l.containerStart])
 	case l.hasCrafting() && slot == slotCraftOutput:
@@ -311,6 +314,8 @@ func (c *Connection) getSlotIn(l windowLayout, slot int16) player.Slot {
 // broadcasts equipment changes to trackers if needed.
 func (c *Connection) setSlotIn(l windowLayout, slot int16, item player.Slot) {
 	switch {
+	case slot == slotCursor:
+		c.cursorSlot = item
 	case l.isContainer(slot):
 		c.chestItems[slot-l.containerStart] = slotToStack(item)
 	case l.hasCrafting() && slot == slotCraftOutput:
@@ -366,15 +371,11 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 	if slot == slotOutside {
 		// Click outside window: drop cursor item.
 		if !c.cursorSlot.IsEmpty() {
-			c.dropItem(c.cursorSlot, button == 0)
+			dropped := 1
 			if button == 0 {
-				c.cursorSlot = player.EmptySlot
-			} else {
-				c.cursorSlot.ItemCount--
-				if c.cursorSlot.ItemCount <= 0 {
-					c.cursorSlot = player.EmptySlot
-				}
+				dropped = int(c.cursorSlot.ItemCount)
 			}
+			c.dropFromSlot(l, slotCursor, dropped)
 		}
 		return
 	}
@@ -390,17 +391,19 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 		}
 		if !c.cursorSlot.IsEmpty() {
 			// Can only pick up crafting output if cursor matches and has room.
+			// Vanilla refuses a craft it cannot deposit whole rather than
+			// splitting the result, so the whole result has to fit.
 			if !canStack(c.cursorSlot, c.craftingOutput) {
 				return
 			}
-			newCount := int(c.cursorSlot.ItemCount) + int(c.craftingOutput.ItemCount)
-			if newCount > 64 {
+			if int(c.cursorSlot.ItemCount)+int(c.craftingOutput.ItemCount) > world.MaxStackSize {
 				return
 			}
-			c.cursorSlot.ItemCount = int8(newCount)
-		} else {
-			c.cursorSlot = c.craftingOutput
 		}
+		// The result comes into existence here, not when the grid started
+		// matching a recipe: an offer nobody took mints nothing.
+		c.mintInto(l, slotCraftOutput)
+		c.transfer(l, slotCraftOutput, slotCursor, int(c.craftingOutput.ItemCount))
 		c.consumeCraftingIngredients()
 		c.updateCraftingOutput()
 		return
@@ -415,74 +418,40 @@ func (c *Connection) handleNormalClick(slot int16, button int8) {
 		switch {
 		case c.cursorSlot.IsEmpty():
 			// Pick up entire stack.
-			c.cursorSlot = current
-			c.setWindowSlot(slot, player.EmptySlot)
+			c.transfer(l, slot, slotCursor, int(current.ItemCount))
 
 		case current.IsEmpty():
 			// Place entire cursor stack.
-			c.setWindowSlot(slot, c.cursorSlot)
-			c.cursorSlot = player.EmptySlot
+			c.transfer(l, slotCursor, slot, int(c.cursorSlot.ItemCount))
 
 		case canStack(c.cursorSlot, current):
-			// Merge cursor into slot.
-			space := 64 - int(current.ItemCount)
-			if space <= 0 {
-				// Swap.
-				c.cursorSlot, current = current, c.cursorSlot
-				c.setWindowSlot(slot, current)
+			// Merge cursor into slot, or swap when the slot is already full.
+			if int(current.ItemCount) >= world.MaxStackSize {
+				c.swapSlots(l, slotCursor, slot)
 			} else {
-				transfer := int(c.cursorSlot.ItemCount)
-				if transfer > space {
-					transfer = space
-				}
-				current.ItemCount += int8(transfer)
-				c.cursorSlot.ItemCount -= int8(transfer)
-				if c.cursorSlot.ItemCount <= 0 {
-					c.cursorSlot = player.EmptySlot
-				}
-				c.setWindowSlot(slot, current)
+				c.transfer(l, slotCursor, slot, int(c.cursorSlot.ItemCount))
 			}
 
 		default:
 			// Swap cursor and slot.
-			c.setWindowSlot(slot, c.cursorSlot)
-			c.cursorSlot = current
+			c.swapSlots(l, slotCursor, slot)
 		}
 	} else { // Right click
 		switch {
 		case c.cursorSlot.IsEmpty() && !current.IsEmpty():
-			// Pick up half.
-			half := (current.ItemCount + 1) / 2
-			c.cursorSlot = player.Slot{BlockID: current.BlockID, ItemCount: half, ItemDamage: current.ItemDamage}
-			current.ItemCount -= half
-			if current.ItemCount <= 0 {
-				c.setWindowSlot(slot, player.EmptySlot)
-			} else {
-				c.setWindowSlot(slot, current)
-			}
+			// Pick up half, rounded up, which is what vanilla hands you.
+			c.transfer(l, slot, slotCursor, int((current.ItemCount+1)/2))
 
-		case !c.cursorSlot.IsEmpty() && current.IsEmpty():
-			// Place one from cursor.
-			placed := player.Slot{BlockID: c.cursorSlot.BlockID, ItemCount: 1, ItemDamage: c.cursorSlot.ItemDamage}
-			c.setWindowSlot(slot, placed)
-			c.cursorSlot.ItemCount--
-			if c.cursorSlot.ItemCount <= 0 {
-				c.cursorSlot = player.EmptySlot
-			}
+		case c.cursorSlot.IsEmpty():
+			// Nothing in either place.
 
-		case !c.cursorSlot.IsEmpty() && canStack(c.cursorSlot, current) && current.ItemCount < 64:
-			// Place one from cursor onto existing stack.
-			current.ItemCount++
-			c.setWindowSlot(slot, current)
-			c.cursorSlot.ItemCount--
-			if c.cursorSlot.ItemCount <= 0 {
-				c.cursorSlot = player.EmptySlot
-			}
+		case current.IsEmpty(), canStack(c.cursorSlot, current) && int(current.ItemCount) < world.MaxStackSize:
+			// Place one from cursor, onto an empty slot or an existing stack.
+			c.transfer(l, slotCursor, slot, 1)
 
-		case !c.cursorSlot.IsEmpty() && !current.IsEmpty():
+		case !current.IsEmpty():
 			// Swap.
-			c.setWindowSlot(slot, c.cursorSlot)
-			c.cursorSlot = current
+			c.swapSlots(l, slotCursor, slot)
 		}
 	}
 
@@ -510,51 +479,35 @@ func (c *Connection) handleShiftClick(slot int16, _ int8) {
 		return
 	}
 
-	// leftover is what the destination could not take. The items that did fit
-	// have already been placed, so the source slot keeps only the remainder.
-	leftover := int(item.ItemCount)
+	// Whatever the destination could not take stays in the source slot: the
+	// section fills from the source rather than from a copy of it, so a
+	// partial move cannot leave the moved items in both places.
 	switch {
 	// A container splits the window in two, and shift-clicking crosses the
 	// divide: out of the chest into the inventory, or out of the inventory
 	// into the chest. Armor is not equipped from a chest window, the same way
 	// a crafting table does not equip it.
 	case l.isContainer(slot):
-		leftover = c.addToSection(item, l.mainStart, l.hotbarEnd)
+		c.addToSection(l, slot, l.mainStart, l.hotbarEnd)
 	case l.hasContainer() && slot >= l.mainStart && slot <= l.hotbarEnd:
-		leftover = c.addToSection(item, l.containerStart, l.containerEnd)
+		c.addToSection(l, slot, l.containerStart, l.containerEnd)
 
 	case l.hasArmor() && slot >= l.armorStart && slot <= l.armorEnd:
 		// Armor → main inventory or hotbar.
-		leftover = c.addToSection(item, l.mainStart, l.hotbarEnd)
+		c.addToSection(l, slot, l.mainStart, l.hotbarEnd)
 	case slot >= l.mainStart && slot <= l.mainEnd:
 		// Main inventory → try armor first if applicable, then hotbar.
-		if c.equipArmor(item) {
-			leftover = 0
-		} else {
-			leftover = c.addToSection(item, l.hotbarStart, l.hotbarEnd)
+		if !c.equipArmor(l, slot) {
+			c.addToSection(l, slot, l.hotbarStart, l.hotbarEnd)
 		}
 	case slot >= l.hotbarStart && slot <= l.hotbarEnd:
 		// Hotbar → try armor first if applicable, then main inventory.
-		if c.equipArmor(item) {
-			leftover = 0
-		} else {
-			leftover = c.addToSection(item, l.mainStart, l.mainEnd)
+		if !c.equipArmor(l, slot) {
+			c.addToSection(l, slot, l.mainStart, l.mainEnd)
 		}
 	case slot >= l.gridStart && slot <= l.gridEnd:
 		// Crafting grid → main or hotbar.
-		leftover = c.addToSection(item, l.mainStart, l.hotbarEnd)
-	}
-
-	if leftover == int(item.ItemCount) {
-		return
-	}
-
-	if leftover == 0 {
-		c.setWindowSlot(slot, player.EmptySlot)
-	} else {
-		remainder := item
-		remainder.ItemCount = int8(leftover)
-		c.setWindowSlot(slot, remainder)
+		c.addToSection(l, slot, l.mainStart, l.hotbarEnd)
 	}
 
 	if slot >= l.gridStart && slot <= l.gridEnd {
@@ -562,21 +515,21 @@ func (c *Connection) handleShiftClick(slot int16, _ int8) {
 	}
 }
 
-// equipArmor moves item into its armor slot when the item is armor and that
-// slot is empty. A window without armor slots — a crafting table — never
-// equips: vanilla stores the piece instead.
-func (c *Connection) equipArmor(item player.Slot) bool {
-	if !c.layout().hasArmor() {
+// equipArmor moves a slot's contents into their armor slot when the item is
+// armor and that slot is empty. A window without armor slots — a crafting
+// table — never equips: vanilla stores the piece instead.
+func (c *Connection) equipArmor(l windowLayout, from int16) bool {
+	if !l.hasArmor() {
 		return false
 	}
 
+	item := c.getSlotIn(l, from)
 	armorSlot := armorSlotForItem(item.BlockID)
-	if armorSlot < 0 || !c.getWindowSlot(armorSlot).IsEmpty() {
+	if armorSlot < 0 || !c.getSlotIn(l, armorSlot).IsEmpty() {
 		return false
 	}
-	c.setWindowSlot(armorSlot, item)
 
-	return true
+	return c.transfer(l, from, armorSlot, int(item.ItemCount)) > 0
 }
 
 // shiftCraftAll crafts repeatedly while a whole result stack still fits, which
@@ -589,7 +542,7 @@ func (c *Connection) shiftCraftAll() {
 	// A grid slot holds at most 64 items, so no grid can support more crafts
 	// than that. The bound keeps a matcher that fails to consume its
 	// ingredients from spinning here.
-	for range 64 {
+	for range world.MaxStackSize {
 		result := c.craftingOutput
 		if result.IsEmpty() {
 			break
@@ -600,7 +553,10 @@ func (c *Connection) shiftCraftAll() {
 			break
 		}
 
-		c.addToSection(result, l.mainStart, l.hotbarEnd)
+		// One craft, one mint: the result becomes real as it leaves the output
+		// slot, and the ingredients stop being items in the same breath.
+		c.mintInto(l, slotCraftOutput)
+		c.addToSection(l, slotCraftOutput, l.mainStart, l.hotbarEnd)
 		c.consumeCraftingIngredients()
 		c.craftingOutput = c.matchCraftingRecipe()
 		crafted = true
@@ -611,38 +567,24 @@ func (c *Connection) shiftCraftAll() {
 	}
 }
 
-// addToSection places as much of item as fits into slots [lo, hi] and returns
-// the count that did not fit. It reports the leftover rather than a bool
-// because a partial add still moves what fits: a caller that read failure as
-// "nothing happened" and kept the source stack duplicated the placed items.
-func (c *Connection) addToSection(item player.Slot, lo, hi int16) int {
-	remaining := int(item.ItemCount)
+// addToSection moves as much of a slot's contents as fits into slots [lo, hi]
+// and returns the count that did not fit, which stays where it was.
+//
+// It reports the leftover rather than a bool because a partial add still moves
+// what fits: a caller that read failure as "nothing happened" and cleared the
+// source duplicated the placed items.
+func (c *Connection) addToSection(l windowLayout, from, lo, hi int16) int {
+	remaining := int(c.getSlotIn(l, from).ItemCount)
 
-	// First pass: try to merge into existing stacks.
-	for s := lo; s <= hi && remaining > 0; s++ {
-		existing := c.getWindowSlot(s)
-		if !existing.IsEmpty() && canStack(existing, item) && existing.ItemCount < 64 {
-			space := 64 - int(existing.ItemCount)
-			transfer := remaining
-			if transfer > space {
-				transfer = space
+	// First pass: merge into existing stacks. Second pass: fill empty ones.
+	// transfer refuses a slot holding something else and caps at what the
+	// destination has room for, so both passes are the same loop.
+	for _, wantEmpty := range [2]bool{false, true} {
+		for s := lo; s <= hi && remaining > 0; s++ {
+			if s == from || c.getSlotIn(l, s).IsEmpty() != wantEmpty {
+				continue
 			}
-			existing.ItemCount += int8(transfer)
-			c.setWindowSlot(s, existing)
-			remaining -= transfer
-		}
-	}
-
-	// Second pass: place into empty slots.
-	for s := lo; s <= hi && remaining > 0; s++ {
-		existing := c.getWindowSlot(s)
-		if existing.IsEmpty() {
-			place := remaining
-			if place > 64 {
-				place = 64
-			}
-			c.setWindowSlot(s, player.Slot{BlockID: item.BlockID, ItemCount: int8(place), ItemDamage: item.ItemDamage})
-			remaining -= place
+			remaining -= c.transfer(l, from, s, remaining)
 		}
 	}
 
@@ -657,9 +599,9 @@ func (c *Connection) spaceForItem(item player.Slot, lo, hi int16) int {
 		existing := c.getWindowSlot(s)
 		switch {
 		case existing.IsEmpty():
-			space += 64
-		case canStack(existing, item) && existing.ItemCount < 64:
-			space += 64 - int(existing.ItemCount)
+			space += world.MaxStackSize
+		case canStack(existing, item) && int(existing.ItemCount) < world.MaxStackSize:
+			space += world.MaxStackSize - int(existing.ItemCount)
 		}
 	}
 
@@ -678,10 +620,7 @@ func (c *Connection) handleNumberKey(slot int16, button int8) {
 		return
 	}
 
-	slotItem := c.getWindowSlot(slot)
-	hotbarItem := c.getWindowSlot(hotbarSlot)
-	c.setWindowSlot(slot, hotbarItem)
-	c.setWindowSlot(hotbarSlot, slotItem)
+	c.swapSlots(l, slot, hotbarSlot)
 
 	if slot >= l.gridStart && slot <= l.gridEnd {
 		c.updateCraftingOutput()
@@ -690,14 +629,21 @@ func (c *Connection) handleNumberKey(slot int16, button int8) {
 
 // handleMiddleClick handles mode 3: middle-click in creative mode (clone to cursor).
 func (c *Connection) handleMiddleClick(slot int16) {
-	if slot < 0 || slot > c.layout().hotbarEnd {
+	l := c.layout()
+	if slot < 0 || slot > l.hotbarEnd {
 		return
 	}
 	item := c.getWindowSlot(slot)
 	if item.IsEmpty() {
 		return
 	}
-	c.cursorSlot = player.Slot{BlockID: item.BlockID, ItemCount: 64, ItemDamage: item.ItemDamage}
+
+	// A clone is a full stack of new items, and whatever the cursor held stops
+	// existing: creative mode conjures and destroys, and saying so is the only
+	// way the index does not report the clone as the original turning up twice.
+	c.retireIDs(c.cursorSlot.IDs, c.locationOf(l, slotCursor))
+	c.cursorSlot = player.Slot{BlockID: item.BlockID, ItemCount: world.MaxStackSize, ItemDamage: item.ItemDamage}
+	c.mintInto(l, slotCursor)
 }
 
 // handleDropClick handles mode 4: Q key drop.
@@ -718,23 +664,12 @@ func (c *Connection) handleDropClick(slot int16, button int8) {
 		return
 	}
 
-	if button == 0 {
-		// Drop one.
-		dropped := player.Slot{BlockID: item.BlockID, ItemCount: 1, ItemDamage: item.ItemDamage}
-		item.ItemCount--
-		if item.ItemCount <= 0 {
-			c.setWindowSlot(slot, player.EmptySlot)
-		} else {
-			c.setWindowSlot(slot, item)
-		}
-		pos := c.self.GetPosition()
-		c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
-	} else {
-		// Ctrl+Q: drop entire stack.
-		c.setWindowSlot(slot, player.EmptySlot)
-		pos := c.self.GetPosition()
-		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
+	// Button 0 drops one; Ctrl+Q — button 1 — drops the whole stack.
+	dropped := 1
+	if button != 0 {
+		dropped = int(item.ItemCount)
 	}
+	c.dropFromSlot(l, slot, dropped)
 
 	if slot >= l.gridStart && slot <= l.gridEnd {
 		c.updateCraftingOutput()
@@ -794,75 +729,21 @@ func (c *Connection) finishDrag() {
 		}
 	}()
 
+	l := c.layout()
+
+	// A left drag spreads the cursor evenly over the painted slots; a right
+	// drag leaves one in each. Both take from the cursor a slot at a time, and
+	// what none of them could hold stays on the cursor.
+	perSlot := 1
 	if c.dragMode == 0 {
-		// Left drag: distribute evenly.
-		perSlot := int(c.cursorSlot.ItemCount) / len(c.dragSlots)
-		if perSlot == 0 {
-			perSlot = 1
+		perSlot = max(int(c.cursorSlot.ItemCount)/len(c.dragSlots), 1)
+	}
+
+	for _, s := range c.dragSlots {
+		if c.cursorSlot.IsEmpty() {
+			break
 		}
-		remaining := int(c.cursorSlot.ItemCount)
-		for _, s := range c.dragSlots {
-			existing := c.getWindowSlot(s)
-			if !existing.IsEmpty() && !canStack(existing, c.cursorSlot) {
-				continue
-			}
-			current := int8(0)
-			if !existing.IsEmpty() {
-				current = existing.ItemCount
-			}
-			space := 64 - int(current)
-			give := perSlot
-			if give > remaining {
-				give = remaining
-			}
-			if give > space {
-				give = space
-			}
-			if give <= 0 {
-				continue
-			}
-			c.setWindowSlot(s, player.Slot{
-				BlockID:    c.cursorSlot.BlockID,
-				ItemCount:  current + int8(give),
-				ItemDamage: c.cursorSlot.ItemDamage,
-			})
-			remaining -= give
-		}
-		if remaining <= 0 {
-			c.cursorSlot = player.EmptySlot
-		} else {
-			c.cursorSlot.ItemCount = int8(remaining)
-		}
-	} else {
-		// Right drag: place one in each slot.
-		remaining := int(c.cursorSlot.ItemCount)
-		for _, s := range c.dragSlots {
-			if remaining <= 0 {
-				break
-			}
-			existing := c.getWindowSlot(s)
-			if !existing.IsEmpty() && !canStack(existing, c.cursorSlot) {
-				continue
-			}
-			current := int8(0)
-			if !existing.IsEmpty() {
-				current = existing.ItemCount
-			}
-			if current >= 64 {
-				continue
-			}
-			c.setWindowSlot(s, player.Slot{
-				BlockID:    c.cursorSlot.BlockID,
-				ItemCount:  current + 1,
-				ItemDamage: c.cursorSlot.ItemDamage,
-			})
-			remaining--
-		}
-		if remaining <= 0 {
-			c.cursorSlot = player.EmptySlot
-		} else {
-			c.cursorSlot.ItemCount = int8(remaining)
-		}
+		c.transfer(l, slotCursor, s, perSlot)
 	}
 }
 
@@ -874,25 +755,14 @@ func (c *Connection) handleDoubleClick(_ int16) {
 
 	l := c.layout()
 
-	needed := 64 - int(c.cursorSlot.ItemCount)
+	needed := world.MaxStackSize - int(c.cursorSlot.ItemCount)
 	// Scan all inventory slots (skip crafting output).
 	for s := l.gridStart; s <= l.hotbarEnd && needed > 0; s++ {
 		item := c.getWindowSlot(s)
 		if item.IsEmpty() || !canStack(item, c.cursorSlot) {
 			continue
 		}
-		take := int(item.ItemCount)
-		if take > needed {
-			take = needed
-		}
-		item.ItemCount -= int8(take)
-		if item.ItemCount <= 0 {
-			c.setWindowSlot(s, player.EmptySlot)
-		} else {
-			c.setWindowSlot(s, item)
-		}
-		c.cursorSlot.ItemCount += int8(take)
-		needed -= take
+		needed -= c.transfer(l, s, slotCursor, min(int(item.ItemCount), needed))
 	}
 }
 
@@ -904,9 +774,10 @@ func (c *Connection) handleCreativeSlot(value *v1_8.PlayServerboundSetCreativeSl
 	// Slot -1: drop item.
 	if slotIndex == -1 {
 		if item.BlockID > 0 {
-			pos := c.self.GetPosition()
+			// Straight out of the creative menu, so it comes from nowhere and
+			// its identity is minted where it lands.
 			dropped := player.Slot{BlockID: item.BlockID, ItemCount: item.ItemCount, ItemDamage: item.ItemDamage}
-			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
+			c.dropStack(dropped, world.Nowhere)
 		}
 		return nil
 	}
@@ -920,9 +791,20 @@ func (c *Connection) handleCreativeSlot(value *v1_8.PlayServerboundSetCreativeSl
 	if item.BlockID != -1 {
 		pSlot = player.Slot{BlockID: item.BlockID, ItemCount: item.ItemCount, ItemDamage: item.ItemDamage}
 	}
+
 	// A creative slot is always addressed in the player window's coordinates,
 	// whatever window happens to be open on top of it.
-	c.setSlotIn(playerWindowLayout(), slotIndex, pSlot)
+	//
+	// The client sends the state it wants rather than the movement that got
+	// there, so the honest description is that whatever was in the slot stopped
+	// existing and whatever is there now came into being. Creative mode is
+	// where items are conjured; a server that called this a move would report
+	// every creative click as a duplication.
+	l := playerWindowLayout()
+	replaced := c.getSlotIn(l, slotIndex)
+	c.setSlotIn(l, slotIndex, pSlot)
+	c.retireIDs(replaced.IDs, c.locationOf(l, slotIndex))
+	c.mintInto(l, slotIndex)
 
 	return nil
 }
@@ -960,23 +842,22 @@ func (c *Connection) openCraftingTable() error {
 // being reachable: a window opening over it, or the open window closing.
 func (c *Connection) emptyCraftingArea() {
 	l := c.layout()
-	pos := c.self.GetPosition()
-	groundAt := c.groundAtFunc()
 
 	for i := range l.gridCells() {
-		if c.craftingGrid[i].IsEmpty() {
+		cell := l.gridStart + int16(i)
+		if c.getSlotIn(l, cell).IsEmpty() {
 			continue
 		}
-		// Only what did not fit is dropped. Dropping the whole stack after
-		// part of it was already stored would duplicate the stored part.
-		if leftover := c.addToSection(c.craftingGrid[i], l.mainStart, l.hotbarEnd); leftover > 0 {
-			dropped := c.craftingGrid[i]
-			dropped.ItemCount = int8(leftover)
-			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
+		// Only what did not fit is dropped, and it is dropped out of the cell
+		// it is still in. Dropping the whole stack after part of it was already
+		// stored would duplicate the stored part.
+		if leftover := c.addToSection(l, cell, l.mainStart, l.hotbarEnd); leftover > 0 {
+			c.dropFromSlot(l, cell, leftover)
 		}
-		c.craftingGrid[i] = player.EmptySlot
 	}
 
+	// The offer is not an item and never was: nothing is retired here, because
+	// a result only comes into existence when somebody takes it.
 	c.craftingGrid = emptyCraftingGrid()
 	c.craftingOutput = player.EmptySlot
 }
@@ -992,9 +873,7 @@ func (c *Connection) handleCloseWindow() error {
 
 	// Drop cursor item.
 	if !c.cursorSlot.IsEmpty() {
-		pos := c.self.GetPosition()
-		c.players.SpawnItemEntity(c.self.EntityID, c.cursorSlot, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
-		c.cursorSlot = player.EmptySlot
+		c.dropFromSlot(c.layout(), slotCursor, int(c.cursorSlot.ItemCount))
 	}
 
 	return nil
@@ -1005,19 +884,6 @@ func (c *Connection) handleTransaction() error {
 	// The client sends this to confirm/deny server-initiated transactions.
 	// We don't initiate any, so just ignore.
 	return nil
-}
-
-// dropItem spawns a dropped item entity. If fullStack is true, drops the entire item;
-// otherwise drops one.
-func (c *Connection) dropItem(item player.Slot, fullStack bool) {
-	pos := c.self.GetPosition()
-	groundAt := c.groundAtFunc()
-	if fullStack {
-		c.players.SpawnItemEntity(c.self.EntityID, item, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
-	} else {
-		dropped := player.Slot{BlockID: item.BlockID, ItemCount: 1, ItemDamage: item.ItemDamage}
-		c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, groundAt)
-	}
 }
 
 // canStack returns true if two slots can be merged (same block ID and damage).
@@ -1046,16 +912,13 @@ func armorSlotForItem(blockID int16) int16 {
 	}
 }
 
-// consumeCraftingIngredients removes one item from each occupied crafting grid slot.
+// consumeCraftingIngredients removes one item from each occupied crafting grid
+// slot. Those items stop existing rather than going anywhere: the result the
+// player took is a new item, not the ingredients rearranged.
 func (c *Connection) consumeCraftingIngredients() {
-	for i := range c.layout().gridCells() {
-		if c.craftingGrid[i].IsEmpty() {
-			continue
-		}
-		c.craftingGrid[i].ItemCount--
-		if c.craftingGrid[i].ItemCount <= 0 {
-			c.craftingGrid[i] = player.EmptySlot
-		}
+	l := c.layout()
+	for i := range l.gridCells() {
+		c.consume(l, l.gridStart+int16(i), 1)
 	}
 }
 

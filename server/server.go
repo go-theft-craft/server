@@ -176,6 +176,9 @@ func New(opts ...Option) (*Server, error) {
 			b.log.Error("item duplication detected", "error", d)
 			srv.recorder.RecordDuplicate(d)
 		})
+		// A dropped item is the one place items live outside a window, so the
+		// player manager is on the write path as much as the click paths are.
+		srv.players.SetItemIndex(srv.index, b.log)
 	}
 
 	// A store is built by the application, before this function ran, so it
@@ -312,6 +315,10 @@ func (s *Server) Start(ctx context.Context) error {
 		}
 
 		connection.SaveAll = s.SaveAll
+		// Set before Handle starts, like SaveAll: the click paths read it
+		// without a lock because they only ever run on this connection's own
+		// goroutine.
+		connection.SetItemIndex(s.index)
 
 		s.track(connection)
 

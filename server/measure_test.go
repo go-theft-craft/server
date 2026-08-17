@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -199,4 +200,61 @@ func diskPerChunk(t *testing.T, dir string, chunks int) string {
 func formatDiskUsage(total int64, chunks int, perChunk int64) string {
 	return fmt.Sprintf("%d bytes across %d chunks, %d bytes per chunk (a section is 8192 bytes on the wire)",
 		total, chunks, perChunk)
+}
+
+// The M11.5 index measurement.
+//
+// The framework design flags the index's memory cost on a populated world as
+// the risk no test reveals early: it holds every live item at once, and until
+// the click paths routed through it there was nothing in it to measure. This
+// mints what a busy server holds and reports the bytes per live item.
+//
+//	M11_MEASURE=1 devbox run -- go test -mod vendor -run TestItemIndexMemory -v ./server/
+func TestItemIndexMemory(t *testing.T) {
+	measuring(t)
+
+	// A hundred players carrying a full inventory of full stacks: 45 slots of
+	// 64 items each, which is the worst case a player can be in.
+	const (
+		players       = 100
+		slots         = 45
+		perSlot       = 64
+		expectedItems = players * slots * perSlot
+	)
+
+	minter, err := world.NewMinter(1)
+	if err != nil {
+		t.Fatalf("NewMinter: %v", err)
+	}
+
+	runtime.GC()
+	var before runtime.MemStats
+	runtime.ReadMemStats(&before)
+
+	index := world.NewItemIndex(minter, world.DuplicateAllow, nil)
+	for player := range players {
+		uuid := fmt.Sprintf("00000000-0000-0000-0000-%012d", player)
+		for slot := range slots {
+			at := world.Location{Kind: world.LocationInventory, Player: uuid, Slot: slot}
+			if _, err := index.Mint(perSlot, at, world.Actor{}); err != nil {
+				t.Fatalf("Mint: %v", err)
+			}
+		}
+	}
+
+	runtime.GC()
+	var after runtime.MemStats
+	runtime.ReadMemStats(&after)
+
+	if index.Len() != expectedItems {
+		t.Fatalf("index holds %d IDs, want %d", index.Len(), expectedItems)
+	}
+
+	held := after.HeapAlloc - before.HeapAlloc
+	t.Logf("%d live items in %d bytes, %d bytes per item",
+		index.Len(), held, held/uint64(index.Len()))
+
+	// Keep the index alive past the second reading, or what is being measured
+	// is an empty heap.
+	runtime.KeepAlive(index)
 }

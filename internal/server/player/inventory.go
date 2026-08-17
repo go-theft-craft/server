@@ -90,6 +90,10 @@ func (inv *Inventory) SetSlot(index int, slot Slot) {
 
 // RemoveOne decrements the count of the given slot by 1 and returns the
 // removed item (count=1). If the slot becomes empty, it is set to EmptySlot.
+//
+// The removed item carries the identity of the item that left, because the
+// caller has to say where that one went: Split hands the first ID to the
+// taken half.
 func (inv *Inventory) RemoveOne(index int) Slot {
 	inv.mu.Lock()
 	defer inv.mu.Unlock()
@@ -99,18 +103,8 @@ func (inv *Inventory) RemoveOne(index int) Slot {
 		return EmptySlot
 	}
 
-	removed := Slot{
-		BlockID:    s.BlockID,
-		ItemCount:  1,
-		ItemDamage: s.ItemDamage,
-	}
-
-	s.ItemCount--
-	if s.ItemCount <= 0 {
-		inv.Slots[index] = EmptySlot
-	} else {
-		inv.Slots[index] = s
-	}
+	removed, rest := s.Split(1)
+	inv.Slots[index] = rest
 
 	return removed
 }
@@ -252,60 +246,94 @@ func (inv *Inventory) GetArmor(index int) Slot {
 	return inv.Armor[index]
 }
 
+// Placement is one slot an AddItem call wrote into: the protocol slot it
+// addresses, and the identity of the items that landed there.
+//
+// It exists so the caller can tell the item index where the items went without
+// this package knowing what an index is: an inventory decides which slots take
+// an item, and only it knows how the stack was cut up.
+type Placement struct {
+	ProtoSlot int
+	IDs       []world.ItemID
+}
+
 // AddItem tries to insert an item into the inventory by merging into existing
 // stacks first, then placing in empty slots. Scans hotbar (0-8) then main (9-35).
-// Returns the leftover that didn't fit (or EmptySlot if fully absorbed).
-func (inv *Inventory) AddItem(item Slot) Slot {
+// Returns the leftover that didn't fit (or EmptySlot if fully absorbed), and
+// every slot that took part of it.
+func (inv *Inventory) AddItem(item Slot) (Slot, []Placement) {
 	if item.IsEmpty() {
-		return EmptySlot
+		return EmptySlot, nil
 	}
 
 	inv.mu.Lock()
 	defer inv.mu.Unlock()
 
-	remaining := int(item.ItemCount)
+	var placed []Placement
+	remaining := item.Clone()
 
 	// First pass: merge into existing stacks in hotbar, then main.
 	for _, i := range inv.addItemOrder() {
+		if remaining.IsEmpty() {
+			break
+		}
 		s := inv.Slots[i]
-		if s.IsEmpty() || s.BlockID != item.BlockID || s.ItemDamage != item.ItemDamage {
+		if s.IsEmpty() || !s.SameItem(remaining) {
 			continue
 		}
-		space := 64 - int(s.ItemCount)
+		space := world.MaxStackSize - int(s.ItemCount)
 		if space <= 0 {
 			continue
 		}
-		transfer := remaining
-		if transfer > space {
-			transfer = space
-		}
-		inv.Slots[i].ItemCount += int8(transfer)
-		remaining -= transfer
-		if remaining == 0 {
-			return EmptySlot
-		}
+
+		moving := min(space, int(remaining.ItemCount))
+		taken, rest := remaining.Split(moving)
+		inv.Slots[i], _ = s.Merge(taken, moving)
+		placed = appendPlacement(placed, i, taken.IDs)
+		remaining = rest
 	}
 
 	// Second pass: place in empty slots.
 	for _, i := range inv.addItemOrder() {
+		if remaining.IsEmpty() {
+			break
+		}
 		if !inv.Slots[i].IsEmpty() {
 			continue
 		}
-		place := remaining
-		if place > 64 {
-			place = 64
-		}
-		inv.Slots[i] = Slot{BlockID: item.BlockID, ItemCount: int8(place), ItemDamage: item.ItemDamage}
-		remaining -= place
-		if remaining == 0 {
-			return EmptySlot
-		}
+
+		taken, rest := remaining.Split(min(world.MaxStackSize, int(remaining.ItemCount)))
+		inv.Slots[i] = taken
+		placed = appendPlacement(placed, i, taken.IDs)
+		remaining = rest
 	}
 
-	if remaining <= 0 {
-		return EmptySlot
+	if remaining.IsEmpty() {
+		return EmptySlot, placed
 	}
-	return Slot{BlockID: item.BlockID, ItemCount: int8(remaining), ItemDamage: item.ItemDamage}
+
+	return remaining, placed
+}
+
+// appendPlacement records that the items with these IDs landed in an internal
+// slot index, which it converts to the protocol slot the index names.
+func appendPlacement(placed []Placement, index int, ids []world.ItemID) []Placement {
+	if len(ids) == 0 {
+		return placed
+	}
+
+	return append(placed, Placement{ProtoSlot: ProtocolSlotOf(index), IDs: ids})
+}
+
+// ProtocolSlotOf maps an internal slot index — hotbar 0-8, main 9-35 — onto
+// the protocol slot of the player's own window, which is how the item index
+// names a slot.
+func ProtocolSlotOf(index int) int {
+	if index < 9 {
+		return 36 + index
+	}
+
+	return index
 }
 
 // addItemOrder returns slot indices in the order: hotbar 0-8, then main 9-35.

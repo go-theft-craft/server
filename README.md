@@ -487,7 +487,8 @@ them.
 ## Provenance
 
 Off by default. Turned on, the server records what happened to blocks and
-items, and gives every item an identity that survives a restart.
+items, and gives every item an identity that is unique for the life of the
+server and survives a restart in a player's own inventory.
 
 ```
 devbox run -- task server -- -provenance -provenance-days 7 -provenance-gb 4
@@ -540,10 +541,22 @@ happens, named with both locations and the actor. The default policy records it
 and lets the write through: refusing turns a duplication bug into item loss,
 and item loss on a false positive is worse for the player than an extra item.
 
-**Not finished.** The identity machinery is built and tested, and the detector
-is proved against the shape of a real past bug, but the inventory click paths
-do not route through the index yet. Until they do, item identity is incomplete
-and the whole feature stays off; see the M11.5 record in the master plan.
+Every path that creates, moves, or destroys an item writes through it: the seven
+inventory clicks, creative slot sets, crafting, chest transfers, block drops,
+placing a block from the hand, dropping, picking up, and an item that times out
+on the ground. A property test runs ten thousand random clicks and checks after
+every one of them that each stack carries exactly one ID per item, that no ID is
+in two places, and that the index agrees with where each item actually is.
+
+It costs about 145 bytes per live item — a hundred players each carrying 45 full
+stacks is 42 MB — and nothing at all when it is off, which is the default.
+
+**Two things are still missing.** A placed block gets no identity of its own, so
+the chain does not yet run from placement through destruction into the drop. And
+nothing reconciles identity at load: a stack restored from disk without IDs gets
+them minted at its own location on the first click that moves it, rather than
+being recognised as the items it was. Player inventories keep their identity
+across a restart; chest contents do not. See the M11.5 record in the master plan.
 
 ## Protocol Coverage
 

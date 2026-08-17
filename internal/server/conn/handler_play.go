@@ -528,18 +528,13 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 			return nil
 		}
 
-		var dropped player.Slot
+		dropping := int(heldItem.ItemCount)
 		if status == 4 {
-			dropped = c.self.Inventory.RemoveOne(int(heldSlot))
-		} else {
-			dropped = heldItem
-			c.self.Inventory.SetSlot(int(heldSlot), player.EmptySlot)
+			dropping = 1
 		}
-
-		if !dropped.IsEmpty() {
-			pos := c.self.GetPosition()
-			c.players.SpawnItemEntity(c.self.EntityID, dropped, pos.X, pos.Y+1.3, pos.Z, pos.Yaw, c.groundAtFunc())
-		}
+		// Always the player window's coordinates: the hotbar is where the held
+		// item is, whatever window happens to be open on top of it.
+		c.dropFromSlot(playerWindowLayout(), int16(slotHotbarStart)+heldSlot, dropping)
 
 		// Sync the held slot back to the client so the UI updates.
 		protoSlot := int16(slotHotbarStart) + heldSlot
@@ -593,7 +588,17 @@ func (c *Connection) breakBlock(x, y, z int) {
 			drops := blockDrops(block, heldItem.BlockID)
 			for _, drop := range drops {
 				groundY := c.findGroundLevel(x, y, z)
-				c.players.SpawnBlockDrop(drop, float64(x)+0.5, float64(groundY)+0.1, float64(z)+0.5, float64(y)+0.5)
+				// A drop is a new item: the block it came out of was never one.
+				// Its identity is minted on the ground, and the origin says
+				// which block it fell out of.
+				c.players.SpawnBlockDrop(
+					drop,
+					float64(x)+0.5, float64(groundY)+0.1, float64(z)+0.5, float64(y)+0.5,
+					player.ItemOrigin{
+						From: world.Location{Kind: world.LocationWorld, Block: world.BlockPos{X: x, Y: y, Z: z}},
+						By:   c.actor(),
+					},
+				)
 			}
 		}
 	}
@@ -632,10 +637,7 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 		// Try to equip armor from hotbar via right-click.
 		if armorProtoSlot := armorSlotForItem(heldBlockID); armorProtoSlot >= 0 {
 			heldIdx := int16(slotHotbarStart) + int16(c.self.Inventory.GetHeldSlot())
-			heldItem := c.getWindowSlot(heldIdx)
-			armorItem := c.getWindowSlot(armorProtoSlot)
-			c.setWindowSlot(armorProtoSlot, heldItem)
-			c.setWindowSlot(heldIdx, armorItem)
+			c.swapSlots(c.layout(), heldIdx, armorProtoSlot)
 			_ = c.sendWindowItems()
 		}
 		return nil
@@ -727,7 +729,11 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 		return nil
 	}
 
-	c.self.Inventory.RemoveOne(int(heldSlot))
+	// The item stops being an item: it is the block now. Task 6 gives a placed
+	// block an identity of its own and links the two; until then the chain ends
+	// here rather than leaving an ID live in an inventory that no longer holds
+	// it.
+	c.consume(playerWindowLayout(), int16(slotHotbarStart)+heldSlot, 1)
 	remaining := c.self.Inventory.GetSlot(int(heldSlot))
 	if err := c.sendSetSlot(0, int16(slotHotbarStart)+heldSlot, remaining); err != nil {
 		return err

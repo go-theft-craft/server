@@ -403,17 +403,22 @@ func (c *Connection) flushChest() {
 
 // spillChest drops everything a broken chest held and deletes its storage.
 func (c *Connection) spillChest(x, y, z int) {
-	contents := c.world.RemoveChest(world.BlockPos{X: x, Y: y, Z: z})
+	block := world.BlockPos{X: x, Y: y, Z: z}
+	contents := c.world.RemoveChest(block)
 
 	pos := c.self.GetPosition()
 	groundAt := c.groundAtFunc()
-	for _, stack := range contents {
+	for slot, stack := range contents {
 		if stack.IsEmpty() {
 			continue
 		}
 		c.players.SpawnItemEntity(
 			c.self.EntityID, stackToSlot(stack),
 			float64(x)+0.5, float64(y)+0.5, float64(z)+0.5, pos.Yaw, groundAt,
+			player.ItemOrigin{
+				From: world.Location{Kind: world.LocationContainer, Block: block, Slot: slot},
+				By:   c.actor(),
+			},
 		)
 	}
 }

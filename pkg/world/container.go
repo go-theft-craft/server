@@ -12,6 +12,14 @@ import "slices"
 // ChestSlots is how many item slots a single chest shows.
 const ChestSlots = 27
 
+// MaxStackSize is how many of one item a slot holds.
+//
+// Vanilla stacks tools to one and ender pearls to sixteen; this server stacks
+// everything to sixty-four, which every path that fills a slot already
+// assumed. It is named here because the identity invariant is stated in terms
+// of it: a split that overflows a slot loses IDs.
+const MaxStackSize = 64
+
 // ItemStack is one slot: of a stored container, of a saved inventory, or of a
 // player's own. It is the *only* item type — internal/server/player.Slot is an
 // alias for it — because attaching identity to two types would guarantee they

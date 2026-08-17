@@ -108,8 +108,20 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
   `server.Recorder` takes records off the tick through a bounded queue that
   drops and counts rather than blocking; `internal/server/provenance` is the
   rotating NDJSON store with a manifest and a per-file bloom filter. Records
-  name blocks canonically, never by handle. **The inventory click paths do not
-  route through the index yet** — that is M11.5's unfinished half.
+  name blocks canonically, never by handle.
+  - Every click path writes through the index. `internal/server/conn/identity.go`
+    holds the five primitives that are now the only code changing how many items
+    a slot holds — `transfer`, `swapSlots`, `take`, `consume`, `dropFromSlot` —
+    and the cursor is a slot number (`slotCursor`) so a click that touches it is
+    an ordinary transfer. Do not do arithmetic on `ItemCount` in a handler; a
+    count that moves without its IDs breaks the invariant that
+    `len(IDs) == ItemCount`. `TestRandomClickSequencesNeverBreakTheInvariant` is
+    what says it holds.
+  - **Still unfinished:** block identity in the sidecar and reconciliation at
+    load (M11.5 Tasks 6 and 7). Until then a stack restored from disk without
+    identity gets it minted at its own location on the first click that moves
+    it, and chest contents lose identity across a restart while player
+    inventories keep it.
 - **`interop/`** — the loopback lane that runs a pinned Node
   `minecraft-protocol` 1.66.2 client against this server.
 - **`vendor/`** — vendored Go dependencies. All builds use `-mod vendor`.

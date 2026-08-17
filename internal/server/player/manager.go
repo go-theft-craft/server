@@ -1,12 +1,15 @@
 package player
 
 import (
+	"log/slog"
 	"strings"
 	"sync"
 	"sync/atomic"
 
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
+
+	"github.com/go-theft-craft/server/pkg/world"
 )
 
 // Manager tracks all connected players and handles entity visibility.
@@ -20,6 +23,12 @@ type Manager struct {
 
 	itemMu       sync.Mutex
 	itemEntities map[int32]*ItemEntity
+
+	// index is the item index, or nil when item identity is off, which is the
+	// default. A dropped item is the one place items live outside a window, so
+	// the manager is on the write path as much as the click handlers are.
+	index world.ItemIndex
+	log   *slog.Logger
 }
 
 // NewManager creates a new player manager with the given view distance (in chunks).
@@ -29,8 +38,19 @@ func NewManager(viewDistance int) *Manager {
 		byUUID:       make(map[string]int32),
 		viewDistance: viewDistance,
 		itemEntities: make(map[int32]*ItemEntity),
+		log:          slog.New(slog.DiscardHandler),
 	}
 	return mgr
+}
+
+// SetItemIndex puts the manager on the item index's write path. A server built
+// without item identity never calls it and the manager stays as it was.
+func (m *Manager) SetItemIndex(index world.ItemIndex, log *slog.Logger) {
+	if log == nil {
+		log = slog.New(slog.DiscardHandler)
+	}
+	m.index = index
+	m.log = log
 }
 
 // AllocateEntityID returns the next unique entity ID.

@@ -113,6 +113,11 @@ type Connection struct {
 	// client is told. See blockstate.go.
 	states blockStates
 
+	// index is the item index, or nil when item identity is off, which is the
+	// default. Every click path writes through it rather than telling it
+	// afterwards; see identity.go.
+	index world.ItemIndex
+
 	// SaveAll triggers a server-wide save (set by Server).
 	SaveAll func()
 }
@@ -187,6 +192,13 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		states:         newBlockStates(w, gd),
 	}, nil
 }
+
+// SetItemIndex puts this connection's click paths on the index's write path.
+//
+// It is set before Handle starts, the same way SaveAll is, because the
+// handlers read it without a lock. A server built without item identity never
+// calls it and every helper in identity.go stays the arithmetic it always was.
+func (c *Connection) SetItemIndex(index world.ItemIndex) { c.index = index }
 
 // Handle runs the connection lifecycle. It reads packets and dispatches
 // them to the appropriate state handler until the connection closes.

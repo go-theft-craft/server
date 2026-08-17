@@ -2,8 +2,11 @@ package player
 
 import (
 	"math"
+	"slices"
 
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+
+	"github.com/go-theft-craft/server/pkg/world"
 )
 
 // ItemEntity represents a dropped item in the world.
@@ -15,10 +18,22 @@ type ItemEntity struct {
 	SpawnTick        int64
 }
 
-// SpawnItemEntity creates and broadcasts a dropped item entity.
+// ItemOrigin is where the items in a new entity came from and who moved them.
+//
+// It is what lets the index follow a stack out of an inventory and onto the
+// ground rather than losing sight of it at the window's edge. A block drop
+// comes from nowhere — the block it came out of was never an item — so its
+// identity is minted on the ground.
+type ItemOrigin struct {
+	From world.Location
+	By   world.Actor
+}
+
+// SpawnItemEntity creates and broadcasts a dropped item entity and returns the
+// entity ID it was given.
 // groundAt returns the ground-level Y below a given block position (x, y, z),
 // used to estimate where the item will land for pickup distance checks.
-func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, yaw float32, groundAt func(x, y, z int) float64) {
+func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, yaw float32, groundAt func(x, y, z int) float64, origin ItemOrigin) int32 {
 	entityID := m.AllocateEntityID()
 
 	// Calculate throw velocity based on player's yaw (vanilla: 0.3 blocks/tick horizontal, 0.1 up).
@@ -44,6 +59,8 @@ func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, 
 		SpawnTick: m.currentTick.Load(),
 	}
 
+	m.trackDrop(ie, origin)
+
 	m.itemMu.Lock()
 	m.itemEntities[entityID] = ie
 	m.itemMu.Unlock()
@@ -61,6 +78,42 @@ func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, 
 		_ = pl.WritePacket(spawn)
 		_ = pl.WritePacket(meta)
 	}
+
+	return entityID
+}
+
+// trackDrop tells the index that a stack is now lying on the ground.
+//
+// Items that arrived with identity moved there from wherever the origin says;
+// items that arrived without it are coming into existence, which is what a
+// block drop is, so they are minted where they landed.
+func (m *Manager) trackDrop(ie *ItemEntity, origin ItemOrigin) {
+	if m.index == nil || ie.Item.IsEmpty() {
+		return
+	}
+
+	at := world.Location{Kind: world.LocationEntity, Entity: ie.EntityID}
+
+	if moving := ie.Item.IDs; len(moving) > 0 {
+		if err := m.index.Move(moving, origin.From, at, origin.By); err != nil {
+			m.log.Error("item dropped", "error", err)
+		}
+	}
+
+	missing := int(ie.Item.ItemCount) - len(ie.Item.IDs)
+	if missing <= 0 {
+		return
+	}
+
+	ids, err := m.index.Mint(missing, at, origin.By)
+	if err != nil {
+		m.log.Error("mint identity for a dropped item", "error", err)
+
+		return
+	}
+	// Cloned rather than appended in place: the IDs came from a stack the
+	// caller still holds, and growing that slice here would write into it.
+	ie.Item.IDs = append(slices.Clone(ie.Item.IDs), ids...)
 }
 
 // cleanupExpiredItems removes item entities older than 5 minutes (6000 ticks).
@@ -70,6 +123,10 @@ func (m *Manager) cleanupExpiredItems(currentTick int64) {
 	for id, ie := range m.itemEntities {
 		if currentTick-ie.SpawnTick > itemExpiryTicks {
 			expired = append(expired, id)
+			// An expired item is gone rather than moved: its IDs are retired
+			// here, on the same pass that forgets the entity, so the index does
+			// not grow by one entry per item nobody picked up.
+			m.retire(ie)
 		}
 	}
 	for _, id := range expired {
@@ -124,7 +181,9 @@ func (m *Manager) TryPickupItems(p *Player) int {
 			continue
 		}
 
-		leftover := p.Inventory.AddItem(ie.Item)
+		leftover, placed := p.Inventory.AddItem(ie.Item)
+		m.trackPickup(ie, p, placed)
+
 		if leftover.IsEmpty() {
 			// Fully absorbed.
 			toRemove = append(toRemove, id)
@@ -134,7 +193,8 @@ func (m *Manager) TryPickupItems(p *Player) int {
 			})
 			collected++
 		} else if leftover.ItemCount < ie.Item.ItemCount {
-			// Partially absorbed — update the remaining item.
+			// Partially absorbed — update the remaining item, which keeps the
+			// identity of the items still on the ground and nothing else.
 			ie.Item = leftover
 			collectPackets = append(collectPackets, collectInfo{
 				collectedEID: ie.EntityID,
@@ -182,10 +242,43 @@ type collectInfo struct {
 	collectorEID int32
 }
 
-// SpawnBlockDrop creates and broadcasts a dropped item from a broken block.
+// trackPickup tells the index which inventory slots took the items that were
+// on the ground. One entity can fill several slots, so a pickup is a move per
+// slot rather than one move.
+func (m *Manager) trackPickup(ie *ItemEntity, p *Player, placed []Placement) {
+	if m.index == nil || len(placed) == 0 {
+		return
+	}
+
+	from := world.Location{Kind: world.LocationEntity, Entity: ie.EntityID}
+	by := world.Actor{Kind: world.ActorPlayer, UUID: p.UUID, Name: p.Username}
+
+	for _, place := range placed {
+		to := world.Location{Kind: world.LocationInventory, Player: p.UUID, Slot: place.ProtoSlot}
+		if err := m.index.Move(place.IDs, from, to, by); err != nil {
+			m.log.Error("item picked up", "error", err)
+		}
+	}
+}
+
+// retire ends the identity of everything an entity still holds, which is what
+// an item that timed out on the ground gets.
+func (m *Manager) retire(ie *ItemEntity) {
+	if m.index == nil || len(ie.Item.IDs) == 0 {
+		return
+	}
+
+	at := world.Location{Kind: world.LocationEntity, Entity: ie.EntityID}
+	if err := m.index.Retire(ie.Item.IDs, at, world.Actor{Kind: world.ActorServer}); err != nil {
+		m.log.Error("item expired", "error", err)
+	}
+}
+
+// SpawnBlockDrop creates and broadcasts a dropped item from a broken block and
+// returns the entity ID it was given.
 // spawnY is the visual spawn height (block center), while (x, y, z) is the
 // ground-level resting position stored for pickup distance checks.
-func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64) {
+func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64, origin ItemOrigin) int32 {
 	entityID := m.AllocateEntityID()
 
 	ie := &ItemEntity{
@@ -199,6 +292,8 @@ func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64) {
 		VelZ:      0,
 		SpawnTick: m.currentTick.Load(),
 	}
+
+	m.trackDrop(ie, origin)
 
 	m.itemMu.Lock()
 	m.itemEntities[entityID] = ie
@@ -215,6 +310,8 @@ func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64) {
 		_ = pl.WritePacket(spawn)
 		_ = pl.WritePacket(meta)
 	}
+
+	return entityID
 }
 
 // spawnItemEntityValue builds the SpawnEntity (0x0E) packet for an item entity

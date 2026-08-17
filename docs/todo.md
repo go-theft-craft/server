@@ -1,8 +1,1 @@
-- [ ] have option to measure which player load server a lot 
-- [ ] have option to measure which npc/family/feature load server a lot 
-- [ ] trace when/how each item was created
-- [ ] create all vanilla cmds and add them to the command list, but stub them with a message saying "not implemented yet"
-- [ ] server must support multiple savings format vanilla + other/custom, do research which format is best fit. saving should not freeze, maybe we should do snapshot saving
-- [ ] world generation must be able to generate different types of worlds with option to customize world generation parameters or create custom worlds, do we need to create separate repo?
-- [ ] create a system to track and log server performance metrics, such as CPU usage, memory usage, and network traffic
-- [ ] do research on how to load chunk data from disk efficiently and how to optimize chunk loading and unloading. how to calculate chunk loading and unloading time for each player. Server may have overlapping chunks and they can make changes in same chunk.
+- [ ] headless minecraft as example must how running in circle with r=25 and jump around spawn position, if it has obsticle it will bypass it, if someone attack it it will kill it and then continue, if bot died it will respawn and go jump again, if it is impossible to escape trap, just stand and execute /kill cmd once in 2m

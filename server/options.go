@@ -37,6 +37,11 @@ type builder struct {
 	sideStore   SideStore
 	playerStore PlayerStore
 	observer    Observer
+
+	provenance         ProvenanceStore
+	provenanceOverflow OverflowPolicy
+	itemIdentity       bool
+	duplicatePolicy    DuplicatePolicy
 }
 
 // WithSettings replaces the whole settings struct. The value is copied, so the

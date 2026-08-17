@@ -40,6 +40,12 @@ type Server struct {
 	level    LevelData
 	hasLevel bool
 
+	// recorder writes provenance records off the tick, and index is the
+	// write path for item identity. Both are nil unless an application asked
+	// for them: everything in M11.5 is off by default.
+	recorder *Recorder
+	index    ItemIndex
+
 	// minter hands out item IDs for this run. Its epoch is the world's stored
 	// one plus one, and the advance is written back at the first save.
 	minter *Minter
@@ -159,6 +165,17 @@ func New(opts ...Option) (*Server, error) {
 	}
 	if srv.minter, err = NewMinter(epoch); err != nil {
 		b.log.Error("item identity is unavailable for this run", "error", err)
+	}
+
+	srv.recorder = NewRecorder(b.provenance, b.log, b.provenanceOverflow)
+	if b.itemIdentity && srv.minter != nil {
+		// The index tells the recorder about a duplication rather than
+		// depending on it, which is what keeps the detector usable with the
+		// records going nowhere but the log.
+		srv.index = world.NewItemIndex(srv.minter, b.duplicatePolicy, func(d *ErrDuplicate) {
+			b.log.Error("item duplication detected", "error", d)
+			srv.recorder.RecordDuplicate(d)
+		})
 	}
 
 	// A store is built by the application, before this function ran, so it
@@ -655,3 +672,11 @@ func (s *Server) saveLevel(ctx context.Context) error {
 // Minter hands out item IDs for this run, or nil when the ID space is
 // exhausted and identity is unavailable.
 func (s *Server) Minter() *Minter { return s.minter }
+
+// Recorder writes provenance records, or nil when the server runs without
+// provenance.
+func (s *Server) Recorder() *Recorder { return s.recorder }
+
+// ItemIndex tracks where identified items are, or nil when item identity is
+// off.
+func (s *Server) ItemIndex() ItemIndex { return s.index }

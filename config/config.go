@@ -1,6 +1,9 @@
 package config
 
-import "crypto/rsa"
+import (
+	"crypto/rsa"
+	"encoding/json"
+)
 
 // Supported world generator types.
 const (
@@ -16,10 +19,17 @@ type Config struct {
 	MaxPlayers      int    `json:"max_players"`
 	ViewDistance    int    `json:"view_distance"`
 	Seed            int64  `json:"seed"`
-	GeneratorType   string `json:"generator_type"`    // "default" or "flat"
+	GeneratorType   string `json:"generator_type"`    // a name in the generator registry
 	WorldRadius     int    `json:"world_radius"`      // world boundary in chunks (0 = infinite)
 	AutoSaveMinutes int    `json:"auto_save_minutes"` // auto-save interval in minutes (0 = disabled)
 	MaxBuildHeight  int    `json:"max_build_height"`  // maximum Y axis (default 256)
+
+	// GeneratorParams is the selected generator's parameters, as raw JSON.
+	//
+	// Raw because this package cannot name a type an application registered:
+	// the factory that owns the schema is the one that parses it, and it is
+	// the same shape the world's own metadata stores.
+	GeneratorParams json.RawMessage `json:"generator_params,omitempty"`
 
 	// CompressionThreshold is the packet size at or above which the server
 	// compresses. A negative value disables compression entirely.
@@ -74,6 +84,9 @@ func Merge(cfg *Config, fromFile *Config, explicitFlags map[string]bool) {
 	}
 	if !explicitFlags["generator"] {
 		cfg.GeneratorType = fromFile.GeneratorType
+		// Parameters follow their generator: a file that names one and
+		// configures it must not have the configuration applied to another.
+		cfg.GeneratorParams = fromFile.GeneratorParams
 	}
 	if !explicitFlags["world-radius"] {
 		cfg.WorldRadius = fromFile.WorldRadius

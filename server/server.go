@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net"
@@ -27,6 +28,10 @@ type Server struct {
 	log        *slog.Logger
 	world      *world.World
 	players    *player.Manager
+	registry   gen.Registry
+	genName    string
+	genVersion int
+	genParams  json.RawMessage
 	worldStore WorldStore
 	sideStore  SideStore
 	gameData   *data.Set
@@ -74,28 +79,18 @@ func New(opts ...Option) (*Server, error) {
 		}
 	}
 
-	generator := b.generator
-	if generator == nil {
-		switch b.settings.GeneratorType {
-		case config.GeneratorFlat:
-			generator = gen.NewFlatGenerator(b.settings.Seed)
-		default:
-			generator = gen.NewDefaultGenerator(b.settings.Seed)
-		}
-	}
-
 	gameData, err := v1_8.Data()
 	if err != nil {
 		return nil, fmt.Errorf("load java 1.8 game data: %w", err)
 	}
 
-	// The registry and the adapter are per server rather than package
+	// The state registry and the adapter are per server rather than package
 	// globals, so two servers in one test binary do not share handles.
-	registry, err := world.NewJavaRegistry(gameData)
+	states, err := world.NewJavaRegistry(gameData)
 	if err != nil {
 		return nil, fmt.Errorf("build block state registry: %w", err)
 	}
-	adapter, err := v47.New(registry, gameData)
+	adapter, err := v47.New(states, gameData)
 	if err != nil {
 		return nil, fmt.Errorf("build protocol 47 adapter: %w", err)
 	}
@@ -103,6 +98,16 @@ func New(opts ...Option) (*Server, error) {
 	dimension := b.dimension
 	if dimension.Height == 0 {
 		dimension = world.Overworld18()
+	}
+
+	generators := b.registry
+	if generators == nil {
+		generators = gen.DefaultRegistry()
+	}
+
+	generator, genName, genVersion, genParams, err := buildGenerator(b, generators, states)
+	if err != nil {
+		return nil, err
 	}
 
 	w, err := world.NewWorld(dimension, adapter, generator)
@@ -120,6 +125,10 @@ func New(opts ...Option) (*Server, error) {
 		migrateFrom: b.migrateFrom,
 		gameData:    gameData,
 		generator:   generator,
+		registry:    generators,
+		genName:     genName,
+		genVersion:  genVersion,
+		genParams:   genParams,
 	}
 
 	// A store is built by the application, before this function ran, so it
@@ -484,4 +493,51 @@ func (s *Server) Load(ctx context.Context) (bool, error) {
 	s.saveAll()
 
 	return true, nil
+}
+
+// buildGenerator resolves the configured generator.
+//
+// A supplied generator wins: WithGenerator is the escape hatch for a type that
+// was never registered. Otherwise the name is looked up, and an unknown one is
+// an error naming what is registered — before M11.4 the switch fell through to
+// the noise generator, so `-generator flta` silently gave you default terrain.
+func buildGenerator(b *builder, registry gen.Registry, states world.StateRegistry) (gen.Generator, string, int, json.RawMessage, error) {
+	if b.generator != nil {
+		return b.generator, "", 0, nil, nil
+	}
+
+	name := b.genName
+	if name == "" {
+		name = b.settings.GeneratorType
+	}
+
+	factory, ok := registry.Lookup(name)
+	if !ok {
+		return nil, "", 0, nil, fmt.Errorf("%w: unknown generator %q, have %v",
+			ErrInvalidOption, name, registry.Names())
+	}
+
+	raw := b.genParams
+	if len(raw) == 0 {
+		raw = b.settings.GeneratorParams
+	}
+
+	params, err := factory.Parse(raw)
+	if err != nil {
+		return nil, "", 0, nil, fmt.Errorf("%w: %s parameters: %w", ErrInvalidOption, name, err)
+	}
+
+	stored, err := gen.MarshalParams(params)
+	if err != nil {
+		return nil, "", 0, nil, err
+	}
+
+	// The state registry the generator resolves block names through is the
+	// server's own, built a few lines above this call.
+	generator, err := factory.New(b.settings.Seed, params, states)
+	if err != nil {
+		return nil, "", 0, nil, fmt.Errorf("%w: build generator %q: %w", ErrInvalidOption, name, err)
+	}
+
+	return generator, factory.Name(), factory.Version(), stored, nil
 }

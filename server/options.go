@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/rsa"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -27,6 +28,9 @@ type builder struct {
 	settings    *config.Config
 	log         *slog.Logger
 	generator   gen.Generator
+	registry    gen.Registry
+	genName     string
+	genParams   json.RawMessage
 	dimension   world.Dimension
 	migrateFrom string
 	worldStore  WorldStore
@@ -101,6 +105,44 @@ func WithDimension(d world.Dimension) Option {
 			return fmt.Errorf("%w: dimension floor %d is not a multiple of 16", ErrInvalidOption, d.MinY)
 		}
 		b.dimension = d
+
+		return nil
+	}
+}
+
+// WithGeneratorRegistry replaces the set of named generators the server can
+// resolve. The default is gen.DefaultRegistry(), which holds "default" and
+// "flat".
+//
+// An application registering its own starts from DefaultRegistry and adds to
+// it; passing a registry that omits the built-ins is a supported way to refuse
+// them.
+func WithGeneratorRegistry(r gen.Registry) Option {
+	return func(b *builder) error {
+		if r == nil {
+			return fmt.Errorf("%w: nil generator registry", ErrInvalidOption)
+		}
+		b.registry = r
+
+		return nil
+	}
+}
+
+// WithGeneratorNamed selects a generator by registered name and gives it
+// parameters, which are resolved against the registry when New runs.
+//
+// Pass nil parameters for the generator's defaults.
+func WithGeneratorNamed(name string, params gen.Params) Option {
+	return func(b *builder) error {
+		if name == "" {
+			return fmt.Errorf("%w: empty generator name", ErrInvalidOption)
+		}
+		raw, err := gen.MarshalParams(params)
+		if err != nil {
+			return fmt.Errorf("%w: %w", ErrInvalidOption, err)
+		}
+		b.genName, b.genParams = name, raw
+		b.settings.GeneratorType = name
 
 		return nil
 	}

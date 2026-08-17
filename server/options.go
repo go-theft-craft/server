@@ -28,6 +28,7 @@ type builder struct {
 	log         *slog.Logger
 	generator   gen.Generator
 	dimension   world.Dimension
+	migrateFrom string
 	worldStore  WorldStore
 	sideStore   SideStore
 	playerStore PlayerStore

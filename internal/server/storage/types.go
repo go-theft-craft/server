@@ -1,5 +1,8 @@
 package storage
 
+// The shapes of the JSON world files the pre-M11.3 server wrote. Nothing
+// writes them any more; Migrate reads them once and renames them.
+
 // WorldData holds world-level metadata for persistence.
 type WorldData struct {
 	Age       int64 `json:"age"`

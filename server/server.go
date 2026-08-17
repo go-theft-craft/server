@@ -15,6 +15,7 @@ import (
 	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/conn"
 	"github.com/go-theft-craft/server/internal/server/player"
+	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 	"github.com/go-theft-craft/server/pkg/world/v47"
@@ -40,6 +41,11 @@ type Server struct {
 	// supplied to what a connection needs. It is nil when the server runs
 	// without player persistence.
 	playerStore conn.PlayerStore
+
+	// migrateFrom is the data directory whose legacy JSON world files are
+	// folded in at startup, or empty when the application supplied its own
+	// stores and no directory to migrate.
+	migrateFrom string
 
 	// live tracks the connections that are still open, so a shutdown can
 	// tell each of them why it is ending rather than dropping its socket.
@@ -105,14 +111,15 @@ func New(opts ...Option) (*Server, error) {
 	}
 
 	srv := &Server{
-		cfg:        b.settings,
-		log:        b.log,
-		world:      w,
-		players:    player.NewManager(b.settings.ViewDistance),
-		worldStore: b.worldStore,
-		sideStore:  b.sideStore,
-		gameData:   gameData,
-		generator:  generator,
+		cfg:         b.settings,
+		log:         b.log,
+		world:       w,
+		players:     player.NewManager(b.settings.ViewDistance),
+		worldStore:  b.worldStore,
+		sideStore:   b.sideStore,
+		migrateFrom: b.migrateFrom,
+		gameData:    gameData,
+		generator:   generator,
 	}
 
 	// A store is built by the application, before this function ran, so it
@@ -177,23 +184,16 @@ func (s *Server) World() *world.World { return s.world }
 // Start begins listening for connections and blocks until the context is cancelled.
 func (s *Server) Start(ctx context.Context) error {
 	// Load saved world data (time + block overrides).
-	savedWorld := false
-	if s.worldStore != nil {
-		level, found, err := s.worldStore.Level(ctx, DefaultWorld)
-		if err != nil {
-			s.log.Error("failed to load level data", "error", err)
-		}
-		if found {
-			savedWorld = true
-			s.world.SetTime(level.Age, level.TimeOfDay)
-			s.log.Info("loaded level data", "age", level.Age, "timeOfDay", level.TimeOfDay)
-		}
+	savedWorld, err := s.Load(ctx)
+	if err != nil {
+		return err
 	}
 
 	addr := fmt.Sprintf(":%d", s.cfg.Port)
 	lc := net.ListenConfig{}
 
-	listener, err := lc.Listen(ctx, "tcp", addr)
+	listener, listenErr := lc.Listen(ctx, "tcp", addr)
+	err = listenErr
 	if err != nil {
 		return fmt.Errorf("listen on %s: %w", addr, err)
 	}
@@ -436,4 +436,52 @@ func (s *Server) saveAll() {
 // SaveAll is exposed for the /save command to trigger a manual save.
 func (s *Server) SaveAll() {
 	s.saveAll()
+}
+
+// Load reads world-level state from the store and folds in any legacy JSON
+// world files, reporting whether the world had been saved before.
+//
+// Start calls it. It is exported so an application can load a world without
+// opening a socket — a migration tool, or a test.
+func (s *Server) Load(ctx context.Context) (bool, error) {
+	if s.worldStore == nil {
+		return false, nil
+	}
+
+	saved := false
+
+	level, found, err := s.worldStore.Level(ctx, DefaultWorld)
+	if err != nil {
+		s.log.Error("failed to load level data", "error", err)
+	}
+	if found {
+		saved = true
+		s.world.SetTime(level.Age, level.TimeOfDay)
+		s.log.Info("loaded level data", "age", level.Age, "timeOfDay", level.TimeOfDay)
+	}
+
+	// The fold runs after the world can load its regions, so an override lands
+	// on top of what the region holds rather than under it. On any world the
+	// pre-M11.3 server wrote, the JSON files are the truth and the regions are
+	// a stale copy nothing ever read back.
+	if s.migrateFrom == "" {
+		return saved, nil
+	}
+
+	report, err := storage.Migrate(s.migrateFrom, s.world, s.log)
+	if err != nil {
+		return saved, fmt.Errorf("migrate legacy world files: %w", err)
+	}
+	if !report.Ran {
+		return saved, nil
+	}
+
+	if report.HasTime {
+		s.world.SetTime(report.Age, report.TimeOfDay)
+	}
+	// Written through immediately: the fold is only in memory until it is, and
+	// the source files have already been renamed.
+	s.saveAll()
+
+	return true, nil
 }

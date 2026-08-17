@@ -138,8 +138,9 @@ func TestFileStoreProvidesAllThreeHalves(t *testing.T) {
 	if store.World() == nil || store.Side() == nil || store.Players() == nil {
 		t.Fatal("FileStore left one of the three nil")
 	}
-	if len(store.Options()) != 3 {
-		t.Fatalf("Options returned %d options, want 3", len(store.Options()))
+	if len(store.Options()) != 4 {
+		t.Fatalf("Options returned %d options, want 4 (three stores and the legacy migration)",
+			len(store.Options()))
 	}
 
 	srv, err := server.New(store.Options()...)

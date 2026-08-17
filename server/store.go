@@ -113,9 +113,28 @@ func WithSideStore(store SideStore) Option {
 	}
 }
 
+// WithLegacyMigration folds the JSON world files a pre-M11.3 server wrote into
+// the world at startup, then renames them to *.migrated.
+//
+// FileStore turns it on for its own directory, so an application that used the
+// framework's default persistence gets the migration without asking. An
+// application with its own stores passes its data directory here, or does not,
+// and nothing is read.
+func WithLegacyMigration(dir string) Option {
+	return func(b *builder) error {
+		if dir == "" {
+			return fmt.Errorf("%w: empty migration directory", ErrInvalidOption)
+		}
+		b.migrateFrom = dir
+
+		return nil
+	}
+}
+
 // Storage is the framework's default persistence: Anvil regions for the world,
 // a chunk-keyed sidecar beside them, and one JSON file per player.
 type Storage struct {
+	dir     string
 	world   WorldStore
 	side    SideStore
 	players PlayerStore
@@ -127,13 +146,16 @@ func (s *Storage) World() WorldStore    { return s.world }
 func (s *Storage) Side() SideStore      { return s.side }
 func (s *Storage) Players() PlayerStore { return s.players }
 
-// Options returns the three options that install this storage, so the common
-// case is one line at the call site.
+// Options returns the options that install this storage, so the common case is
+// one line at the call site. The legacy migration is among them: an
+// application using the framework's own persistence has the old files to fold
+// in by definition.
 func (s *Storage) Options() []Option {
 	return []Option{
 		WithWorldStore(s.world),
 		WithSideStore(s.side),
 		WithPlayerStore(s.players),
+		WithLegacyMigration(s.dir),
 	}
 }
 
@@ -170,5 +192,5 @@ func FileStore(dir string, log *slog.Logger) (*Storage, error) {
 		return nil, err
 	}
 
-	return &Storage{world: worldStore, side: sideStore, players: playerStore}, nil
+	return &Storage{dir: dir, world: worldStore, side: sideStore, players: playerStore}, nil
 }

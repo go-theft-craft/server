@@ -68,11 +68,18 @@ type SideStore interface {
 // The age and time-of-day tags are the ones world.json used, so an existing
 // file still loads.
 type LevelData struct {
-	Age             int64           `json:"age"`
-	TimeOfDay       int64           `json:"time_of_day"`
-	Seed            int64           `json:"seed,omitempty"`
-	GeneratorType   string          `json:"generator_type,omitempty"`
-	GeneratorParams json.RawMessage `json:"generator_params,omitempty"`
+	Age       int64 `json:"age"`
+	TimeOfDay int64 `json:"time_of_day"`
+	Seed      int64 `json:"seed,omitempty"`
+
+	// GeneratorName, GeneratorVersion, and GeneratorParams are what generated
+	// this world. They are the world's record, not the configuration's: when
+	// the two disagree the world's name wins, because superflat's grass plane
+	// growing mountains at the edge of what has been explored is not a thing
+	// anyone asked for.
+	GeneratorName    string          `json:"generator_name,omitempty"`
+	GeneratorVersion int             `json:"generator_version,omitempty"`
+	GeneratorParams  json.RawMessage `json:"generator_params,omitempty"`
 }
 
 // Sidecar is the per-chunk record of everything vanilla cannot hold.

@@ -29,6 +29,7 @@ import (
 	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
+	"github.com/go-theft-craft/server/pkg/world/v47"
 )
 
 // This file describes what the server does today, before the migration moves
@@ -119,7 +120,7 @@ func newHarnessOptions(t *testing.T, configure func(*config.Config), drain bool)
 		serverEnd,
 		settings,
 		slog.New(slog.DiscardHandler),
-		world.NewWorld(gen.NewFlatGenerator(0)),
+		newTestWorld(t),
 		player.NewManager(8),
 		nil,
 		gameData,
@@ -764,4 +765,29 @@ func TestUnknownPlayPacketIsIgnored(t *testing.T) {
 		t.Fatalf("write after unknown packet: %v", err)
 	}
 	h.expect(v1_8.PlayClientboundChat{}.PacketID())
+}
+
+// newTestWorld builds the flat world every connection test runs against,
+// together with the registry and protocol 47 adapter the server builds in New.
+func newTestWorld(t *testing.T) *world.World {
+	t.Helper()
+
+	set, err := v1_8.Data()
+	if err != nil {
+		t.Fatalf("load game data: %v", err)
+	}
+	registry, err := world.NewJavaRegistry(set)
+	if err != nil {
+		t.Fatalf("build block state registry: %v", err)
+	}
+	adapter, err := v47.New(registry, set)
+	if err != nil {
+		t.Fatalf("build protocol 47 adapter: %v", err)
+	}
+	w, err := world.NewWorld(world.Overworld18(), adapter, gen.NewFlatGenerator(0))
+	if err != nil {
+		t.Fatalf("build world: %v", err)
+	}
+
+	return w
 }

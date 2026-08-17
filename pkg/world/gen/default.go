@@ -1,7 +1,13 @@
 package gen
 
+import (
+	"github.com/go-theft-craft/server/pkg/world"
+)
+
 // DefaultGenerator produces vanilla-like terrain with biomes, caves, ores, and trees.
 type DefaultGenerator struct {
+	bound
+
 	terrain  *NoiseGenerator
 	detail   *NoiseGenerator
 	biomeGen *BiomeGenerator
@@ -22,18 +28,19 @@ func NewDefaultGenerator(seed int64) *DefaultGenerator {
 	}
 }
 
-func (g *DefaultGenerator) Generate(chunkX, chunkZ int) *ChunkData {
-	c := &ChunkData{}
+// Generate runs the four passes over one column.
+func (g *DefaultGenerator) Generate(pos world.ChunkPos, into *world.Builder) error {
+	c := setter{b: into, p: g.p}
 
 	// Pass 1: compute heightmap and fill terrain + biomes.
 	var heights [16][16]int
-	for x := 0; x < 16; x++ {
-		for z := 0; z < 16; z++ {
-			bx := chunkX*16 + x
-			bz := chunkZ*16 + z
+	for x := range 16 {
+		for z := range 16 {
+			bx := pos.X*16 + x
+			bz := pos.Z*16 + z
 
 			biome := g.biomeGen.BiomeAt(bx, bz)
-			c.SetBiome(x, z, biome)
+			into.SetBiome(x, z, world.Biome(biome))
 
 			height := g.terrainHeight(bx, bz, biome)
 			heights[x][z] = height
@@ -43,15 +50,15 @@ func (g *DefaultGenerator) Generate(chunkX, chunkZ int) *ChunkData {
 	}
 
 	// Pass 2: carve caves.
-	g.caveGen.Carve(c, chunkX, chunkZ, &heights)
+	g.caveGen.Carve(c, pos.X, pos.Z, &heights)
 
 	// Pass 3: place ores.
-	g.oreGen.Place(c, chunkX, chunkZ, &heights)
+	g.oreGen.Place(c, pos.X, pos.Z, &heights)
 
 	// Pass 4: place trees and vegetation.
-	g.treeGen.Decorate(c, chunkX, chunkZ, &heights)
+	g.treeGen.Decorate(c, pos.X, pos.Z, &heights)
 
-	return c
+	return nil
 }
 
 func (g *DefaultGenerator) HeightAt(blockX, blockZ int) int {
@@ -112,15 +119,15 @@ func biomeTerrainParams(biome byte) (amplitude, baseHeight float64) {
 }
 
 // fillColumn fills a single block column with terrain blocks.
-func (g *DefaultGenerator) fillColumn(c *ChunkData, x, z, height int, biome byte) {
+func (g *DefaultGenerator) fillColumn(c setter, x, z, height int, biome byte) {
 	// Bedrock layers: y=0 always, y=1..3 randomized.
-	c.SetBlock(x, 0, z, blockBedrock<<4)
+	c.set(x, 0, z, c.p.bedrock)
 	for y := 1; y <= 3; y++ {
 		bx := x + y*7 // cheap variation
 		if g.terrain.Noise2D(float64(bx)*0.5, float64(z)*0.5) > 0.0 {
-			c.SetBlock(x, y, z, blockBedrock<<4)
+			c.set(x, y, z, c.p.bedrock)
 		} else {
-			c.SetBlock(x, y, z, blockStone<<4)
+			c.set(x, y, z, c.p.stone)
 		}
 	}
 
@@ -131,7 +138,7 @@ func (g *DefaultGenerator) fillColumn(c *ChunkData, x, z, height int, biome byte
 		stoneTop = 4
 	}
 	for y := 4; y <= stoneTop && y <= height; y++ {
-		c.SetBlock(x, y, z, blockStone<<4)
+		c.set(x, y, z, c.p.stone)
 	}
 
 	// Surface layers.
@@ -140,7 +147,7 @@ func (g *DefaultGenerator) fillColumn(c *ChunkData, x, z, height int, biome byte
 	// Water fill from surface+1 to sea level where terrain is below sea level.
 	if height < seaLevel {
 		for y := height + 1; y <= seaLevel; y++ {
-			c.SetBlock(x, y, z, blockWater<<4)
+			c.set(x, y, z, c.p.water)
 		}
 	}
 }

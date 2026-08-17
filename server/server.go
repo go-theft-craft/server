@@ -18,6 +18,7 @@ import (
 	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
+	"github.com/go-theft-craft/server/pkg/world/v47"
 )
 
 // Server is the main Minecraft server that accepts TCP connections.
@@ -84,10 +85,31 @@ func New(opts ...Option) (*Server, error) {
 		return nil, fmt.Errorf("load java 1.8 game data: %w", err)
 	}
 
+	// The registry and the adapter are per server rather than package
+	// globals, so two servers in one test binary do not share handles.
+	registry, err := world.NewJavaRegistry(gameData)
+	if err != nil {
+		return nil, fmt.Errorf("build block state registry: %w", err)
+	}
+	adapter, err := v47.New(registry, gameData)
+	if err != nil {
+		return nil, fmt.Errorf("build protocol 47 adapter: %w", err)
+	}
+
+	dimension := b.dimension
+	if dimension.Height == 0 {
+		dimension = world.Overworld18()
+	}
+
+	w, err := world.NewWorld(dimension, adapter, generator)
+	if err != nil {
+		return nil, err
+	}
+
 	srv := &Server{
 		cfg:       b.settings,
 		log:       b.log,
-		world:     world.NewWorld(generator),
+		world:     w,
 		players:   player.NewManager(b.settings.ViewDistance),
 		store:     b.store,
 		gameData:  gameData,

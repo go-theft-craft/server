@@ -31,38 +31,25 @@ func newAdapter(t *testing.T) *Adapter {
 	return a
 }
 
-// chunkFromGenerator lifts a generated column into the world model through the
-// adapter's own decoding, so the fixture comparison tests the encoder rather
-// than the lift.
+// chunkFromGenerator binds a generator to the adapter's registry and builds
+// one column with it.
 func chunkFromGenerator(t *testing.T, a *Adapter, g gen.Generator, pos world.ChunkPos) *world.Chunk {
 	t.Helper()
 
-	dim := a.Dimension()
-	data := g.Generate(pos.X, pos.Z)
-	c := &world.Chunk{Pos: pos, Sections: make([]*world.Section, dim.Sections())}
-
-	var empty *world.Section
-	for sec := range dim.Sections() {
-		if data.Sections[sec] == nil {
-			continue
-		}
-		changes := make([]world.Change, world.BlocksPerSection)
-		for index := range changes {
-			state, err := a.DecodeState(int32(data.Sections[sec].Blocks[index]))
-			if err != nil {
-				t.Fatalf("decode: %v", err)
-			}
-			changes[index] = world.Change{Index: index, State: state}
-		}
-		// A generated section is present on the wire even when the terrain
-		// left it all air, so it is allocated whatever it holds.
-		c.Sections[sec] = empty.WithMany(changes)
+	binder, ok := g.(world.Binder)
+	if !ok {
+		t.Fatalf("%T does not bind to a registry", g)
 	}
-	for i, b := range data.Biomes {
-		c.Biomes[i] = world.Biome(b)
+	if err := binder.Bind(a.Registry()); err != nil {
+		t.Fatalf("Bind: %v", err)
 	}
 
-	return c
+	b := world.NewBuilder(a.Dimension(), pos, a.Registry().Air())
+	if err := g.Generate(pos, b); err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+
+	return b.Build()
 }
 
 func readFixture(t *testing.T, name string) (uint16, []byte) {

@@ -16,7 +16,6 @@ import (
 	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/pkg/world"
-	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
 // writtenPackets counts the packets a connection put on the wire. The
@@ -104,7 +103,7 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 	p.SetPosition(0.5, 4, 0.5, 0, 0, true)
 	m.Add(p)
 
-	w := world.NewWorld(gen.NewFlatGenerator(0))
+	w := newTestWorld(t)
 
 	// The real registry, not a stub: crafting silently produces nothing when
 	// gameData is nil, which hid every recipe defect from these tests.
@@ -163,7 +162,7 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 		players:        m,
 		world:          w,
 		gameData:       gameData,
-		loadedChunks:   make(map[gen.ChunkPos]struct{}),
+		loadedChunks:   make(map[world.ChunkPos]struct{}),
 		keepAliveAcked: true,
 		cursorSlot:     player.EmptySlot,
 		craftingOutput: player.EmptySlot,

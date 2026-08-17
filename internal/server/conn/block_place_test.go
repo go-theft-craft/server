@@ -32,7 +32,7 @@ func TestBlockPlace_ConsumesHeldItemInSurvival(t *testing.T) {
 		t.Fatalf("handleBlockPlace: %v", err)
 	}
 
-	if got := c.world.GetBlock(0, 4, 0); got != int32(3)<<4 {
+	if got := c.world.GetBlockID(0, 4, 0); got != int32(3)<<4 {
 		t.Errorf("block at (0,4,0) = %d, want dirt state %d", got, int32(3)<<4)
 	}
 	if got := countItem(c, 3, 0); got != 9 {
@@ -65,7 +65,7 @@ func TestBlockPlace_CreativeDoesNotConsume(t *testing.T) {
 		t.Fatalf("handleBlockPlace: %v", err)
 	}
 
-	if got := c.world.GetBlock(0, 4, 0); got != int32(3)<<4 {
+	if got := c.world.GetBlockID(0, 4, 0); got != int32(3)<<4 {
 		t.Errorf("block at (0,4,0) = %d, want dirt state %d", got, int32(3)<<4)
 	}
 	if got := countItem(c, 3, 0); got != 10 {
@@ -87,7 +87,7 @@ func TestBlockPlace_KeepsTheVariantMetadata(t *testing.T) {
 	}
 
 	want := int32(35)<<4 | 14
-	if got := c.world.GetBlock(0, 4, 0); got != want {
+	if got := c.world.GetBlockID(0, 4, 0); got != want {
 		t.Errorf("block at (0,4,0) = %d, want red wool state %d", got, want)
 	}
 }
@@ -100,12 +100,12 @@ func TestBlockPlace_RefusesWhatTheServerDoesNotHold(t *testing.T) {
 	c.self.SetGameMode(packet.GameModeSurvival)
 	c.self.Inventory.SetHeldSlot(0) // empty hand
 
-	before := c.world.GetBlock(0, 4, 0)
+	before := c.world.GetBlockID(0, 4, 0)
 	if err := c.handleBlockPlace(placeOnTopOf(0, 3, 0, dirt(64))); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
 	}
 
-	if got := c.world.GetBlock(0, 4, 0); got != before {
+	if got := c.world.GetBlockID(0, 4, 0); got != before {
 		t.Errorf("block at (0,4,0) = %d, want %d unchanged: an empty hand places nothing", got, before)
 	}
 }
@@ -117,12 +117,12 @@ func TestBlockPlace_RefusesANonBlockItem(t *testing.T) {
 	c.self.Inventory.SetSlot(0, sword())
 	c.self.Inventory.SetHeldSlot(0)
 
-	before := c.world.GetBlock(0, 4, 0)
+	before := c.world.GetBlockID(0, 4, 0)
 	if err := c.handleBlockPlace(placeOnTopOf(0, 3, 0, sword())); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
 	}
 
-	if got := c.world.GetBlock(0, 4, 0); got != before {
+	if got := c.world.GetBlockID(0, 4, 0); got != before {
 		t.Errorf("block at (0,4,0) = %d, want %d unchanged: a sword is not placeable", got, before)
 	}
 	if got := countItem(c, 276, 0); got != 1 {
@@ -175,12 +175,12 @@ func TestBlockPlace_ItemsAreNotPlaced(t *testing.T) {
 		c.self.Inventory.SetSlot(0, player.Slot{BlockID: item, ItemCount: 1})
 		c.self.Inventory.SetHeldSlot(0)
 
-		c.world.SetBlock(5, 4, 5, int32(1)<<4)
+		c.world.SetBlockID(5, 4, 5, int32(1)<<4)
 		if err := c.handleBlockPlace(placeOnTopOf(5, 4, 5, player.Slot{BlockID: item, ItemCount: 1})); err != nil {
 			t.Fatalf("handleBlockPlace: %v", err)
 		}
 
-		if got := c.world.GetBlock(5, 5, 5); got != 0 {
+		if got := c.world.GetBlockID(5, 5, 5); got != 0 {
 			t.Errorf("item %d placed block state %d, want nothing placed", item, got)
 		}
 	}

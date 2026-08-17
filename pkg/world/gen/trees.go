@@ -1,5 +1,9 @@
 package gen
 
+import (
+	"github.com/go-theft-craft/server/pkg/world"
+)
+
 // TreeGenerator places trees and vegetation per biome.
 type TreeGenerator struct {
 	seed int64
@@ -11,11 +15,11 @@ func NewTreeGenerator(seed int64) *TreeGenerator {
 }
 
 // Decorate places trees and vegetation in the chunk.
-func (tg *TreeGenerator) Decorate(c *ChunkData, chunkX, chunkZ int, heights *[16][16]int) {
+func (tg *TreeGenerator) Decorate(c setter, chunkX, chunkZ int, heights *[16][16]int) {
 	rng := newChunkRNG(tg.seed, chunkX, chunkZ, 600)
 
 	// Determine biome from center of chunk for tree density.
-	centerBiome := c.Biomes[8*16+8]
+	centerBiome := byte(c.b.Biome(8, 8))
 
 	// Place trees.
 	treeCount := treesForBiome(centerBiome)
@@ -29,11 +33,11 @@ func (tg *TreeGenerator) Decorate(c *ChunkData, chunkX, chunkZ int, heights *[16
 		}
 
 		// Check that the top block is grass.
-		if c.GetBlock(x, y, z) != blockGrass<<4 {
+		if c.get(x, y, z) != c.p.grass {
 			continue
 		}
 
-		localBiome := c.Biomes[z*16+x]
+		localBiome := byte(c.b.Biome(x, z))
 		tg.placeTree(c, x, y+1, z, localBiome, rng, heights)
 	}
 
@@ -65,7 +69,7 @@ func treesForBiome(biome byte) int {
 }
 
 // placeTree places a single tree at the given position. Constrained to chunk bounds.
-func (tg *TreeGenerator) placeTree(c *ChunkData, x, baseY, z int, biome byte, rng *chunkRNG, heights *[16][16]int) {
+func (tg *TreeGenerator) placeTree(c setter, x, baseY, z int, biome byte, rng *chunkRNG, heights *[16][16]int) {
 	switch biome {
 	case biomeTaiga, biomeSnowyTaiga:
 		tg.placeSpruce(c, x, baseY, z, rng)
@@ -81,7 +85,7 @@ func (tg *TreeGenerator) placeTree(c *ChunkData, x, baseY, z int, biome byte, rn
 }
 
 // placeOak places a standard oak tree (trunk + leaf canopy).
-func (tg *TreeGenerator) placeOak(c *ChunkData, x, baseY, z int, rng *chunkRNG) {
+func (tg *TreeGenerator) placeOak(c setter, x, baseY, z int, rng *chunkRNG) {
 	trunkHeight := 4 + rng.nextN(3) // 4-6
 
 	// Check bounds: trunk must fit in chunk and in world height.
@@ -91,7 +95,7 @@ func (tg *TreeGenerator) placeOak(c *ChunkData, x, baseY, z int, rng *chunkRNG) 
 
 	// Place trunk.
 	for y := baseY; y < baseY+trunkHeight; y++ {
-		setIfInBounds(c, x, y, z, blockLog<<4|logOak)
+		setIfInBounds(c, x, y, z, c.p.logOak)
 	}
 
 	// Place leaves.
@@ -116,8 +120,8 @@ func (tg *TreeGenerator) placeOak(c *ChunkData, x, baseY, z int, rng *chunkRNG) 
 				if radius == 2 && abs(dx) == 2 && abs(dz) == 2 && rng.nextN(2) == 0 {
 					continue
 				}
-				if c.GetBlock(lx, y, lz) == 0 {
-					c.SetBlock(lx, y, lz, blockLeaves<<4|leavesOak)
+				if c.get(lx, y, lz) == c.p.air {
+					c.set(lx, y, lz, c.p.leavesOak)
 				}
 			}
 		}
@@ -125,7 +129,7 @@ func (tg *TreeGenerator) placeOak(c *ChunkData, x, baseY, z int, rng *chunkRNG) 
 }
 
 // placeBirch places a birch tree (similar to oak but with birch log/leaves).
-func (tg *TreeGenerator) placeBirch(c *ChunkData, x, baseY, z int, rng *chunkRNG) {
+func (tg *TreeGenerator) placeBirch(c setter, x, baseY, z int, rng *chunkRNG) {
 	trunkHeight := 5 + rng.nextN(2) // 5-6
 
 	if baseY+trunkHeight+2 > 255 {
@@ -133,7 +137,7 @@ func (tg *TreeGenerator) placeBirch(c *ChunkData, x, baseY, z int, rng *chunkRNG
 	}
 
 	for y := baseY; y < baseY+trunkHeight; y++ {
-		setIfInBounds(c, x, y, z, blockLog<<4|logBirch)
+		setIfInBounds(c, x, y, z, c.p.logBirch)
 	}
 
 	leafBase := baseY + trunkHeight - 2
@@ -155,8 +159,8 @@ func (tg *TreeGenerator) placeBirch(c *ChunkData, x, baseY, z int, rng *chunkRNG
 				if radius == 2 && abs(dx) == 2 && abs(dz) == 2 && rng.nextN(2) == 0 {
 					continue
 				}
-				if c.GetBlock(lx, y, lz) == 0 {
-					c.SetBlock(lx, y, lz, blockLeaves<<4|leavesBirch)
+				if c.get(lx, y, lz) == c.p.air {
+					c.set(lx, y, lz, c.p.leavesBirch)
 				}
 			}
 		}
@@ -164,7 +168,7 @@ func (tg *TreeGenerator) placeBirch(c *ChunkData, x, baseY, z int, rng *chunkRNG
 }
 
 // placeSpruce places a spruce/taiga tree (conical shape).
-func (tg *TreeGenerator) placeSpruce(c *ChunkData, x, baseY, z int, rng *chunkRNG) {
+func (tg *TreeGenerator) placeSpruce(c setter, x, baseY, z int, rng *chunkRNG) {
 	trunkHeight := 6 + rng.nextN(4) // 6-9
 
 	if baseY+trunkHeight+1 > 255 {
@@ -173,7 +177,7 @@ func (tg *TreeGenerator) placeSpruce(c *ChunkData, x, baseY, z int, rng *chunkRN
 
 	// Trunk.
 	for y := baseY; y < baseY+trunkHeight; y++ {
-		setIfInBounds(c, x, y, z, blockLog<<4|logSpruce)
+		setIfInBounds(c, x, y, z, c.p.logSpruce)
 	}
 
 	// Conical leaves: widest at bottom, narrowing to top.
@@ -200,8 +204,8 @@ func (tg *TreeGenerator) placeSpruce(c *ChunkData, x, baseY, z int, rng *chunkRN
 				if dx == 0 && dz == 0 {
 					continue
 				}
-				if c.GetBlock(lx, y, lz) == 0 {
-					c.SetBlock(lx, y, lz, blockLeaves<<4|leavesSpruce)
+				if c.get(lx, y, lz) == c.p.air {
+					c.set(lx, y, lz, c.p.leavesSpruce)
 				}
 			}
 		}
@@ -209,12 +213,12 @@ func (tg *TreeGenerator) placeSpruce(c *ChunkData, x, baseY, z int, rng *chunkRN
 	// Top leaf.
 	topY := baseY + trunkHeight
 	if topY < 256 {
-		c.SetBlock(x, topY, z, blockLeaves<<4|leavesSpruce)
+		c.set(x, topY, z, c.p.leavesSpruce)
 	}
 }
 
 // placeVegetation scatters grass, flowers, cacti, and dead bushes.
-func (tg *TreeGenerator) placeVegetation(c *ChunkData, _, _ int, heights *[16][16]int, rng *chunkRNG) {
+func (tg *TreeGenerator) placeVegetation(c setter, _, _ int, heights *[16][16]int, rng *chunkRNG) {
 	for range 20 {
 		x := rng.nextN(16)
 		z := rng.nextN(16)
@@ -222,50 +226,50 @@ func (tg *TreeGenerator) placeVegetation(c *ChunkData, _, _ int, heights *[16][1
 		if y <= seaLevel || y >= 255 {
 			continue
 		}
-		biome := c.Biomes[z*16+x]
-		topBlock := c.GetBlock(x, y, z)
+		biome := byte(c.b.Biome(x, z))
+		topBlock := c.get(x, y, z)
 
 		switch biome {
 		case biomeDesert:
-			if topBlock != blockSand<<4 {
+			if topBlock != c.p.sand {
 				continue
 			}
 			if rng.nextN(8) == 0 {
 				// Cactus (1-3 blocks tall).
 				h := 1 + rng.nextN(3)
 				for dy := 1; dy <= h && y+dy < 256; dy++ {
-					c.SetBlock(x, y+dy, z, blockCactus<<4)
+					c.set(x, y+dy, z, c.p.cactus)
 				}
 			} else if rng.nextN(4) == 0 {
-				c.SetBlock(x, y+1, z, blockDeadBush<<4)
+				c.set(x, y+1, z, c.p.deadBush)
 			}
 
 		case biomePlains, biomeForest, biomeDarkForest, biomeSavanna, biomeJungle:
-			if topBlock != blockGrass<<4 {
+			if topBlock != c.p.grass {
 				continue
 			}
 			if rng.nextN(3) == 0 {
 				// Tall grass (metadata 1 = tall grass, not dead shrub).
-				c.SetBlock(x, y+1, z, blockTallGrass<<4|1)
+				c.set(x, y+1, z, c.p.tallGrass)
 			} else if rng.nextN(8) == 0 {
 				// Flower.
-				c.SetBlock(x, y+1, z, blockFlower<<4)
+				c.set(x, y+1, z, c.p.flower)
 			}
 
 		case biomeTaiga, biomeSnowyTaiga, biomeTundra:
-			if topBlock != blockGrass<<4 {
+			if topBlock != c.p.grass {
 				continue
 			}
 			if rng.nextN(6) == 0 {
-				c.SetBlock(x, y+1, z, blockTallGrass<<4|1)
+				c.set(x, y+1, z, c.p.tallGrass)
 			}
 		}
 	}
 }
 
-func setIfInBounds(c *ChunkData, x, y, z int, state uint16) {
+func setIfInBounds(c setter, x, y, z int, state world.State) {
 	if x >= 0 && x < 16 && z >= 0 && z < 16 && y >= 0 && y < 256 {
-		c.SetBlock(x, y, z, state)
+		c.set(x, y, z, state)
 	}
 }
 

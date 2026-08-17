@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/go-theft-craft/server/config"
+	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
@@ -26,6 +27,7 @@ type builder struct {
 	settings  *config.Config
 	log       *slog.Logger
 	generator gen.Generator
+	dimension world.Dimension
 	store     Store
 	observer  Observer
 }
@@ -65,6 +67,22 @@ func WithGenerator(g gen.Generator) Option {
 			return fmt.Errorf("%w: nil generator", ErrInvalidOption)
 		}
 		b.generator = g
+
+		return nil
+	}
+}
+
+// WithDimension sets the world's vertical extent and name. The default is
+// Java 1.8's overworld: 0 to 255.
+func WithDimension(d world.Dimension) Option {
+	return func(b *builder) error {
+		if d.Height <= 0 || d.Height%16 != 0 {
+			return fmt.Errorf("%w: dimension height %d is not a positive multiple of 16", ErrInvalidOption, d.Height)
+		}
+		if d.MinY%16 != 0 {
+			return fmt.Errorf("%w: dimension floor %d is not a multiple of 16", ErrInvalidOption, d.MinY)
+		}
+		b.dimension = d
 
 		return nil
 	}

@@ -77,6 +77,15 @@ func (b *Builder) Get(x, y, z int) State {
 	return sec.states[SectionBlockIndex(x, y&0xF, z)]
 }
 
+// Biome reads back the biome at chunk-local x, z.
+func (b *Builder) Biome(x, z int) Biome {
+	if x < 0 || x >= 16 || z < 0 || z >= 16 {
+		return 0
+	}
+
+	return b.biomes[z*16+x]
+}
+
 // SetBiome sets the biome at chunk-local x, z.
 func (b *Builder) SetBiome(x, z int, biome Biome) {
 	if x < 0 || x >= 16 || z < 0 || z >= 16 {

@@ -2,92 +2,69 @@ package anvil
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/go-theft-craft/server/pkg/world"
-	"github.com/go-theft-craft/server/pkg/world/gen"
 	"github.com/go-theft-craft/server/pkg/world/nbt"
 )
 
+// StateEncoder turns a state handle into the number a version's storage
+// format writes. The Anvil format is Java 1.8's own, so the encoder is the
+// same one that renders the wire.
+type StateEncoder interface {
+	EncodeState(world.State) (int32, error)
+}
+
 // EncodeChunkNBT encodes a chunk as MC 1.8 NBT format.
-// overrides contains block overrides for this chunk only (pre-filtered by caller).
-func EncodeChunkNBT(cx, cz int, chunk *gen.ChunkData, overrides map[world.BlockPos]int32) ([]byte, error) {
+func EncodeChunkNBT(c *world.Chunk, enc StateEncoder) ([]byte, error) {
+	if c == nil {
+		return nil, fmt.Errorf("anvil: nil chunk")
+	}
+
 	var buf bytes.Buffer
 	w := nbt.NewWriter(&buf)
 
 	w.BeginCompound("")
 	w.BeginCompound("Level")
 
-	w.WriteInt("xPos", int32(cx))
-	w.WriteInt("zPos", int32(cz))
+	w.WriteInt("xPos", int32(c.Pos.X))
+	w.WriteInt("zPos", int32(c.Pos.Z))
 	w.WriteTagByte("TerrainPopulated", 1)
 	w.WriteLong("LastUpdate", 0)
 
-	// Count non-nil sections.
 	var sectionCount int32
-	for i := 0; i < 16; i++ {
-		if chunk.Sections[i] != nil {
+	for _, sec := range c.Sections {
+		if sec != nil {
 			sectionCount++
-		}
-	}
-
-	// Also count sections that have overrides but no base section.
-	overrideSections := make(map[int]bool)
-	for pos := range overrides {
-		sec := pos.Y >> 4
-		if sec >= 0 && sec < 16 && chunk.Sections[sec] == nil {
-			if !overrideSections[sec] {
-				overrideSections[sec] = true
-				sectionCount++
-			}
 		}
 	}
 
 	w.BeginList("Sections", nbt.TagCompound, sectionCount)
 
-	for secY := 0; secY < 16; secY++ {
-		sec := chunk.Sections[secY]
-		if sec == nil && !overrideSections[secY] {
+	for secY, sec := range c.Sections {
+		if sec == nil {
 			continue
 		}
 
-		blocks := make([]byte, 4096)
-		data := make([]byte, 2048)
+		states := sec.States()
+		blocks := make([]byte, len(states))
+		data := make([]byte, len(states)/2)
+		add := make([]byte, len(states)/2)
 		hasAdd := false
 
-		// Fill from base section data.
-		if sec != nil {
-			for i := 0; i < 4096; i++ {
-				state := sec.Blocks[i]
-				blockID := state >> 4
-				meta := state & 0xF
-
-				blocks[i] = byte(blockID)
-				if blockID > 255 {
-					hasAdd = true
-				}
-				setNibble(data, i, byte(meta))
+		for i, s := range states {
+			v, err := enc.EncodeState(s)
+			if err != nil {
+				return nil, fmt.Errorf("anvil: chunk %v section %d: %w", c.Pos, secY, err)
 			}
-		}
-
-		// Apply overrides for this section.
-		baseY := secY << 4
-		for pos, stateID := range overrides {
-			if pos.Y>>4 != secY {
-				continue
-			}
-			lx := pos.X & 0xF
-			ly := pos.Y - baseY
-			lz := pos.Z & 0xF
-			i := ly*256 + lz*16 + lx
-
-			blockID := uint16(stateID) >> 4
-			meta := byte(stateID) & 0xF
-
+			state := uint16(v)
+			blockID := state >> 4
 			blocks[i] = byte(blockID)
+			setNibble(data, i, byte(state&0xF))
 			if blockID > 255 {
 				hasAdd = true
+				setNibble(add, i, byte(state>>12))
 			}
-			setNibble(data, i, meta)
 		}
 
 		w.BeginCompound("")
@@ -95,37 +72,19 @@ func EncodeChunkNBT(cx, cz int, chunk *gen.ChunkData, overrides map[world.BlockP
 		w.WriteByteArray("Blocks", blocks)
 
 		if hasAdd {
-			add := make([]byte, 2048)
-			if sec != nil {
-				for i := 0; i < 4096; i++ {
-					state := sec.Blocks[i]
-					setNibble(add, i, byte(state>>12))
-				}
-			}
-			// Re-apply overrides for Add nibbles.
-			for pos, stateID := range overrides {
-				if pos.Y>>4 != secY {
-					continue
-				}
-				lx := pos.X & 0xF
-				ly := pos.Y - baseY
-				lz := pos.Z & 0xF
-				i := ly*256 + lz*16 + lx
-				setNibble(add, i, byte(uint16(stateID)>>12))
-			}
 			w.WriteByteArray("Add", add)
 		}
 
 		w.WriteByteArray("Data", data)
 
 		// Full brightness.
-		light := make([]byte, 2048)
+		light := make([]byte, len(states)/2)
 		for i := range light {
 			light[i] = 0xFF
 		}
 		w.WriteByteArray("BlockLight", light)
 
-		skyLight := make([]byte, 2048)
+		skyLight := make([]byte, len(states)/2)
 		for i := range skyLight {
 			skyLight[i] = 0xFF
 		}
@@ -134,11 +93,16 @@ func EncodeChunkNBT(cx, cz int, chunk *gen.ChunkData, overrides map[world.BlockP
 		w.EndCompound()
 	}
 
-	// Biomes.
-	w.WriteByteArray("Biomes", chunk.Biomes[:])
+	biomes := make([]byte, len(c.Biomes))
+	for i, b := range c.Biomes {
+		biomes[i] = byte(b)
+	}
+	w.WriteByteArray("Biomes", biomes)
 
-	// HeightMap.
-	heightMap := computeHeightMap(chunk, overrides)
+	heightMap, err := computeHeightMap(c, enc)
+	if err != nil {
+		return nil, err
+	}
 	w.WriteIntArray("HeightMap", heightMap)
 
 	w.EndCompound() // Level
@@ -162,32 +126,34 @@ func setNibble(arr []byte, index int, val byte) {
 }
 
 // computeHeightMap calculates the highest non-air block for each x,z column.
-func computeHeightMap(chunk *gen.ChunkData, overrides map[world.BlockPos]int32) []int32 {
+func computeHeightMap(c *world.Chunk, enc StateEncoder) ([]int32, error) {
 	hm := make([]int32, 256)
 
-	for z := 0; z < 16; z++ {
-		for x := 0; x < 16; x++ {
-			highest := int32(0)
-			for y := 255; y >= 0; y-- {
-				state := chunk.GetBlock(x, y, z)
-				if state != 0 {
-					highest = int32(y + 1)
-					break
+	for secY := len(c.Sections) - 1; secY >= 0; secY-- {
+		sec := c.Sections[secY]
+		if sec == nil {
+			continue
+		}
+		states := sec.States()
+		for localY := 15; localY >= 0; localY-- {
+			for z := range 16 {
+				for x := range 16 {
+					idx := z*16 + x
+					y := int32(secY*16 + localY)
+					if hm[idx] > y {
+						continue
+					}
+					v, err := enc.EncodeState(states[world.SectionBlockIndex(x, localY, z)])
+					if err != nil {
+						return nil, fmt.Errorf("anvil: chunk %v: %w", c.Pos, err)
+					}
+					if v != 0 && y+1 > hm[idx] {
+						hm[idx] = y + 1
+					}
 				}
 			}
-			hm[z*16+x] = highest
 		}
 	}
 
-	// Adjust for overrides.
-	for pos, stateID := range overrides {
-		lx := pos.X & 0xF
-		lz := pos.Z & 0xF
-		idx := lz*16 + lx
-		if stateID != 0 && int32(pos.Y+1) > hm[idx] {
-			hm[idx] = int32(pos.Y + 1)
-		}
-	}
-
-	return hm
+	return hm, nil
 }

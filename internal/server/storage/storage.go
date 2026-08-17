@@ -6,12 +6,12 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/pkg/world/anvil"
-	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
 // Storage handles file-based persistence for config, world, and player data.
@@ -100,16 +100,88 @@ func (s *Storage) HasSavedWorld() bool {
 
 // SaveBlockOverrides writes the block overrides map to world/overrides.json.
 func (s *Storage) SaveBlockOverrides(w *world.World) error {
-	overrides := w.GetBlockOverrides()
-	entries := make([]BlockOverrideEntry, 0, len(overrides))
-	for pos, stateID := range overrides {
-		entries = append(entries, BlockOverrideEntry{
-			X: pos.X, Y: pos.Y, Z: pos.Z, StateID: stateID,
-		})
+	entries, err := extractOverrides(w)
+	if err != nil {
+		return err
 	}
 
 	path := filepath.Join(s.dir, "world", "overrides.json")
+
 	return s.atomicWriteJSON(path, entries)
+}
+
+// extractOverrides recovers the override list by diffing each resident chunk
+// against what the generator produces for that position.
+//
+// It is O(resident chunks × 65,536) and it is temporary. The cost is real: a
+// 500-radius pre-generated world is a million chunks and this diff would be
+// unusable on it. It is acceptable for one milestone because SaveWorldAnvil
+// already walks every resident chunk on every autosave, so the save path was
+// already proportional to the resident world.
+//
+// DELETE IN M11.3, together with foldOverrides and overrides.json itself.
+func extractOverrides(w *world.World) ([]BlockOverrideEntry, error) {
+	dim := w.Dimension()
+	adapter := w.Adapter()
+	air := w.Air()
+
+	var entries []BlockOverrideEntry
+	var walkErr error
+
+	w.ForEachChunk(func(pos world.ChunkPos, chunk *world.Chunk) {
+		if walkErr != nil {
+			return
+		}
+		pristine := w.Regenerate(pos)
+		for section := range dim.Sections() {
+			live, base := chunk.Sections[section], pristine.Sections[section]
+			if live == base {
+				continue
+			}
+			for index := range world.BlocksPerSection {
+				got, want := live.At(index), base.At(index)
+				if live == nil {
+					got = air
+				}
+				if base == nil {
+					want = air
+				}
+				if got == want {
+					continue
+				}
+				stateID, err := adapter.EncodeState(got)
+				if err != nil {
+					walkErr = err
+
+					return
+				}
+				entries = append(entries, BlockOverrideEntry{
+					X:       pos.X*16 + index%16,
+					Y:       dim.MinY + section*16 + index/256,
+					Z:       pos.Z*16 + (index/16)%16,
+					StateID: stateID,
+				})
+			}
+		}
+	})
+	if walkErr != nil {
+		return nil, fmt.Errorf("extract block overrides: %w", walkErr)
+	}
+
+	// Sorted so a save is reproducible. The map this replaced iterated in a
+	// random order, so the file's ordering was never load-bearing.
+	slices.SortFunc(entries, func(a, b BlockOverrideEntry) int {
+		if a.X != b.X {
+			return a.X - b.X
+		}
+		if a.Y != b.Y {
+			return a.Y - b.Y
+		}
+
+		return a.Z - b.Z
+	})
+
+	return entries, nil
 }
 
 // LoadBlockOverrides reads world/overrides.json and restores block overrides.
@@ -128,13 +200,29 @@ func (s *Storage) LoadBlockOverrides(w *world.World) error {
 		return fmt.Errorf("parse block overrides: %w", err)
 	}
 
-	overrides := make(map[world.BlockPos]int32, len(entries))
+	if err := foldOverrides(w, entries); err != nil {
+		return err
+	}
+	s.log.Info("loaded block overrides", "count", len(entries))
+
+	return nil
+}
+
+// foldOverrides writes overrides.json's contents into the chunks they belong
+// to. It exists because M11.2 deleted the override map while M11.3 still owns
+// the on-disk format.
+//
+// DELETE IN M11.3, together with extractOverrides and overrides.json itself.
+func foldOverrides(w *world.World, entries []BlockOverrideEntry) error {
+	adapter := w.Adapter()
 	for _, e := range entries {
-		overrides[world.BlockPos{X: e.X, Y: e.Y, Z: e.Z}] = e.StateID
+		state, err := adapter.DecodeState(e.StateID)
+		if err != nil {
+			return fmt.Errorf("block override at %d,%d,%d: %w", e.X, e.Y, e.Z, err)
+		}
+		w.SetBlock(world.BlockPos{X: e.X, Y: e.Y, Z: e.Z}, state)
 	}
 
-	w.SetBlockOverrides(overrides)
-	s.log.Info("loaded block overrides", "count", len(overrides))
 	return nil
 }
 
@@ -201,37 +289,27 @@ func (s *Storage) SaveWorldAnvil(w *world.World) error {
 		return fmt.Errorf("create region dir: %w", err)
 	}
 
-	// First pass: collect chunk positions under a single read lock.
-	// We must NOT call OverridesForChunk inside ForEachChunk — both acquire
-	// w.mu.RLock, and a pending w.mu.Lock (from the tick loop) would cause
-	// the second RLock to deadlock.
-	type chunkEntry struct {
-		pos   gen.ChunkPos
-		chunk *gen.ChunkData
-	}
-	var chunks []chunkEntry
-	w.ForEachChunk(func(pos gen.ChunkPos, chunk *gen.ChunkData) {
-		chunks = append(chunks, chunkEntry{pos, chunk})
-	})
+	// A snapshot is a pointer copy, and the chunks in it are immutable, so
+	// encoding runs against a consistent world while the tick loop keeps
+	// writing.
+	snapshot := w.Snapshot()
 
-	// Second pass: encode each chunk with its overrides (locks acquired sequentially).
 	type regionKey struct{ rx, rz int }
-	regions := make(map[regionKey]map[gen.ChunkPos][]byte)
+	regions := make(map[regionKey]map[world.ChunkPos][]byte)
 
-	for _, ce := range chunks {
-		overrides := w.OverridesForChunk(ce.pos.X, ce.pos.Z)
-
-		nbtData, err := anvil.EncodeChunkNBT(ce.pos.X, ce.pos.Z, ce.chunk, overrides)
+	for pos, chunk := range snapshot.Chunks {
+		nbtData, err := anvil.EncodeChunkNBT(chunk, w.Adapter())
 		if err != nil {
-			s.log.Error("encode chunk NBT", "cx", ce.pos.X, "cz", ce.pos.Z, "error", err)
+			s.log.Error("encode chunk NBT", "cx", pos.X, "cz", pos.Z, "error", err)
+
 			continue
 		}
 
-		rk := regionKey{rx: ce.pos.X >> 5, rz: ce.pos.Z >> 5}
+		rk := regionKey{rx: pos.X >> 5, rz: pos.Z >> 5}
 		if regions[rk] == nil {
-			regions[rk] = make(map[gen.ChunkPos][]byte)
+			regions[rk] = make(map[world.ChunkPos][]byte)
 		}
-		regions[rk][ce.pos] = nbtData
+		regions[rk][pos] = nbtData
 	}
 
 	for rk, chunks := range regions {

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/go-theft-craft/server/pkg/world/gen"
+	"github.com/go-theft-craft/server/pkg/world"
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 
 // SaveRegion writes all provided chunks to a .mca region file.
 // chunks maps chunk positions to their uncompressed NBT data.
-func SaveRegion(dir string, rx, rz int, chunks map[gen.ChunkPos][]byte) error {
+func SaveRegion(dir string, rx, rz int, chunks map[world.ChunkPos][]byte) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create region dir: %w", err)
 	}

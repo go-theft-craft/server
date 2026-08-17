@@ -15,14 +15,14 @@ func NewCaveGenerator(seed int64) *CaveGenerator {
 }
 
 // Carve removes blocks to form caves in the chunk.
-func (cg *CaveGenerator) Carve(c *ChunkData, chunkX, chunkZ int, heights *[16][16]int) {
+func (cg *CaveGenerator) Carve(c setter, chunkX, chunkZ int, heights *[16][16]int) {
 	const (
 		threshold = 0.55
 		lavaLevel = 10
 	)
 
-	for x := 0; x < 16; x++ {
-		for z := 0; z < 16; z++ {
+	for x := range 16 {
+		for z := range 16 {
 			bx := float64(chunkX*16 + x)
 			bz := float64(chunkZ*16 + z)
 			maxY := heights[x][z]
@@ -40,9 +40,9 @@ func (cg *CaveGenerator) Carve(c *ChunkData, chunkX, chunkZ int, heights *[16][1
 				density := (n1 + n2) / 2.0
 				if density > threshold {
 					if y < lavaLevel {
-						c.SetBlock(x, y, z, blockLava<<4)
+						c.set(x, y, z, c.p.lava)
 					} else {
-						c.SetBlock(x, y, z, blockAir<<4)
+						c.set(x, y, z, c.p.air)
 					}
 				}
 			}

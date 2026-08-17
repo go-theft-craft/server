@@ -10,13 +10,18 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+
+	"github.com/go-theft-craft/server/pkg/world"
+	"github.com/go-theft-craft/server/pkg/world/v47"
 )
 
 var updateGolden = flag.Bool("update", false, "rewrite the generator golden table")
 
 // goldenChunks is the fixed chunk set the golden table covers: the origin, a
 // nearby chunk in a different quadrant, and two far ones.
-var goldenChunks = []ChunkPos{
+var goldenChunks = []world.ChunkPos{
 	{X: 0, Z: 0},
 	{X: 7, Z: -3},
 	{X: 100, Z: 100},
@@ -30,14 +35,35 @@ const goldenSeed = 12345
 // underneath it: a hash that moves means a block landed somewhere else, which
 // is exactly the failure a mechanical rewrite of forty SetBlock calls makes.
 func TestGeneratorGolden(t *testing.T) {
+	set, err := v1_8.Data()
+	if err != nil {
+		t.Fatalf("v1_8.Data: %v", err)
+	}
+	reg, err := world.NewJavaRegistry(set)
+	if err != nil {
+		t.Fatalf("NewJavaRegistry: %v", err)
+	}
+	adapter, err := v47.New(reg, set)
+	if err != nil {
+		t.Fatalf("v47.New: %v", err)
+	}
+	dim := world.Overworld18()
+
 	got := map[string]string{}
 	for name, g := range map[string]Generator{
 		"flat":    NewFlatGenerator(goldenSeed),
 		"default": NewDefaultGenerator(goldenSeed),
 	} {
+		if err := g.(world.Binder).Bind(reg); err != nil {
+			t.Fatalf("Bind %s: %v", name, err)
+		}
 		for _, pos := range goldenChunks {
+			b := world.NewBuilder(dim, pos, reg.Air())
+			if err := g.Generate(pos, b); err != nil {
+				t.Fatalf("Generate %s %v: %v", name, pos, err)
+			}
 			key := fmt.Sprintf("%s/%d,%d", name, pos.X, pos.Z)
-			got[key] = hashChunk(g.Generate(pos.X, pos.Z))
+			got[key] = hashChunk(t, adapter, b.Build())
 		}
 	}
 
@@ -87,8 +113,11 @@ func sortStrings(s []string) {
 
 // hashChunk digests a chunk's block data and biomes. A nil section is a marker
 // byte rather than 8192 zeros, so an all-air section and an absent one stay
-// distinguishable.
-func hashChunk(c *ChunkData) string {
+// distinguishable. Block states are hashed as protocol 47 encodes them, which
+// is what the table was created from.
+func hashChunk(t *testing.T, enc *v47.Adapter, c *world.Chunk) string {
+	t.Helper()
+
 	h := sha256.New()
 	var buf [2]byte
 	for _, sec := range c.Sections {
@@ -98,12 +127,18 @@ func hashChunk(c *ChunkData) string {
 			continue
 		}
 		h.Write([]byte{0x00})
-		for _, state := range sec.Blocks {
-			binary.LittleEndian.PutUint16(buf[:], state)
+		for _, state := range sec.States() {
+			v, err := enc.EncodeState(state)
+			if err != nil {
+				t.Fatalf("EncodeState: %v", err)
+			}
+			binary.LittleEndian.PutUint16(buf[:], uint16(v))
 			h.Write(buf[:])
 		}
 	}
-	h.Write(c.Biomes[:])
+	for _, b := range c.Biomes {
+		h.Write([]byte{byte(b)})
+	}
 
 	return hex.EncodeToString(h.Sum(nil))
 }

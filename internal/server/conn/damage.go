@@ -79,7 +79,7 @@ func (c *Connection) checkContactDamage(x, y, z float64) {
 	for bx := minX; bx <= maxX; bx++ {
 		for by := minY; by <= maxY; by++ {
 			for bz := minZ; bz <= maxZ; bz++ {
-				if c.world.GetBlock(bx, by, bz)>>4 == cactusBlockID {
+				if c.world.GetBlockID(bx, by, bz)>>4 == cactusBlockID {
 					c.applyDamage(cactusDamage, "death.attack.cactus")
 
 					return

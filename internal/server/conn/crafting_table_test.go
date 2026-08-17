@@ -19,7 +19,7 @@ const (
 func openTableAt(t *testing.T, c *Connection, x, y, z int) {
 	t.Helper()
 
-	c.world.SetBlock(x, y, z, int32(craftingTableBlockID)<<4)
+	c.world.SetBlockID(x, y, z, int32(craftingTableBlockID)<<4)
 	click := placeOnTopOf(x, y, z, player.EmptySlot)
 	if err := c.handleBlockPlace(click); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
@@ -60,7 +60,7 @@ func TestCraftingTable_SneakingPlacesInstead(t *testing.T) {
 	c.self.Inventory.SetHeldSlot(0)
 	c.self.SetSneaking(true)
 
-	c.world.SetBlock(0, 4, 0, int32(craftingTableBlockID)<<4)
+	c.world.SetBlockID(0, 4, 0, int32(craftingTableBlockID)<<4)
 	if err := c.handleBlockPlace(placeOnTopOf(0, 4, 0, dirt(10))); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
 	}
@@ -68,7 +68,7 @@ func TestCraftingTable_SneakingPlacesInstead(t *testing.T) {
 	if c.windowID != 0 {
 		t.Errorf("windowID = %d, want 0: sneaking does not open the table", c.windowID)
 	}
-	if got := c.world.GetBlock(0, 5, 0); got != int32(3)<<4 {
+	if got := c.world.GetBlockID(0, 5, 0); got != int32(3)<<4 {
 		t.Errorf("block above the table = %d, want dirt", got)
 	}
 }

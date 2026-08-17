@@ -15,8 +15,6 @@ import (
 
 	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
-	"github.com/go-theft-craft/server/pkg/world"
-	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
 // These drive the real client half from minecraft-protocol against the real
@@ -52,7 +50,7 @@ func clientPair(t *testing.T, configure func(*config.Config)) (*protocol.Stream,
 		serverConn,
 		settings,
 		slog.New(slog.DiscardHandler),
-		world.NewWorld(gen.NewFlatGenerator(0)),
+		newTestWorld(t),
 		player.NewManager(8),
 		nil,
 		gameData,

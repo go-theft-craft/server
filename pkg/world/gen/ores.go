@@ -1,5 +1,9 @@
 package gen
 
+import (
+	"github.com/go-theft-craft/server/pkg/world"
+)
+
 // OreGenerator places ore veins in stone using seeded per-chunk RNG.
 type OreGenerator struct {
 	seed int64
@@ -11,7 +15,9 @@ func NewOreGenerator(seed int64) *OreGenerator {
 }
 
 type oreConfig struct {
-	block    uint16 // blockID
+	// block picks the ore out of the palette, since a palette is only known
+	// once the generator is bound and this table is package state.
+	block    func(palette) world.State
 	minY     int
 	maxY     int
 	veinSize int // max blocks per vein
@@ -19,16 +25,16 @@ type oreConfig struct {
 }
 
 var ores = []oreConfig{
-	{blockCoalOre, 0, 128, 12, 20},
-	{blockIronOre, 0, 64, 8, 20},
-	{blockGoldOre, 0, 32, 8, 2},
-	{blockDiamondOre, 0, 16, 6, 1},
-	{blockRedstoneOre, 0, 16, 6, 8},
-	{blockLapisOre, 0, 32, 6, 1},
+	{func(p palette) world.State { return p.coalOre }, 0, 128, 12, 20},
+	{func(p palette) world.State { return p.ironOre }, 0, 64, 8, 20},
+	{func(p palette) world.State { return p.goldOre }, 0, 32, 8, 2},
+	{func(p palette) world.State { return p.diamondOre }, 0, 16, 6, 1},
+	{func(p palette) world.State { return p.redstoneOre }, 0, 16, 6, 8},
+	{func(p palette) world.State { return p.lapisOre }, 0, 32, 6, 1},
 }
 
 // Place scatters ore veins within the chunk.
-func (og *OreGenerator) Place(c *ChunkData, chunkX, chunkZ int, heights *[16][16]int) {
+func (og *OreGenerator) Place(c setter, chunkX, chunkZ int, heights *[16][16]int) {
 	// Seed RNG deterministically per chunk.
 	rng := newChunkRNG(og.seed, chunkX, chunkZ, 500)
 
@@ -42,17 +48,17 @@ func (og *OreGenerator) Place(c *ChunkData, chunkX, chunkZ int, heights *[16][16
 				continue
 			}
 
-			og.placeVein(c, x, y, z, ore.block, ore.veinSize, heights, rng)
+			og.placeVein(c, x, y, z, ore.block(c.p), ore.veinSize, heights, rng)
 		}
 	}
 }
 
-func (og *OreGenerator) placeVein(c *ChunkData, cx, cy, cz int, blockID uint16, size int, heights *[16][16]int, rng *chunkRNG) {
+func (og *OreGenerator) placeVein(c setter, cx, cy, cz int, ore world.State, size int, heights *[16][16]int, rng *chunkRNG) {
 	for range size {
 		if cx >= 0 && cx < 16 && cz >= 0 && cz < 16 && cy >= 1 && cy < heights[cx][cz] {
 			// Only replace stone.
-			if c.GetBlock(cx, cy, cz) == blockStone<<4 {
-				c.SetBlock(cx, cy, cz, blockID<<4)
+			if c.get(cx, cy, cz) == c.p.stone {
+				c.set(cx, cy, cz, ore)
 			}
 		}
 

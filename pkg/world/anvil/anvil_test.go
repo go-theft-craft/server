@@ -10,8 +10,30 @@ import (
 	"testing"
 
 	"github.com/go-theft-craft/server/pkg/world"
-	"github.com/go-theft-craft/server/pkg/world/gen"
 )
+
+// identityEncoder makes a handle its own wire value, so these tests can name a
+// protocol 47 block state directly instead of building a whole registry.
+type identityEncoder struct{}
+
+func (identityEncoder) EncodeState(s world.State) (int32, error) { return int32(s), nil }
+
+// newChunk returns an empty column of Java 1.8's overworld.
+func newChunk(cx, cz int) *world.Chunk {
+	dim := world.Overworld18()
+
+	return &world.Chunk{
+		Pos:      world.ChunkPos{X: cx, Z: cz},
+		Sections: make([]*world.Section, dim.Sections()),
+	}
+}
+
+// setBlock writes one block into a column under construction.
+func setBlock(c *world.Chunk, x, y, z int, state world.State) {
+	dim := world.Overworld18()
+	index := dim.SectionIndex(y)
+	c.Sections[index] = c.Sections[index].With(world.SectionBlockIndex(x, y&0xF, z), state)
+}
 
 func TestSetNibble(t *testing.T) {
 	arr := make([]byte, 4)
@@ -37,17 +59,15 @@ func TestSetNibble(t *testing.T) {
 }
 
 func TestEncodeChunkNBT(t *testing.T) {
-	chunk := &gen.ChunkData{}
+	chunk := newChunk(0, 0)
 	// Place a stone block (ID=1, meta=0 → state=0x10) at local (0, 0, 0).
-	chunk.SetBlock(0, 0, 0, 0x10)
+	setBlock(chunk, 0, 0, 0, 0x10)
 	// Place grass (ID=2, meta=0 → state=0x20) at local (1, 64, 1).
-	chunk.SetBlock(1, 64, 1, 0x20)
+	setBlock(chunk, 1, 64, 1, 0x20)
+	// Dirt (ID=3, meta=0) where a player put it.
+	setBlock(chunk, 2, 10, 3, 0x30)
 
-	overrides := map[world.BlockPos]int32{
-		{X: 2, Y: 10, Z: 3}: 0x30, // dirt (ID=3, meta=0)
-	}
-
-	data, err := EncodeChunkNBT(0, 0, chunk, overrides)
+	data, err := EncodeChunkNBT(chunk, identityEncoder{})
 	if err != nil {
 		t.Fatalf("EncodeChunkNBT failed: %v", err)
 	}
@@ -72,11 +92,11 @@ func TestEncodeChunkNBT(t *testing.T) {
 }
 
 func TestEncodeChunkNBTWithHighBlockID(t *testing.T) {
-	chunk := &gen.ChunkData{}
+	chunk := newChunk(0, 0)
 	// Block ID 300 (0x12C), meta 5 → state = 300<<4 | 5 = 0x12C5
-	chunk.SetBlock(0, 0, 0, 0x12C5)
+	setBlock(chunk, 0, 0, 0, 0x12C5)
 
-	data, err := EncodeChunkNBT(0, 0, chunk, nil)
+	data, err := EncodeChunkNBT(chunk, identityEncoder{})
 	if err != nil {
 		t.Fatalf("EncodeChunkNBT failed: %v", err)
 	}
@@ -88,13 +108,16 @@ func TestEncodeChunkNBTWithHighBlockID(t *testing.T) {
 }
 
 func TestComputeHeightMap(t *testing.T) {
-	chunk := &gen.ChunkData{}
+	chunk := newChunk(0, 0)
 	// Place block at y=64.
-	chunk.SetBlock(0, 64, 0, 0x10)
+	setBlock(chunk, 0, 64, 0, 0x10)
 	// Place block at y=100.
-	chunk.SetBlock(5, 100, 5, 0x20)
+	setBlock(chunk, 5, 100, 5, 0x20)
 
-	hm := computeHeightMap(chunk, nil)
+	hm, err := computeHeightMap(chunk, identityEncoder{})
+	if err != nil {
+		t.Fatalf("computeHeightMap: %v", err)
+	}
 
 	if hm[0] != 65 { // y=64 → heightmap = 65
 		t.Fatalf("expected heightmap[0]=65, got %d", hm[0])
@@ -107,15 +130,15 @@ func TestComputeHeightMap(t *testing.T) {
 	}
 }
 
-func TestComputeHeightMapWithOverrides(t *testing.T) {
-	chunk := &gen.ChunkData{}
-	chunk.SetBlock(0, 64, 0, 0x10)
+func TestComputeHeightMapTakesTheHighestBlock(t *testing.T) {
+	chunk := newChunk(0, 0)
+	setBlock(chunk, 0, 64, 0, 0x10)
+	setBlock(chunk, 0, 200, 0, 0x10)
 
-	overrides := map[world.BlockPos]int32{
-		{X: 0, Y: 200, Z: 0}: 0x10, // override higher than base
+	hm, err := computeHeightMap(chunk, identityEncoder{})
+	if err != nil {
+		t.Fatalf("computeHeightMap: %v", err)
 	}
-
-	hm := computeHeightMap(chunk, overrides)
 	if hm[0] != 201 {
 		t.Fatalf("expected heightmap[0]=201, got %d", hm[0])
 	}
@@ -124,15 +147,15 @@ func TestComputeHeightMapWithOverrides(t *testing.T) {
 func TestSaveRegion(t *testing.T) {
 	dir := t.TempDir()
 
-	chunk := &gen.ChunkData{}
-	chunk.SetBlock(0, 0, 0, 0x10) // stone
+	chunk := newChunk(0, 0)
+	setBlock(chunk, 0, 0, 0, 0x10) // stone
 
-	nbtData, err := EncodeChunkNBT(0, 0, chunk, nil)
+	nbtData, err := EncodeChunkNBT(chunk, identityEncoder{})
 	if err != nil {
 		t.Fatalf("encode chunk: %v", err)
 	}
 
-	chunks := map[gen.ChunkPos][]byte{
+	chunks := map[world.ChunkPos][]byte{
 		{X: 0, Z: 0}: nbtData,
 	}
 
@@ -216,15 +239,15 @@ func TestSaveRegion(t *testing.T) {
 func TestSaveRegionMultipleChunks(t *testing.T) {
 	dir := t.TempDir()
 
-	chunks := make(map[gen.ChunkPos][]byte)
-	for i := 0; i < 3; i++ {
-		chunk := &gen.ChunkData{}
-		chunk.SetBlock(0, 0, 0, 0x10)
-		nbtData, err := EncodeChunkNBT(i, 0, chunk, nil)
+	chunks := make(map[world.ChunkPos][]byte)
+	for i := range 3 {
+		chunk := newChunk(i, 0)
+		setBlock(chunk, 0, 0, 0, 0x10)
+		nbtData, err := EncodeChunkNBT(chunk, identityEncoder{})
 		if err != nil {
 			t.Fatalf("encode chunk %d: %v", i, err)
 		}
-		chunks[gen.ChunkPos{X: i, Z: 0}] = nbtData
+		chunks[world.ChunkPos{X: i, Z: 0}] = nbtData
 	}
 
 	if err := SaveRegion(dir, 0, 0, chunks); err != nil {

@@ -19,7 +19,6 @@ import (
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
-	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
 // windowKind names what the open window is. The player's own inventory is
@@ -56,7 +55,7 @@ type Connection struct {
 	self    *player.Player
 
 	// Chunk tracking (only accessed from Handle goroutine, no mutex needed)
-	loadedChunks map[gen.ChunkPos]struct{}
+	loadedChunks map[world.ChunkPos]struct{}
 
 	// KeepAlive tracking
 	lastKeepAliveID   int32
@@ -162,7 +161,7 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		world:          w,
 		storage:        store,
 		players:        players,
-		loadedChunks:   make(map[gen.ChunkPos]struct{}),
+		loadedChunks:   make(map[world.ChunkPos]struct{}),
 		keepAliveAcked: true,
 		cursorSlot:     player.EmptySlot,
 		craftingOutput: player.EmptySlot,

@@ -3,6 +3,8 @@ package conn
 import (
 	"testing"
 
+	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/pkg/world"
@@ -13,7 +15,7 @@ import (
 func openChestAt(t *testing.T, c *Connection, x, y, z int) {
 	t.Helper()
 
-	c.world.SetBlock(x, y, z, int32(chestBlockID)<<4)
+	c.world.SetBlockID(x, y, z, int32(chestBlockID)<<4)
 	click := placeOnTopOf(x, y, z, player.EmptySlot)
 	if err := c.handleBlockPlace(click); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
@@ -210,7 +212,7 @@ func TestChest_SneakingPlacesInstead(t *testing.T) {
 	c.self.Inventory.SetSlot(0, dirt(10))
 	c.self.Inventory.SetHeldSlot(0)
 
-	c.world.SetBlock(0, 4, 0, int32(chestBlockID)<<4)
+	c.world.SetBlockID(0, 4, 0, int32(chestBlockID)<<4)
 	if err := c.handleBlockPlace(placeOnTopOf(0, 4, 0, dirt(10))); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
 	}
@@ -218,7 +220,7 @@ func TestChest_SneakingPlacesInstead(t *testing.T) {
 	if c.windowID != 0 {
 		t.Errorf("windowID = %d, want no window opened while sneaking", c.windowID)
 	}
-	if got := c.world.GetBlock(0, 5, 0) >> 4; got != 3 {
+	if got := c.world.GetBlockID(0, 5, 0) >> 4; got != 3 {
 		t.Errorf("block above the chest = %d, want dirt placed", got)
 	}
 }
@@ -233,16 +235,20 @@ func TestChest_PlacedChestIsInTheChunkAClientRejoinsWith(t *testing.T) {
 	c.self.Inventory.SetHeldSlot(0)
 
 	// Place on top of the block at (5, 4, 5), so the chest lands at (5, 5, 5).
-	c.world.SetBlock(5, 4, 5, int32(1)<<4)
+	c.world.SetBlockID(5, 4, 5, int32(1)<<4)
 	if err := c.handleBlockPlace(placeOnTopOf(5, 4, 5, player.Slot{BlockID: chestBlockID, ItemCount: 1})); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
 	}
 
-	if got := c.world.GetBlock(5, 5, 5) >> 4; got != chestBlockID {
+	if got := c.world.GetBlockID(5, 5, 5) >> 4; got != chestBlockID {
 		t.Fatalf("world holds block %d at the placed position, want %d", got, chestBlockID)
 	}
 
-	chunk := c.world.EncodeChunk(0, 0)
+	encoded, err := c.world.Adapter().EncodeChunk(c.world.Chunk(world.ChunkPos{}))
+	if err != nil {
+		t.Fatalf("EncodeChunk: %v", err)
+	}
+	chunk := encoded.(*v1_8.PlayClientboundMapChunk)
 	if chunk.BitMap&(1<<0) == 0 {
 		t.Fatal("section 0 is missing from the chunk a rejoining client gets")
 	}
@@ -268,12 +274,12 @@ func TestChest_PlacedChestHasAValidFacing(t *testing.T) {
 		c.self.Inventory.SetSlot(0, player.Slot{BlockID: chestBlockID, ItemCount: 1})
 		c.self.Inventory.SetHeldSlot(0)
 
-		c.world.SetBlock(5, 4, 5, int32(1)<<4)
+		c.world.SetBlockID(5, 4, 5, int32(1)<<4)
 		if err := c.handleBlockPlace(placeOnTopOf(5, 4, 5, player.Slot{BlockID: chestBlockID, ItemCount: 1})); err != nil {
 			t.Fatalf("handleBlockPlace: %v", err)
 		}
 
-		state := c.world.GetBlock(5, 5, 5)
+		state := c.world.GetBlockID(5, 5, 5)
 		if got := state >> 4; got != chestBlockID {
 			t.Fatalf("yaw %v: placed block %d, want a chest", yaw, got)
 		}
@@ -306,8 +312,8 @@ func TestChest_FacingIsOppositeThePlayer(t *testing.T) {
 func TestChest_TwoAdjacentChestsOpenOneDoubleWindow(t *testing.T) {
 	c := newInventoryTestConn(t)
 
-	c.world.SetBlock(4, 4, 4, int32(chestBlockID)<<4|2)
-	c.world.SetBlock(5, 4, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(4, 4, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(5, 4, 4, int32(chestBlockID)<<4|2)
 
 	if err := c.openChest(5, 4, 4); err != nil {
 		t.Fatalf("openChest: %v", err)
@@ -339,8 +345,8 @@ func TestChest_TwoAdjacentChestsOpenOneDoubleWindow(t *testing.T) {
 // take the other's items with it.
 func TestChest_DoubleChestHalvesStoreSeparately(t *testing.T) {
 	c := newInventoryTestConn(t)
-	c.world.SetBlock(4, 4, 4, int32(chestBlockID)<<4|2)
-	c.world.SetBlock(5, 4, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(4, 4, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(5, 4, 4, int32(chestBlockID)<<4|2)
 
 	if err := c.openChest(4, 4, 4); err != nil {
 		t.Fatalf("openChest: %v", err)
@@ -370,12 +376,12 @@ func TestChest_TrappedChestIsAContainerToo(t *testing.T) {
 	c.self.Inventory.SetSlot(0, player.Slot{BlockID: trappedChestBlockID, ItemCount: 1})
 	c.self.Inventory.SetHeldSlot(0)
 
-	c.world.SetBlock(5, 4, 5, int32(1)<<4)
+	c.world.SetBlockID(5, 4, 5, int32(1)<<4)
 	if err := c.handleBlockPlace(placeOnTopOf(5, 4, 5, player.Slot{BlockID: trappedChestBlockID, ItemCount: 1})); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
 	}
 
-	state := c.world.GetBlock(5, 5, 5)
+	state := c.world.GetBlockID(5, 5, 5)
 	if got := state >> 4; got != trappedChestBlockID {
 		t.Fatalf("placed block %d, want a trapped chest", got)
 	}
@@ -395,8 +401,8 @@ func TestChest_TrappedChestIsAContainerToo(t *testing.T) {
 // A trapped chest pairs with a trapped chest, never with a plain one.
 func TestChest_TrappedChestDoesNotPairWithAPlainChest(t *testing.T) {
 	c := newInventoryTestConn(t)
-	c.world.SetBlock(4, 4, 4, int32(trappedChestBlockID)<<4|2)
-	c.world.SetBlock(5, 4, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(4, 4, 4, int32(trappedChestBlockID)<<4|2)
+	c.world.SetBlockID(5, 4, 4, int32(chestBlockID)<<4|2)
 
 	if err := c.openChest(4, 4, 4); err != nil {
 		t.Fatalf("openChest: %v", err)
@@ -415,7 +421,7 @@ func placeChest(t *testing.T, c *Connection, kind int16, x, y, z int) {
 	c.self.SetGameMode(packet.GameModeSurvival)
 	c.self.Inventory.SetSlot(0, player.Slot{BlockID: kind, ItemCount: 1})
 	c.self.Inventory.SetHeldSlot(0)
-	c.world.SetBlock(x, y, z, int32(1)<<4)
+	c.world.SetBlockID(x, y, z, int32(1)<<4)
 
 	if err := c.handleBlockPlace(placeOnTopOf(x, y, z, player.Slot{BlockID: kind, ItemCount: 1})); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
@@ -429,14 +435,14 @@ func TestChest_CannotPlaceAThirdChestAgainstAPair(t *testing.T) {
 	c := newInventoryTestConn(t)
 
 	// A pair along x: (4,5,4) and (5,5,4).
-	c.world.SetBlock(4, 5, 4, int32(chestBlockID)<<4|2)
-	c.world.SetBlock(5, 5, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(4, 5, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(5, 5, 4, int32(chestBlockID)<<4|2)
 
 	// Extending the row is refused: (6,5,4) touches a chest that is already
 	// half of a double.
 	placeChest(t, c, chestBlockID, 6, 4, 4)
 
-	if got := c.world.GetBlock(6, 5, 4); got != 0 {
+	if got := c.world.GetBlockID(6, 5, 4); got != 0 {
 		t.Errorf("block at the refused position = %d, want nothing placed", got)
 	}
 }
@@ -446,12 +452,12 @@ func TestChest_CannotPlaceAThirdChestAgainstAPair(t *testing.T) {
 func TestChest_CannotPlaceBetweenTwoLoneChests(t *testing.T) {
 	c := newInventoryTestConn(t)
 
-	c.world.SetBlock(3, 5, 4, int32(chestBlockID)<<4|2)
-	c.world.SetBlock(5, 5, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(3, 5, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(5, 5, 4, int32(chestBlockID)<<4|2)
 
 	placeChest(t, c, chestBlockID, 4, 4, 4)
 
-	if got := c.world.GetBlock(4, 5, 4); got != 0 {
+	if got := c.world.GetBlockID(4, 5, 4); got != 0 {
 		t.Errorf("block between two chests = %d, want nothing placed", got)
 	}
 }
@@ -460,11 +466,11 @@ func TestChest_CannotPlaceBetweenTwoLoneChests(t *testing.T) {
 func TestChest_CanPlaceBesideALoneChest(t *testing.T) {
 	c := newInventoryTestConn(t)
 
-	c.world.SetBlock(4, 5, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(4, 5, 4, int32(chestBlockID)<<4|2)
 
 	placeChest(t, c, chestBlockID, 5, 4, 4)
 
-	if got := c.world.GetBlock(5, 5, 4) >> 4; got != chestBlockID {
+	if got := c.world.GetBlockID(5, 5, 4) >> 4; got != chestBlockID {
 		t.Errorf("block beside a lone chest = %d, want a chest placed", got)
 	}
 }
@@ -474,12 +480,12 @@ func TestChest_CanPlaceBesideALoneChest(t *testing.T) {
 func TestChest_TrappedChestIgnoresPlainChestsWhenPlacing(t *testing.T) {
 	c := newInventoryTestConn(t)
 
-	c.world.SetBlock(3, 5, 4, int32(chestBlockID)<<4|2)
-	c.world.SetBlock(5, 5, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(3, 5, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(5, 5, 4, int32(chestBlockID)<<4|2)
 
 	placeChest(t, c, trappedChestBlockID, 4, 4, 4)
 
-	if got := c.world.GetBlock(4, 5, 4) >> 4; got != trappedChestBlockID {
+	if got := c.world.GetBlockID(4, 5, 4) >> 4; got != trappedChestBlockID {
 		t.Errorf("block between two plain chests = %d, want a trapped chest placed", got)
 	}
 }
@@ -488,13 +494,13 @@ func TestChest_TrappedChestIgnoresPlainChestsWhenPlacing(t *testing.T) {
 // stack when it predicted the placement.
 func TestChest_RefusedPlacementKeepsTheItem(t *testing.T) {
 	c := newInventoryTestConn(t)
-	c.world.SetBlock(4, 5, 4, int32(chestBlockID)<<4|2)
-	c.world.SetBlock(5, 5, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(4, 5, 4, int32(chestBlockID)<<4|2)
+	c.world.SetBlockID(5, 5, 4, int32(chestBlockID)<<4|2)
 
 	c.self.SetGameMode(packet.GameModeSurvival)
 	c.self.Inventory.SetSlot(0, player.Slot{BlockID: chestBlockID, ItemCount: 3})
 	c.self.Inventory.SetHeldSlot(0)
-	c.world.SetBlock(6, 4, 4, int32(1)<<4)
+	c.world.SetBlockID(6, 4, 4, int32(1)<<4)
 
 	if err := c.handleBlockPlace(placeOnTopOf(6, 4, 4, player.Slot{BlockID: chestBlockID, ItemCount: 3})); err != nil {
 		t.Fatalf("handleBlockPlace: %v", err)
@@ -514,11 +520,11 @@ func TestChest_PairFacesAcrossItsAxisAndAgrees(t *testing.T) {
 
 	// A lone chest facing east, then a partner placed to its east: the pair
 	// runs along x, so both have to face north or south.
-	c.world.SetBlock(4, 5, 4, int32(chestBlockID)<<4|facingEast)
+	c.world.SetBlockID(4, 5, 4, int32(chestBlockID)<<4|facingEast)
 	placeChest(t, c, chestBlockID, 5, 4, 4)
 
-	first := c.world.GetBlock(4, 5, 4)
-	second := c.world.GetBlock(5, 5, 4)
+	first := c.world.GetBlockID(4, 5, 4)
+	second := c.world.GetBlockID(5, 5, 4)
 
 	if first&0xF != second&0xF {
 		t.Errorf("halves face %d and %d, want one shared facing", first&0xF, second&0xF)
@@ -532,11 +538,11 @@ func TestChest_PairFacesAcrossItsAxisAndAgrees(t *testing.T) {
 func TestChest_PairAlongZFacesWestOrEast(t *testing.T) {
 	c := newInventoryTestConn(t)
 
-	c.world.SetBlock(4, 5, 4, int32(chestBlockID)<<4|facingNorth)
+	c.world.SetBlockID(4, 5, 4, int32(chestBlockID)<<4|facingNorth)
 	placeChest(t, c, chestBlockID, 4, 4, 5)
 
-	first := c.world.GetBlock(4, 5, 4)
-	second := c.world.GetBlock(4, 5, 5)
+	first := c.world.GetBlockID(4, 5, 4)
+	second := c.world.GetBlockID(4, 5, 5)
 
 	if first&0xF != second&0xF {
 		t.Errorf("halves face %d and %d, want one shared facing", first&0xF, second&0xF)
@@ -553,17 +559,17 @@ func TestChest_BreakingHalfReorientsTheSurvivor(t *testing.T) {
 	c := newInventoryTestConn(t)
 
 	// Build a pair along x, which faces north or south.
-	c.world.SetBlock(4, 5, 4, int32(chestBlockID)<<4|facingEast)
+	c.world.SetBlockID(4, 5, 4, int32(chestBlockID)<<4|facingEast)
 	placeChest(t, c, chestBlockID, 5, 4, 4)
 
-	paired := c.world.GetBlock(4, 5, 4) & 0xF
+	paired := c.world.GetBlockID(4, 5, 4) & 0xF
 
 	// Break the second half, then pair the survivor along z instead.
 	c.breakBlock(5, 5, 4)
 	placeChest(t, c, chestBlockID, 4, 4, 5)
 
-	survivor := c.world.GetBlock(4, 5, 4) & 0xF
-	partner := c.world.GetBlock(4, 5, 5) & 0xF
+	survivor := c.world.GetBlockID(4, 5, 4) & 0xF
+	partner := c.world.GetBlockID(4, 5, 5) & 0xF
 
 	if survivor != partner {
 		t.Errorf("halves face %d and %d, want one shared facing", survivor, partner)

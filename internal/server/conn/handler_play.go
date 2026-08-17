@@ -17,7 +17,6 @@ import (
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
-	"github.com/go-theft-craft/server/pkg/world/gen"
 )
 
 func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinProperty) error {
@@ -431,7 +430,7 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 
 	// Sprint particles: send block crack particles at player's feet.
 	if posChanged && c.self.IsSprinting() {
-		blockBelow := c.world.GetBlock(int(math.Floor(x)), int(math.Floor(y))-1, int(math.Floor(z)))
+		blockBelow := c.world.GetBlockID(int(math.Floor(x)), int(math.Floor(y))-1, int(math.Floor(z)))
 		if blockBelow != 0 {
 			particles := sprintParticles(x, y, z, blockBelow)
 			c.players.BroadcastToTrackers(&particles, eid)
@@ -481,7 +480,7 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 			c.breakBlock(x, y, z)
 		} else {
 			// Check if block is instant-break (hardness 0) in survival.
-			stateID := c.world.GetBlock(x, y, z)
+			stateID := c.world.GetBlockID(x, y, z)
 			if block, ok := c.lookupBlock(stateID); ok {
 				heldItem := c.self.Inventory.HeldItem()
 				var materials gamedata.MaterialRegistry
@@ -519,7 +518,7 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 
 	case 2: // Finished digging
 		// Validate that the block is actually diggable.
-		stateID := c.world.GetBlock(x, y, z)
+		stateID := c.world.GetBlockID(x, y, z)
 		if block, ok := c.lookupBlock(stateID); ok {
 			if !block.Diggable || block.Hardness == nil {
 				// Unbreakable — resend the block to the client.
@@ -574,7 +573,7 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 // breakBlock removes a block from the world, broadcasts the change + break effect,
 // and spawns item drops in survival mode.
 func (c *Connection) breakBlock(x, y, z int) {
-	oldBlockState := c.world.GetBlock(x, y, z)
+	oldBlockState := c.world.GetBlockID(x, y, z)
 
 	// A broken container spills what it held, in every game mode: creative
 	// suppresses the block's own drop, not the contents someone put inside.
@@ -585,7 +584,7 @@ func (c *Connection) breakBlock(x, y, z int) {
 		defer c.refreshChestCluster(oldBlockState>>4, world.BlockPos{X: x, Y: y, Z: z})
 	}
 
-	c.world.SetBlock(x, y, z, 0)
+	c.world.SetBlockID(x, y, z, 0)
 	blockChange := &v1_8.PlayClientboundBlockChange{
 		Location: blockPos(x, y, z),
 		Type:     0,
@@ -624,7 +623,7 @@ func (c *Connection) findGroundLevel(x, startY, z int) int {
 		startY = maxY
 	}
 	for y := startY - 1; y >= 0; y-- {
-		if c.world.GetBlock(x, y, z) != 0 {
+		if c.world.GetBlockID(x, y, z) != 0 {
 			return y + 1
 		}
 	}
@@ -664,7 +663,7 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 	// the player is sneaking — which is how vanilla lets you build against a
 	// crafting table instead of opening it.
 	if !c.self.IsSneaking() {
-		switch c.world.GetBlock(clickedX, clickedY, clickedZ) >> 4 {
+		switch c.world.GetBlockID(clickedX, clickedY, clickedZ) >> 4 {
 		case craftingTableBlockID:
 			return c.openCraftingTable()
 		case chestBlockID, trappedChestBlockID:
@@ -714,7 +713,7 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 	}
 
 	stateID := c.placementState(held)
-	c.world.SetBlock(x, y, z, stateID)
+	c.world.SetBlockID(x, y, z, stateID)
 
 	blockChange := &v1_8.PlayClientboundBlockChange{
 		Location: blockPos(x, y, z),
@@ -799,7 +798,7 @@ func (c *Connection) isPlaceable(itemID int16) bool {
 func (c *Connection) revertPlacement(x, y, z int) error {
 	if err := c.send(&v1_8.PlayClientboundBlockChange{
 		Location: blockPos(x, y, z),
-		Type:     c.world.GetBlock(x, y, z),
+		Type:     c.world.GetBlockID(x, y, z),
 	}); err != nil {
 		return err
 	}
@@ -845,13 +844,13 @@ func (c *Connection) sendInitialChunks() error {
 	viewDist := c.cfg.ViewDistance
 
 	// Collect all chunk positions in range.
-	var chunks []gen.ChunkPos
+	var chunks []world.ChunkPos
 	for cx := centerCX - viewDist; cx <= centerCX+viewDist; cx++ {
 		for cz := centerCZ - viewDist; cz <= centerCZ+viewDist; cz++ {
 			if !c.isChunkInBounds(cx, cz) {
 				continue
 			}
-			chunks = append(chunks, gen.ChunkPos{X: cx, Z: cz})
+			chunks = append(chunks, world.ChunkPos{X: cx, Z: cz})
 		}
 	}
 
@@ -863,8 +862,11 @@ func (c *Connection) sendInitialChunks() error {
 	})
 
 	for _, pos := range chunks {
-		chunk := c.world.EncodeChunk(pos.X, pos.Z)
-		if err := c.send(&chunk); err != nil {
+		chunk, err := c.world.Adapter().EncodeChunk(c.world.Chunk(pos))
+		if err != nil {
+			return err
+		}
+		if err := c.send(chunk); err != nil {
 			return err
 		}
 		c.loadedChunks[pos] = struct{}{}
@@ -879,16 +881,22 @@ func (c *Connection) updateLoadedChunks(newCX, newCZ int) {
 	// Load new chunks in the view square.
 	for cx := newCX - viewDist; cx <= newCX+viewDist; cx++ {
 		for cz := newCZ - viewDist; cz <= newCZ+viewDist; cz++ {
-			pos := gen.ChunkPos{X: cx, Z: cz}
+			pos := world.ChunkPos{X: cx, Z: cz}
 			if _, loaded := c.loadedChunks[pos]; loaded {
 				continue
 			}
 			if !c.isChunkInBounds(cx, cz) {
 				continue
 			}
-			chunk := c.world.EncodeChunk(cx, cz)
-			if err := c.send(&chunk); err != nil {
+			chunk, err := c.world.Adapter().EncodeChunk(c.world.Chunk(pos))
+			if err != nil {
+				c.log.Error("encode chunk", "cx", cx, "cz", cz, "error", err)
+
+				return
+			}
+			if err := c.send(chunk); err != nil {
 				c.log.Error("send chunk", "cx", cx, "cz", cz, "error", err)
+
 				return
 			}
 			c.loadedChunks[pos] = struct{}{}
@@ -900,14 +908,13 @@ func (c *Connection) updateLoadedChunks(newCX, newCZ int) {
 		if player.InViewDistance(pos.X, pos.Z, newCX, newCZ, viewDist) {
 			continue
 		}
-		// MC 1.8: send MapChunk with GroundUp=true, BitMap=0, empty data to unload.
-		if err := c.send(&v1_8.PlayClientboundMapChunk{
-			X:         int32(pos.X),
-			Z:         int32(pos.Z),
-			GroundUp:  true,
-			BitMap:    0,
-			ChunkData: []byte{},
-		}); err != nil {
+		unload, err := c.world.Adapter().EncodeUnload(pos)
+		if err != nil {
+			c.log.Error("encode unload", "cx", pos.X, "cz", pos.Z, "error", err)
+
+			continue
+		}
+		if err := c.send(unload); err != nil {
 			c.log.Error("unload chunk", "cx", pos.X, "cz", pos.Z, "error", err)
 		}
 		delete(c.loadedChunks, pos)
@@ -1074,7 +1081,7 @@ func (c *Connection) handleRespawn() error {
 	c.self.SetPosition(0.5, float64(spawnY), 0.5, 0, 0, true)
 
 	// Clear and resend chunks.
-	c.loadedChunks = make(map[gen.ChunkPos]struct{})
+	c.loadedChunks = make(map[world.ChunkPos]struct{})
 	if err := c.sendInitialChunks(); err != nil {
 		return fmt.Errorf("respawn send chunks: %w", err)
 	}

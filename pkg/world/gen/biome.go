@@ -1,8 +1,12 @@
 package gen
 
+// seaLevel is where the generators fill water to.
+const seaLevel = 62
+
 // Biome IDs matching Minecraft 1.8 protocol.
 const (
 	biomeOcean      byte = 0
+	biomePlains     byte = 1
 	biomeSavanna    byte = 35
 	biomeForest     byte = 4
 	biomeDarkForest byte = 29

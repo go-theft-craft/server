@@ -11,7 +11,7 @@ import (
 	"github.com/go-theft-craft/minecraft-protocol/data"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
-	"github.com/go-theft-craft/server/internal/server/config"
+	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/conn"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/storage"

@@ -10,9 +10,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/go-theft-craft/server/internal/server"
-	"github.com/go-theft-craft/server/internal/server/config"
+	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/storage"
+	"github.com/go-theft-craft/server/server"
 )
 
 func main() {

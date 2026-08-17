@@ -27,8 +27,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-theft-craft/server/internal/server"
-	"github.com/go-theft-craft/server/internal/server/config"
+	"github.com/go-theft-craft/server/config"
+	"github.com/go-theft-craft/server/server"
 )
 
 const (

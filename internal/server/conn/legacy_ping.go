@@ -6,7 +6,7 @@ import (
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
-	"github.com/go-theft-craft/server/internal/server/config"
+	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 )

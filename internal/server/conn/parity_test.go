@@ -13,7 +13,7 @@ import (
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
-	"github.com/go-theft-craft/server/internal/server/config"
+	"github.com/go-theft-craft/server/config"
 )
 
 // These fixtures are the bytes the server puts on the wire today. They are

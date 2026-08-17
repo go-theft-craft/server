@@ -51,7 +51,11 @@ func writeRegion(t *testing.T, a *v47.Adapter, chunks ...*world.Chunk) string {
 		}
 		byRegion[key][c.Pos] = payload
 	}
-	for key, payloads := range byRegion {
+	for key, raw := range byRegion {
+		payloads := map[world.ChunkPos]Payload{}
+		for pos, nbtData := range raw {
+			payloads[pos] = Payload{NBT: nbtData}
+		}
 		if err := SaveRegion(dir, key[0], key[1], payloads); err != nil {
 			t.Fatalf("SaveRegion: %v", err)
 		}
@@ -225,7 +229,7 @@ func TestAHighBlockIDRoundTripsThroughAdd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EncodeChunkNBT: %v", err)
 	}
-	if err := SaveRegion(dir, 0, 0, map[world.ChunkPos][]byte{{}: payload}); err != nil {
+	if err := SaveRegion(dir, 0, 0, map[world.ChunkPos]Payload{{}: {NBT: payload}}); err != nil {
 		t.Fatalf("SaveRegion: %v", err)
 	}
 

@@ -101,48 +101,81 @@ func (r *Region) Chunk(pos world.ChunkPos) (*world.Chunk, bool, error) {
 	return c, true, nil
 }
 
-// RawChunks returns the decoded NBT payload of every chunk present in the
-// region, keyed by position.
+// Payloads returns every chunk present in the region, still compressed.
 //
 // A store rewriting one region needs it: a region holds 1,024 columns and a
 // snapshot holds only the resident ones, so saving without carrying the rest
-// forward would delete the world outside the players.
-func (r *Region) RawChunks() (map[world.ChunkPos][]byte, error) {
-	out := make(map[world.ChunkPos][]byte)
+// forward would delete the world outside the players. They come back
+// compressed because they are going straight back in — decompressing and
+// re-compressing 1,023 untouched columns to change one is most of what a save
+// used to cost.
+func (r *Region) Payloads() (map[world.ChunkPos]Payload, error) {
+	out := make(map[world.ChunkPos]Payload)
 	for i := range 1024 {
 		pos := world.ChunkPos{X: r.rx*32 + i%32, Z: r.rz*32 + i/32}
-		payload, present, err := r.rawChunk(pos)
+		compressed, present, err := r.compressedChunk(pos)
 		if err != nil {
 			return nil, err
 		}
 		if present {
-			out[pos] = payload
+			out[pos] = Payload{Compressed: compressed}
 		}
 	}
 
 	return out, nil
 }
 
-// rawChunk locates and decompresses one chunk's NBT payload.
-func (r *Region) rawChunk(pos world.ChunkPos) ([]byte, bool, error) {
+// compressedChunk locates one chunk's stored bytes without decompressing them.
+func (r *Region) compressedChunk(pos world.ChunkPos) ([]byte, bool, error) {
+	start, length, present, err := r.locate(pos)
+	if err != nil || !present {
+		return nil, false, err
+	}
+	if r.data[start+4] != compressionZlib {
+		// A gzip payload cannot be written through as-is, because SaveRegion
+		// writes zlib. Decompressing it here is the price of accepting a
+		// scheme this server does not produce.
+		return nil, false, errPassthroughUnavailable
+	}
+
+	return r.data[start+5 : start+4+length], true, nil
+}
+
+// errPassthroughUnavailable reports a chunk whose stored bytes cannot go
+// straight back out.
+var errPassthroughUnavailable = errors.New("anvil: chunk cannot be written through uncompressed")
+
+// locate finds a chunk's stored bytes: the offset of its length field and how
+// many bytes follow it.
+func (r *Region) locate(pos world.ChunkPos) (start, length int, present bool, err error) {
 	entry := binary.BigEndian.Uint32(r.data[((pos.X&31)+(pos.Z&31)*32)*4:])
 	offset, sectors := entry>>8, entry&0xFF
 	if offset == 0 && sectors == 0 {
-		return nil, false, nil
+		return 0, 0, false, nil
 	}
 	if offset < headerSectors {
-		return nil, false, fmt.Errorf("%w: chunk %v claims sector %d, inside the header", ErrCorrupt, pos, offset)
+		return 0, 0, false, fmt.Errorf("%w: chunk %v claims sector %d, inside the header", ErrCorrupt, pos, offset)
 	}
 
-	start := int(offset) * sectorSize
+	start = int(offset) * sectorSize
 	if start+5 > len(r.data) {
-		return nil, false, fmt.Errorf("%w: chunk %v starts past the end of the file", ErrCorrupt, pos)
+		return 0, 0, false, fmt.Errorf("%w: chunk %v starts past the end of the file", ErrCorrupt, pos)
 	}
 
-	length := int(binary.BigEndian.Uint32(r.data[start:]))
+	length = int(binary.BigEndian.Uint32(r.data[start:]))
 	if length < 1 || start+4+length > len(r.data) {
-		return nil, false, fmt.Errorf("%w: chunk %v claims %d payload bytes with %d left",
+		return 0, 0, false, fmt.Errorf("%w: chunk %v claims %d payload bytes with %d left",
 			ErrCorrupt, pos, length, len(r.data)-start-4)
+	}
+
+	return start, length, true, nil
+}
+
+// rawChunk locates and decompresses one chunk's NBT payload.
+func (r *Region) rawChunk(pos world.ChunkPos) ([]byte, bool, error) {
+	start, length, present, err := r.locate(pos)
+	if err != nil || !present {
+		return nil, false, err
 	}
 
 	payload, err := decompress(r.data[start+4], r.data[start+5:start+4+length])

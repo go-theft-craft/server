@@ -80,8 +80,18 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
     `world`; `world` depends on none of them, which is why `world.Generator` is
     declared in `world` and satisfied structurally by `gen.Generator`.
   - The world has no override map. A player's edit lives in the chunk it
-    belongs to. `internal/server/storage` still writes `overrides.json`, behind
-    two shims marked `DELETE IN M11.3`.
+    belongs to, and so do its chest contents.
+  - `nbt/` reads as well as writes, and `anvil/` does too. The world is read
+    back from its region files: `world.Loader` is the seam the store plugs
+    into, and a load that *fails* marks the column `Unreadable` rather than
+    generating over it.
+- **Persistence** — three seams in `server`, all naming public value types:
+  `WorldStore` (Anvil regions), `SideStore` (a chunk-keyed sidecar, written
+  empty for M11.5 to fill), and `PlayerStore` (`PlayerData` as JSON). The
+  implementations live in `server/` rather than `internal/server/storage`,
+  because they hand back public types an internal package cannot name;
+  `internal/server/storage` keeps the file primitives and the one-way
+  migration off the pre-M11.3 JSON world files.
 - **`interop/`** — the loopback lane that runs a pinned Node
   `minecraft-protocol` 1.66.2 client against this server.
 - **`vendor/`** — vendored Go dependencies. All builds use `-mod vendor`.

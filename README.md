@@ -40,7 +40,9 @@ devbox run -- task build     # builds all three into build/
 
 | Seam | What it replaces |
 |------|------------------|
-| `server.Store` | World persistence. `server.FileStore` is the default; supply your own to keep a world anywhere else |
+| `server.WorldStore` | Blocks and biomes. `server.FileStore` is the default; supply your own to keep a world anywhere else |
+| `server.SideStore` | Per-chunk data the vanilla format has no field for |
+| `server.PlayerStore` | Per-player state, as the public `server.PlayerData` |
 | `server.Observer` | Measurement. Receives CPU, memory, and per-frame network samples; delivery never blocks the server |
 | `gen.Generator` | World generation, through `server.WithGenerator` |
 
@@ -327,7 +329,7 @@ pkg/
   world/           Version-neutral world model: state handles, immutable sections, atomic chunks
     v47/           Protocol 47 adapter: chunk encoding, state encoding, per-section encode cache
     gen/           World generators (default, flat, noise, biomes, caves, ores)
-    anvil/         Anvil region file reader/writer
+    anvil/         Anvil region file reader and writer
     nbt/           NBT encoding for persistence
 interop/           Loopback interoperability lane (pinned Node minecraft-protocol client)
 vendor/            Vendored Go dependencies (packets, codecs, and game data from minecraft-protocol)
@@ -355,20 +357,42 @@ generation.
 
 ## Persistence
 
-The server auto-saves every 5 minutes (configurable via `-auto-save`) and on shutdown. Block overrides persist across restarts.
+The world lives in Anvil region files — the format vanilla uses — and the
+server reads them back. It auto-saves every 5 minutes (configurable via
+`-auto-save`) and on shutdown, and a save writes only the chunks that changed
+since the last one.
 
 ```
 data/
-├── config.json              # Server config
+├── config.json                   # Server config
 ├── world/
-│   ├── world.json           # World time (age, time of day)
-│   ├── overrides.json       # Player-made block modifications
-│   └── region/
-│       └── r.X.Z.mca        # Anvil region files
+│   └── overworld/
+│       ├── level.json            # World time, seed, generator
+│       ├── region/
+│       │   └── r.X.Z.mca         # Blocks, biomes, and chest contents
+│       └── sidecar/
+│           └── s.X.Z.json        # What the vanilla format has no field for
 └── players/
-    ├── <uuid>.json          # Position, gamemode, inventory per player
+    ├── <uuid>.json               # Position, gamemode, inventory per player
     └── ...
 ```
+
+A data directory written by an older build holds `world/world.json`,
+`world/overrides.json`, and `world/chests.json`. Those are folded into the
+region files once, on the first start, and then renamed to `*.migrated` — a
+rename rather than a delete, so there is something to go back to.
+
+Persistence is three separate seams, so an application can replace one and keep
+the defaults for the other two:
+
+| Seam | Holds |
+| --- | --- |
+| `server.WorldStore` | Blocks, biomes, and the tile entities vanilla has fields for |
+| `server.SideStore` | Everything vanilla has no field for |
+| `server.PlayerStore` | Per-player state, as the public `server.PlayerData` |
+
+`server.FileStore(dir, log)` returns all three, and `store.Options()` installs
+them.
 
 ## Protocol Coverage
 
@@ -419,7 +443,6 @@ Minecraft 1.8.8 (protocol 47) implementation status:
 3. **Tile entities** — Signs, chests, banners
 4. **Weather** — Rain, thunder, lightning
 5. **Scoreboard & Teams** — Sidebar scores, team colors
-6. **Anvil chunk loading** — Load chunks from .mca files on restart
 
 ## How to Commit
 

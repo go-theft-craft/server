@@ -163,12 +163,14 @@ func (s *anvilStore) SaveSnapshot(ctx context.Context, name string, snap world.S
 // the resident ones, so writing just the snapshot would delete the world
 // outside the players.
 func (s *anvilStore) saveRegion(dir string, rx, rz int, chunks map[world.ChunkPos]*world.Chunk) error {
-	payloads := map[world.ChunkPos][]byte{}
+	payloads := map[world.ChunkPos]anvil.Payload{}
 
 	existing, err := anvil.OpenRegion(dir, rx, rz, s.dim, s.codec, s.air)
 	switch {
 	case err == nil:
-		payloads, err = existing.RawChunks()
+		// Carried through still compressed: the columns the snapshot does not
+		// hold are not re-encoded to change the ones it does.
+		payloads, err = existing.Payloads()
 		if err != nil {
 			return fmt.Errorf("read region %d,%d before rewriting it: %w", rx, rz, err)
 		}
@@ -183,7 +185,7 @@ func (s *anvilStore) saveRegion(dir string, rx, rz int, chunks map[world.ChunkPo
 		if err != nil {
 			return fmt.Errorf("encode chunk %v: %w", pos, err)
 		}
-		payloads[pos] = payload
+		payloads[pos] = anvil.Payload{NBT: payload}
 	}
 
 	return anvil.SaveRegion(dir, rx, rz, payloads)

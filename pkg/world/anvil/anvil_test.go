@@ -183,8 +183,8 @@ func TestSaveRegion(t *testing.T) {
 		t.Fatalf("encode chunk: %v", err)
 	}
 
-	chunks := map[world.ChunkPos][]byte{
-		{X: 0, Z: 0}: nbtData,
+	chunks := map[world.ChunkPos]Payload{
+		{X: 0, Z: 0}: {NBT: nbtData},
 	}
 
 	if err := SaveRegion(dir, 0, 0, chunks); err != nil {
@@ -267,7 +267,7 @@ func TestSaveRegion(t *testing.T) {
 func TestSaveRegionMultipleChunks(t *testing.T) {
 	dir := t.TempDir()
 
-	chunks := make(map[world.ChunkPos][]byte)
+	chunks := make(map[world.ChunkPos]Payload)
 	for i := range 3 {
 		chunk := newChunk(i, 0)
 		setBlock(chunk, 0, 0, 0, 0x10)
@@ -275,7 +275,7 @@ func TestSaveRegionMultipleChunks(t *testing.T) {
 		if err != nil {
 			t.Fatalf("encode chunk %d: %v", i, err)
 		}
-		chunks[world.ChunkPos{X: i, Z: 0}] = nbtData
+		chunks[world.ChunkPos{X: i, Z: 0}] = Payload{NBT: nbtData}
 	}
 
 	if err := SaveRegion(dir, 0, 0, chunks); err != nil {

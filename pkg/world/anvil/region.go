@@ -113,6 +113,12 @@ func SaveRegion(dir string, rx, rz int, chunks map[world.ChunkPos][]byte) error 
 	if _, err := f.Write(dataBuf.Bytes()); err != nil {
 		return fmt.Errorf("write chunk data: %w", err)
 	}
+	// The bytes have to reach the disk before the rename, or a crash between
+	// the two leaves a region file whose name says it is complete and whose
+	// contents are whatever the page cache had got round to.
+	if err := f.Sync(); err != nil {
+		return fmt.Errorf("sync region file: %w", err)
+	}
 	if err := f.Close(); err != nil {
 		return fmt.Errorf("close region file: %w", err)
 	}

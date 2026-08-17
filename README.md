@@ -484,6 +484,67 @@ the defaults for the other two:
 `server.FileStore(dir, log)` returns all three, and `store.Options()` installs
 them.
 
+## Provenance
+
+Off by default. Turned on, the server records what happened to blocks and
+items, and gives every item an identity that survives a restart.
+
+```
+devbox run -- task server -- -provenance -provenance-days 7 -provenance-gb 4
+```
+
+| What it holds | Where |
+| --- | --- |
+| Block placements and breaks, item movements, crafting, drops, pickups | `data/provenance/provenance-*.ndjson` |
+| A manifest of each file's time range and a bloom filter over its item IDs | `data/provenance/manifest.json` |
+
+Three questions can be asked of it through `server.ProvenanceStore`:
+
+| Query | Answers | Cost |
+| --- | --- | --- |
+| `AtPosition` | everything that happened at one block | a linear scan of the files overlapping the window |
+| `ByActor` | everything one player did | the same scan |
+| `ForItem` | one item's whole history, oldest first | the same scan, skipping the files a bloom filter excludes |
+
+None of the three is fast enough to build something interactive on. That is a
+property of the default file store, not of the interface, and a different store
+is one option away.
+
+### What it costs
+
+A record is 200–300 bytes. A busy server writes gigabytes a week, which is why
+retention is both a window and a cap — whichever is reached first, whole files
+are deleted oldest first.
+
+Recording runs off the tick through a bounded queue. When the queue fills the
+record is dropped and counted rather than blocking the world, because a stalled
+world is a worse failure than a gap in an audit trail;
+`server.ProvenanceOverflowBlocks()` makes the other trade. Turned off, the cost
+is one nil check — about 6 ns and no allocations, which a test pins rather than
+a benchmark nobody reads.
+
+**The logs hold player names and UUIDs.** They are local runtime data under the
+data directory, nothing sends them anywhere, and they are covered by whatever
+retention you set — not by anything this server decides for you.
+
+### Item identity
+
+Every item can carry an ID that is unique for the life of a server: 24 bits of
+run epoch, persisted with the world and advanced once per start, and 40 bits of
+counter. The epoch is stored rather than taken from the clock, because a clock
+that moves backwards would mint colliding IDs.
+
+The index those IDs live in is the *write path*, not an observer of it. A move
+that claims an item came from somewhere it is not is a duplication caught as it
+happens, named with both locations and the actor. The default policy records it
+and lets the write through: refusing turns a duplication bug into item loss,
+and item loss on a false positive is worse for the player than an extra item.
+
+**Not finished.** The identity machinery is built and tested, and the detector
+is proved against the shape of a real past bug, but the inventory click paths
+do not route through the index yet. Until they do, item identity is incomplete
+and the whole feature stays off; see the M11.5 record in the master plan.
+
 ## Protocol Coverage
 
 Minecraft 1.8.8 (protocol 47) implementation status:

@@ -101,6 +101,15 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
   because they hand back public types an internal package cannot name;
   `internal/server/storage` keeps the file primitives and the one-way
   migration off the pre-M11.3 JSON world files.
+- **Provenance** — off by default, and the test that matters most is the one
+  saying so (`TestProvenanceOffAllocatesNothingExtra`). `world.ItemID` is a
+  persisted epoch and a counter; `world.ItemIndex` is the write path for item
+  movement and reports a duplication with both locations and the actor;
+  `server.Recorder` takes records off the tick through a bounded queue that
+  drops and counts rather than blocking; `internal/server/provenance` is the
+  rotating NDJSON store with a manifest and a per-file bloom filter. Records
+  name blocks canonically, never by handle. **The inventory click paths do not
+  route through the index yet** — that is M11.5's unfinished half.
 - **`interop/`** — the loopback lane that runs a pinned Node
   `minecraft-protocol` 1.66.2 client against this server.
 - **`vendor/`** — vendored Go dependencies. All builds use `-mod vendor`.

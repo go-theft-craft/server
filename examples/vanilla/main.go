@@ -18,6 +18,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/server"
@@ -39,6 +40,13 @@ func main() {
 	flag.IntVar(&cfg.AutoSaveMinutes, "auto-save", cfg.AutoSaveMinutes, "auto-save interval in minutes (0 = disabled)")
 	flag.IntVar(&cfg.MaxBuildHeight, "max-build-height", cfg.MaxBuildHeight, "maximum Y axis (default 256)")
 	flag.IntVar(&cfg.CompressionThreshold, "compression-threshold", cfg.CompressionThreshold, "compress packets at or above this size (-1 disables)")
+
+	// Off by default here too. This example is what people copy, and an audit
+	// trail that appears without being asked for is one nobody budgeted disk
+	// for.
+	provenance := flag.Bool("provenance", false, "record block and item history under the data directory")
+	provenanceDays := flag.Int("provenance-days", 7, "how many days of history to keep")
+	provenanceGB := flag.Int("provenance-gb", 4, "how many gigabytes of history to keep")
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -93,14 +101,41 @@ func main() {
 
 	// Released explicitly rather than deferred: the failure path below exits
 	// the process, and a deferred release would not run before it did.
-	srv, err := server.New(
+	options := []server.Option{
 		server.WithSettings(cfg),
 		server.WithLogger(log),
 		server.WithWorldStore(store.World()),
 		server.WithSideStore(store.Side()),
 		server.WithPlayerStore(store.Players()),
 		server.WithPrivateKey(key),
-	)
+		server.WithLegacyMigration(dataDir),
+	}
+
+	if *provenance {
+		trail, err := server.FileProvenance(
+			filepath.Join(dataDir, "provenance"),
+			time.Duration(*provenanceDays)*24*time.Hour,
+			int64(*provenanceGB)<<30,
+		)
+		if err != nil {
+			cancel()
+			log.Error("create provenance store", "error", err)
+			os.Exit(1)
+		}
+		defer trail.Close()
+
+		// Item identity is what makes the trail answer a question about one
+		// item rather than only about a position, so the flag turns on both.
+		options = append(
+			options,
+			server.WithProvenance(trail),
+			server.WithItemIdentity(server.DuplicateAllow),
+		)
+		log.Info("recording block and item history",
+			"days", *provenanceDays, "gigabytes", *provenanceGB)
+	}
+
+	srv, err := server.New(options...)
 	if err != nil {
 		cancel()
 		log.Error("create server", "error", err)

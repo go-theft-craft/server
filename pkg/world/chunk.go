@@ -12,6 +12,30 @@ const (
 	biomeBytes        = 256              // 16×16 biome IDs
 )
 
+// Chunk is one column of the world. It is immutable: a block write produces a
+// new Chunk that shares every section it did not touch, and the world publishes
+// it by swapping a pointer.
+type Chunk struct {
+	Pos      ChunkPos
+	Sections []*Section // len == dim.Sections(); a nil entry is all air
+	Biomes   [256]Biome
+	Gen      Generation
+}
+
+// At returns the state at chunk-local x, z and world y. A y outside the
+// dimension, or a column the chunk left empty, reads as the given air state.
+func (c *Chunk) At(dim Dimension, x, y, z int, air State) State {
+	if c == nil || !dim.Contains(y) {
+		return air
+	}
+	sec := c.Sections[dim.SectionIndex(y)]
+	if sec == nil {
+		return air
+	}
+
+	return sec.At(SectionBlockIndex(x, y&0xF, z))
+}
+
 // EncodeChunk encodes a ChunkData into a MapChunk packet, applying any block overrides.
 func (w *World) EncodeChunk(cx, cz int) v1_8.PlayClientboundMapChunk {
 	chunk := w.GetOrGenerateChunk(cx, cz)

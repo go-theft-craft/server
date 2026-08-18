@@ -275,10 +275,15 @@ func (m *Manager) retire(ie *ItemEntity) {
 }
 
 // SpawnBlockDrop creates and broadcasts a dropped item from a broken block and
-// returns the entity ID it was given.
+// returns the entity ID it was given and the identity the drop ended up with.
+//
+// The IDs are returned rather than left on the entity because the break that
+// caused the drop is what records them: a block record that names the items
+// that came out of it is the join between a block's history and theirs.
+//
 // spawnY is the visual spawn height (block center), while (x, y, z) is the
 // ground-level resting position stored for pickup distance checks.
-func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64, origin ItemOrigin) int32 {
+func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64, origin ItemOrigin) (int32, []world.ItemID) {
 	entityID := m.AllocateEntityID()
 
 	ie := &ItemEntity{
@@ -311,7 +316,7 @@ func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64, origin Item
 		_ = pl.WritePacket(meta)
 	}
 
-	return entityID
+	return entityID, ie.Item.IDs
 }
 
 // spawnItemEntityValue builds the SpawnEntity (0x0E) packet for an item entity

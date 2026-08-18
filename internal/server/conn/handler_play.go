@@ -581,7 +581,14 @@ func (c *Connection) breakBlock(x, y, z int) {
 
 	_ = c.send(blockChange)
 
+	// The block stops existing, so its identity is released here whether or
+	// not anything drops: a creative break leaves no item, and an ID spent on
+	// a position nothing occupies is a leak.
+	pos := world.BlockPos{X: x, Y: y, Z: z}
+	blockID, identified := c.blocks.Take(pos)
+
 	// Spawn item drops in survival mode.
+	var dropped []world.ItemID
 	if c.self.GetGameMode() != packet.GameModeCreative {
 		if block, ok := c.blockOf(oldState); ok {
 			heldItem := c.self.Inventory.HeldItem()
@@ -591,16 +598,45 @@ func (c *Connection) breakBlock(x, y, z int) {
 				// A drop is a new item: the block it came out of was never one.
 				// Its identity is minted on the ground, and the origin says
 				// which block it fell out of.
-				c.players.SpawnBlockDrop(
+				_, spawned := c.players.SpawnBlockDrop(
 					drop,
 					float64(x)+0.5, float64(groundY)+0.1, float64(z)+0.5, float64(y)+0.5,
 					player.ItemOrigin{
-						From: world.Location{Kind: world.LocationWorld, Block: world.BlockPos{X: x, Y: y, Z: z}},
+						From: world.Location{Kind: world.LocationWorld, Block: pos},
 						By:   c.actor(),
 					},
 				)
+				dropped = append(dropped, spawned...)
 			}
 		}
+	}
+
+	if identified && c.blockRec != nil {
+		c.blockRec.RecordBlockBreak(pos, oldName, blockID, dropped, c.actor())
+	}
+}
+
+// identifyPlacedBlock gives a block somebody placed an identity, and records
+// the item it was made of.
+//
+// A block the generator made never comes through here, which is what keeps the
+// table sparse: identity is spent on the blocks a person chose to put
+// somewhere, not on the billion the world came with.
+func (c *Connection) identifyPlacedBlock(pos world.BlockPos, name string, spent []world.ItemID) {
+	if c.blocks == nil || c.index == nil {
+		return
+	}
+
+	ids, err := c.index.Mint(1, world.Location{Kind: world.LocationWorld, Block: pos}, c.actor())
+	if err != nil || len(ids) == 0 {
+		c.log.Error("mint block identity", "error", err, "pos", pos)
+
+		return
+	}
+
+	c.blocks.Set(pos, ids[0])
+	if c.blockRec != nil {
+		c.blockRec.RecordBlockPlace(pos, name, ids[0], spent, c.actor())
 	}
 }
 
@@ -729,11 +765,11 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 		return nil
 	}
 
-	// The item stops being an item: it is the block now. Task 6 gives a placed
-	// block an identity of its own and links the two; until then the chain ends
-	// here rather than leaving an ID live in an inventory that no longer holds
-	// it.
-	c.consume(playerWindowLayout(), int16(slotHotbarStart)+heldSlot, 1)
+	// The item stops being an item: it is the block now. The block takes an
+	// identity of its own and the record names both, so a chain that reaches
+	// the placement can carry on through the block rather than ending at it.
+	spent := c.consume(playerWindowLayout(), int16(slotHotbarStart)+heldSlot, 1)
+	c.identifyPlacedBlock(world.BlockPos{X: x, Y: y, Z: z}, placedName, spent.IDs)
 	remaining := c.self.Inventory.GetSlot(int(heldSlot))
 	if err := c.sendSetSlot(0, int16(slotHotbarStart)+heldSlot, remaining); err != nil {
 		return err

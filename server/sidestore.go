@@ -12,14 +12,26 @@ import (
 
 // sidecarStore keeps one file per region, chunk-keyed inside.
 //
-// It holds nothing yet. The container is written now, empty, so that M11.5
-// adds contents to a format that already exists rather than introducing one
-// alongside a world people already have.
+// M11.3 wrote the container empty so that M11.5 could add contents to a format
+// people already had rather than introduce one alongside it. What it holds now
+// is whatever the SidecarSource hands back per chunk, which today is block
+// identity and nothing else.
 type sidecarStore struct {
 	root string
 
 	mu      sync.Mutex
+	source  SidecarSource
 	written map[world.ChunkPos]world.Generation
+}
+
+// SetSidecarSource gives the store somewhere to ask what a chunk's sidecar
+// holds. Without one it writes generation stamps and nothing else, which is
+// what M11.3 shipped.
+func (s *sidecarStore) SetSidecarSource(src SidecarSource) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.source = src
 }
 
 // regionSidecar is one region's file.
@@ -98,6 +110,9 @@ func (s *sidecarStore) saveRegion(name string, rx, rz int, chunks map[world.Chun
 		entry := file.Chunks[chunkKey(pos)]
 		entry.Version = SidecarVersion
 		entry.Generation = gen
+		if s.source != nil {
+			entry.BlockIdentity = s.source(pos).BlockIdentity
+		}
 		file.Chunks[chunkKey(pos)] = entry
 	}
 

@@ -46,6 +46,10 @@ type Server struct {
 	recorder *Recorder
 	index    ItemIndex
 
+	// blocks is the sparse table of identified blocks. It is nil unless item
+	// identity is on, and every method on it tolerates that.
+	blocks *storage.BlockIdentity
+
 	// minter hands out item IDs for this run. Its epoch is the world's stored
 	// one plus one, and the advance is written back at the first save.
 	minter *Minter
@@ -169,6 +173,10 @@ func New(opts ...Option) (*Server, error) {
 
 	srv.recorder = NewRecorder(b.provenance, b.log, b.provenanceOverflow)
 	if b.itemIdentity && srv.minter != nil {
+		// A placed block's identity rides on the same switch as an item's.
+		// There is no separate one because there is no useful configuration
+		// where a chain that runs through an inventory should stop at a block.
+		srv.blocks = storage.NewBlockIdentity()
 		// The index tells the recorder about a duplication rather than
 		// depending on it, which is what keeps the detector usable with the
 		// records going nowhere but the log.
@@ -193,9 +201,25 @@ func New(opts ...Option) (*Server, error) {
 		}
 	}
 
-	// The world reads a column from the store before generating one.
+	// The world reads a column from the store before generating one, and the
+	// sidecar rides along: block identity has to be resident before the first
+	// click that touches one of those blocks, and a chunk load is the only
+	// event that says which ones are.
 	if b.worldStore != nil {
-		w.SetLoader(storeLoader{store: b.worldStore, name: DefaultWorld})
+		w.SetLoader(storeLoader{
+			store:  b.worldStore,
+			side:   b.sideStore,
+			blocks: srv.blocks,
+			log:    b.log,
+			name:   DefaultWorld,
+		})
+	}
+
+	// The sidecar writes what the table holds. A store that does not implement
+	// SidecarWriter keeps writing generation stamps and block identity is not
+	// persisted, which is a property of that store rather than a failure.
+	if writer, ok := b.sideStore.(SidecarWriter); ok && srv.blocks != nil {
+		writer.SetSidecarSource(srv.sidecarFor)
 	}
 
 	if b.playerStore != nil {
@@ -216,13 +240,63 @@ func (s *Server) WorldStore() WorldStore { return s.worldStore }
 // storeLoader is the adapter between the world's Loader seam, which knows
 // nothing about contexts or world names, and a WorldStore, which needs both.
 type storeLoader struct {
-	store WorldStore
-	name  string
+	store  WorldStore
+	side   SideStore
+	blocks *storage.BlockIdentity
+	log    *slog.Logger
+	name   string
 }
 
 func (l storeLoader) LoadChunk(pos world.ChunkPos) (*world.Chunk, error) {
-	return l.store.LoadChunk(context.Background(), l.name, pos)
+	c, err := l.store.LoadChunk(context.Background(), l.name, pos)
+	if err != nil || c == nil {
+		return c, err
+	}
+
+	l.loadIdentity(pos, c.Gen)
+
+	return c, nil
 }
+
+// loadIdentity brings a chunk's block identity resident alongside its blocks.
+//
+// A stamp mismatch is loaded rather than discarded, and reported. The
+// generation is a per-run counter and the world file does not carry it, so a
+// sidecar written by a previous run can never match the stamp a fresh load
+// gives its column: dropping identity on a mismatch would drop all of it on
+// every restart. What the stamp still says is that the pair needs squaring
+// against what is actually in the chunk, which is what reconcile does — and
+// after a restart that is every chunk, deliberately.
+func (l storeLoader) loadIdentity(pos world.ChunkPos, gen world.Generation) {
+	if l.side == nil || l.blocks == nil {
+		return
+	}
+
+	sc, found, err := l.side.Load(context.Background(), l.name, pos, gen)
+	if !found {
+		if err != nil {
+			l.log.Warn("read sidecar", "chunk", pos, "error", err)
+		}
+
+		return
+	}
+	if err != nil {
+		l.log.Debug("sidecar stamp does not match the column; reconciling", "chunk", pos, "error", err)
+	}
+
+	if bad := l.blocks.LoadChunk(pos, sc.BlockIdentity); bad > 0 {
+		l.log.Warn("dropped unreadable block identity entries", "chunk", pos, "entries", bad)
+	}
+}
+
+// sidecarFor is what the sidecar store writes for one chunk.
+func (s *Server) sidecarFor(pos world.ChunkPos) Sidecar {
+	return Sidecar{BlockIdentity: s.blocks.Chunk(pos)}
+}
+
+// BlockIdentity is the sparse table of identified blocks, or nil when item
+// identity is off.
+func (s *Server) BlockIdentity() *storage.BlockIdentity { return s.blocks }
 
 // Settings returns a copy of the effective settings. It is a copy because the
 // server keeps using its own, and a caller that mutated the returned value
@@ -319,6 +393,7 @@ func (s *Server) Start(ctx context.Context) error {
 		// without a lock because they only ever run on this connection's own
 		// goroutine.
 		connection.SetItemIndex(s.index)
+		connection.SetBlockIdentity(s.blocks, s.recorder)
 
 		s.track(connection)
 

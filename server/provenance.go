@@ -82,6 +82,13 @@ type Record struct {
 	Block string         `json:"block,omitempty"`
 	Pos   world.BlockPos `json:"pos,omitempty"`
 
+	// BlockID is the identity of the block itself, for a block record about
+	// one somebody placed. Together with Items it is the join that makes one
+	// chain run from a placement through the block's life to the drop it
+	// became: a place record names the items that were spent, and a break
+	// record names the items that came out.
+	BlockID ItemID `json:"block_id,omitempty"`
+
 	// Cause is why this happened, outermost first, bounded at maxCauseDepth.
 	Cause []Reason `json:"cause,omitempty"`
 
@@ -219,6 +226,45 @@ func (r *Recorder) RecordDuplicate(d *ErrDuplicate) {
 		To:     d.Actual,
 		Items:  []ItemID{d.ID},
 		Note:   d.Error(),
+	})
+}
+
+// RecordBlockPlace says an item became a block.
+//
+// The consumed item IDs and the new block's ID are in one record because the
+// question a chain answers is "where did this come from", and a reader
+// following an item forwards has to find the block it turned into without
+// guessing from a timestamp.
+func (r *Recorder) RecordBlockPlace(pos world.BlockPos, block string, id ItemID, from []ItemID, by Actor) {
+	if r == nil {
+		return
+	}
+	r.Record(Record{
+		Kind:    RecordBlock,
+		Reason:  ReasonPlace,
+		Actor:   by,
+		Pos:     pos,
+		Block:   block,
+		BlockID: id,
+		Items:   from,
+		To:      Location{Kind: LocationWorld, Block: pos},
+	})
+}
+
+// RecordBlockBreak says a block stopped being one, and names what fell out.
+func (r *Recorder) RecordBlockBreak(pos world.BlockPos, block string, id ItemID, drops []ItemID, by Actor) {
+	if r == nil {
+		return
+	}
+	r.Record(Record{
+		Kind:    RecordBlock,
+		Reason:  ReasonBreak,
+		Actor:   by,
+		Pos:     pos,
+		Block:   block,
+		BlockID: id,
+		Items:   drops,
+		From:    Location{Kind: LocationWorld, Block: pos},
 	})
 }
 

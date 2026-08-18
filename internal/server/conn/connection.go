@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/internal/server/player"
+	"github.com/go-theft-craft/server/internal/server/storage"
 	"github.com/go-theft-craft/server/pkg/world"
 )
 
@@ -118,6 +119,12 @@ type Connection struct {
 	// afterwards; see identity.go.
 	index world.ItemIndex
 
+	// blocks is the sparse table of identified blocks and blockRec is where a
+	// placement or a break is written. Both are nil unless the server was
+	// built with item identity, and both tolerate being nil.
+	blocks   *storage.BlockIdentity
+	blockRec BlockRecorder
+
 	// SaveAll triggers a server-wide save (set by Server).
 	SaveAll func()
 }
@@ -199,6 +206,23 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 // handlers read it without a lock. A server built without item identity never
 // calls it and every helper in identity.go stays the arithmetic it always was.
 func (c *Connection) SetItemIndex(index world.ItemIndex) { c.index = index }
+
+// BlockRecorder is told what happened to a block that has an identity.
+//
+// It is an interface here rather than the server's *Recorder because a record
+// is a public type of the server package and this one sits below it. The two
+// methods are the two events block identity has: an item became a block, and a
+// block became items again.
+type BlockRecorder interface {
+	RecordBlockPlace(pos world.BlockPos, block string, id world.ItemID, from []world.ItemID, by world.Actor)
+	RecordBlockBreak(pos world.BlockPos, block string, id world.ItemID, drops []world.ItemID, by world.Actor)
+}
+
+// SetBlockIdentity puts this connection on the block identity write path. Like
+// SetItemIndex it is set before Handle starts and read without a lock.
+func (c *Connection) SetBlockIdentity(blocks *storage.BlockIdentity, rec BlockRecorder) {
+	c.blocks, c.blockRec = blocks, rec
+}
 
 // Handle runs the connection lifecycle. It reads packets and dispatches
 // them to the appropriate state handler until the connection closes.

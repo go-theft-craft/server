@@ -3,6 +3,8 @@ package world
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"sync/atomic"
 )
 
@@ -132,4 +134,34 @@ func NextEpoch(stored uint32) (uint32, error) {
 	}
 
 	return stored + 1, nil
+}
+
+// ParseItemID reads back what String wrote.
+//
+// It exists because block identity is persisted in the sidecar as text: a
+// sidecar is JSON a person may have to read during an incident, and
+// "epoch:counter" is what every log line in this server already says.
+func ParseItemID(s string) (ItemID, error) {
+	if s == "none" || s == "" {
+		return NoItemID, nil
+	}
+
+	epoch, counter, ok := strings.Cut(s, ":")
+	if !ok {
+		return NoItemID, fmt.Errorf("world: %q is not an item ID", s)
+	}
+
+	e, err := strconv.ParseUint(epoch, 10, 32)
+	if err != nil {
+		return NoItemID, fmt.Errorf("world: item ID %q has no epoch: %w", s, err)
+	}
+	c, err := strconv.ParseUint(counter, 10, 64)
+	if err != nil {
+		return NoItemID, fmt.Errorf("world: item ID %q has no counter: %w", s, err)
+	}
+	if e > maxEpoch || c > maxCounter {
+		return NoItemID, fmt.Errorf("world: item ID %q is out of range", s)
+	}
+
+	return NewItemID(uint32(e), c), nil
 }

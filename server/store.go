@@ -90,15 +90,31 @@ type LevelData struct {
 
 // Sidecar is the per-chunk record of everything vanilla cannot hold.
 //
-// In this milestone it carries nothing but its own version and the generation
-// it was written at. The container is written empty on purpose: M11.5 adds
-// contents to it rather than adding a format.
+// M11.3 wrote the container empty. M11.5 filled it: BlockIdentity is the
+// sparse table of blocks somebody placed, which is the only thing in this
+// server that survives a restart and has no vanilla field to survive in.
 type Sidecar struct {
 	Version    int              `json:"version"`
 	Generation world.Generation `json:"generation"`
-	// BlockIdentity maps a chunk-local block index to the identity M11.5
-	// gives it. Empty here.
+	// BlockIdentity maps a chunk-local block key — y<<8 | z<<4 | x, in
+	// decimal — to the "epoch:counter" text of the block's ItemID. It is
+	// absent for a chunk holding no placed block, which is nearly all of them.
 	BlockIdentity map[string]string `json:"block_identity,omitempty"`
+}
+
+// SidecarSource supplies the contents a SideStore writes for one chunk.
+//
+// The store is handed one at server construction rather than asked for it
+// through SaveSnapshot, because a snapshot is the world's and the sidecar's
+// contents are not in it: block identity lives beside the world, which is the
+// whole reason the sidecar exists.
+type SidecarSource func(pos world.ChunkPos) Sidecar
+
+// SidecarWriter is a SideStore that writes contents rather than an empty
+// container. The default store implements it; a store that does not simply
+// keeps writing generation stamps, and block identity is not persisted.
+type SidecarWriter interface {
+	SetSidecarSource(src SidecarSource)
 }
 
 // WithWorldStore supplies world persistence. Omit it to run without;

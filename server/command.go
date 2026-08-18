@@ -54,6 +54,11 @@ const (
 	// ParamDuration is a time of day: day, night, noon, midnight, or a tick
 	// count.
 	ParamDuration ParamType = "duration"
+	// ParamCommand is the name of a command in this server's own set. It is
+	// the eighth type, and the design named seven: /help's argument is a
+	// command name, and completing it from Set.All() is what removed the
+	// special case tab-complete used to carry for /help alone.
+	ParamCommand ParamType = "command"
 )
 
 // Param is one argument of one overload.
@@ -61,13 +66,42 @@ type Param struct {
 	// Name is what Args looks it up by, and what the usage line calls it.
 	Name string
 	Type ParamType
-	// Choices is a fixed set of accepted values. A value outside it is
-	// rejected by the parser and nothing outside it is ever suggested.
+	// Choices is a fixed set of accepted values, and the set that is
+	// suggested. A value outside Choices and Also is rejected.
 	Choices []string
+	// Also is accepted and never suggested.
+	//
+	// /gamemode is why it exists: it takes "sp" and "3" as well as
+	// "spectator", because it always did and taking them away would change
+	// what a player can type — but offering all twelve in a suggestion list
+	// buries the four that are worth reading.
+	Also []string
+	// NoSuggest silences this parameter, leaving the position to whatever
+	// another overload offers there.
+	//
+	// /tp is why it exists: its first argument is either a player name or an
+	// x coordinate, and suggesting both puts the caller's own x in a list of
+	// player names, where "10" reads like somebody called 10. The y and z
+	// coordinates have no such competition and do suggest.
+	NoSuggest bool
 	// Optional parameters may be left off the end of the line. A required
 	// parameter after an optional one is a signature error.
 	Optional bool
 }
+
+// accepts reports whether a fixed-set parameter takes a value.
+func (p Param) accepts(value string) bool {
+	for _, choice := range append(append([]string(nil), p.Choices...), p.Also...) {
+		if strings.EqualFold(choice, value) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// fixed reports whether the parameter has a fixed set of values at all.
+func (p Param) fixed() bool { return len(p.Choices) > 0 || len(p.Also) > 0 }
 
 // Overload is one shape a command's arguments can take.
 type Overload struct {

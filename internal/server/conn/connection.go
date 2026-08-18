@@ -133,6 +133,11 @@ type Connection struct {
 	count         Count
 	metricsPlayer string
 
+	// dispatch and complete are the command path, or nil on a connection
+	// built without a server behind it. See commands.go.
+	dispatch Dispatcher
+	complete Completer
+
 	// SaveAll triggers a server-wide save (set by Server).
 	SaveAll func()
 }

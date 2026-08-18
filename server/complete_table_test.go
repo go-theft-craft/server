@@ -1,21 +1,23 @@
-package conn
+package server_test
 
 import (
+	"context"
+	"sort"
 	"testing"
 
-	"github.com/go-theft-craft/server/internal/server/player"
+	"github.com/go-theft-craft/server/server"
 )
 
-// The pinned completion table.
+// The pinned completion table, now running against signatures.
 //
-// Every case here was written by running the implementation that exists today,
-// before any of it moves. That is the point: the `switch cmdName` block in
-// tab_complete.go is the only record of what this server suggests, and writing
-// the table after the rewrite would be writing down whatever the rewrite
-// happens to do rather than what it was supposed to preserve.
+// Every case in it was written by running the `switch cmdName` block that used
+// to live in internal/server/conn/tab_complete.go, before any of it moved. That
+// switch was the only record of what this server suggests, so pinning it first
+// and rerunning the same table here is the only way to know the rewrite kept
+// its promises rather than inventing new ones.
 //
-// A suggestion that changes is a change to what a player sees. If a case here
-// starts failing, the commit that changes it has to say why.
+// A case that changes is a change to what a player sees, and the commit that
+// changes it has to say why.
 //
 // The fixture is fixed: two players named Alice and Bob, and a caller standing
 // at 10.7, 65.2, -3.4 — so the floor of each axis is 10, 65, and -4, and the
@@ -108,12 +110,35 @@ var completionTable = []completionCase{
 }
 
 func TestCompletionTable(t *testing.T) {
-	m := testManager("Alice", "Bob")
-	pos := player.Position{X: 10.7, Y: 65.2, Z: -3.4}
+	srv, err := server.New()
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	caller := newFakeCaller("Alice")
+	svc := newFakeServices(server.BuiltinCommands())
+	ctx := server.WithServices(context.Background(), svc)
 
 	for _, tc := range completionTable {
 		t.Run(tc.input, func(t *testing.T) {
-			assertMatches(t, computeCompletions(tc.input, m, pos), tc.want)
+			got := sortedCopy(srv.Complete(ctx, caller, tc.input))
+			want := sortedCopy(tc.want)
+
+			if len(got) != len(want) {
+				t.Fatalf("got %v, want %v", got, want)
+			}
+			for i := range got {
+				if got[i] != want[i] {
+					t.Fatalf("got %v, want %v", got, want)
+				}
+			}
 		})
 	}
+}
+
+func sortedCopy(ss []string) []string {
+	out := append([]string(nil), ss...)
+	sort.Strings(out)
+
+	return out
 }

@@ -186,13 +186,14 @@ func parseOverload(cmd *Command, index int, o Overload, words []string) (Args, e
 }
 
 func checkParam(cmd *Command, p Param, raw string) error {
-	if len(p.Choices) > 0 {
-		for _, choice := range p.Choices {
-			if strings.EqualFold(choice, raw) {
-				return nil
-			}
+	if p.fixed() {
+		if p.accepts(raw) {
+			return nil
 		}
 
+		// The message lists Choices and not Also: the short forms are accepted
+		// for a player who already knows them, and a player who just got one
+		// wrong wants the readable names back.
 		return &ParseError{Command: cmd, Reason: fmt.Sprintf(
 			"%q is not one of %s.", raw, strings.Join(p.Choices, ", "),
 		)}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"net"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -65,20 +64,6 @@ func (s *sentPackets) write(p java.PacketValue) error {
 	defer s.mu.Unlock()
 	s.packets = append(s.packets, p)
 	return nil
-}
-
-func (s *sentPackets) get() []java.PacketValue {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	cp := make([]java.PacketValue, len(s.packets))
-	copy(cp, s.packets)
-	return cp
-}
-
-func (s *sentPackets) reset() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.packets = nil
 }
 
 // newTestConn creates a minimal Connection suitable for testing commands.
@@ -173,6 +158,14 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 	return c, sp, m, written
 }
 
+// The command behaviour tests moved to server/dispatch_test.go when commands
+// became values. They run against a fake Caller there, which is what lets them
+// assert the reply a player actually sees rather than "some packet was
+// written" — the most any of them could check from here.
+//
+// What is left is the part that is genuinely this connection's: deciding that a
+// line is a command at all, and handing it to whatever the server wired in.
+
 func TestHandleCommand_NonSlash(t *testing.T) {
 	c, _, _ := newTestConn(t, "Alice")
 	if c.handleCommand("hello world") {
@@ -187,254 +180,49 @@ func TestHandleCommand_SlashDetected(t *testing.T) {
 	}
 }
 
-func TestHandleCommand_UnknownCommand(t *testing.T) {
-	c, sp, _ := newTestConn(t, "Alice")
-	sp.reset()
+func TestHandleCommandHandsTheLineToTheDispatcher(t *testing.T) {
+	c, _, _ := newTestConn(t, "Alice")
 
-	c.handleCommand("/nosuchcmd")
+	var got string
+	c.SetCommands(func(_ *Connection, line string) bool {
+		got = line
 
-	// The player receives the error through writePacket, which goes to the
-	// client, not through sp, which is the player's own WritePacket func.
-}
+		return true
+	}, nil)
 
-func TestCmdHelp(t *testing.T) {
-	c, _, _, written := newTestConnWithCapture(t, "Alice")
-	written.reset()
+	if !c.handleCommand("/tp 1 2 3") {
+		t.Error("a slash-prefixed line was not treated as a command")
+	}
+	if got != "/tp 1 2 3" {
+		t.Errorf("the dispatcher was handed %q, want the whole line", got)
+	}
 
-	c.handleCommand("/help")
-
-	// help writes multiple ChatCB packets to the client.
-	if written.len() == 0 {
-		t.Error("expected help output, got nothing")
+	// Chat is not a command and must never reach the dispatcher, or every
+	// message a player types would be parsed as one.
+	got = ""
+	if c.handleCommand("hello") {
+		t.Error("a chat line was treated as a command")
+	}
+	if got != "" {
+		t.Errorf("chat reached the dispatcher as %q", got)
 	}
 }
 
-func TestCmdList(t *testing.T) {
-	c, _, m, written := newTestConnWithCapture(t, "Alice")
+func TestACommandWithNoDispatcherIsRefusedRatherThanBroadcast(t *testing.T) {
+	// A connection with no server behind it. Answering "not available" is the
+	// only safe answer: returning false would let the line fall through to
+	// chat, and everyone would see the player's attempted command.
+	c, _, _ := newTestConn(t, "Alice")
 
-	// Add another player.
-	sp2 := &sentPackets{}
-	eid2 := m.AllocateEntityID()
-	uuid2 := [16]byte{byte(eid2)}
-	p2 := player.NewPlayer(eid2, "test-uuid-2", uuid2, "Bob", nil, sp2.write)
-	p2.SetPosition(0.5, 4, 0.5, 0, 0, true)
-	m.Add(p2)
-
-	written.reset()
-
-	c.handleCommand("/list")
-
-	if written.len() == 0 {
-		t.Error("expected list output, got nothing")
+	if !c.handleCommand("/anything") {
+		t.Error("a command was passed through to chat when no dispatcher was set")
 	}
 }
 
-func TestCmdTp_Coordinates(t *testing.T) {
-	c, sp, _, written := newTestConnWithCapture(t, "Alice")
-	sp.reset()
-	written.reset()
+func TestTabCompleteWithNoCompleterAnswersNothing(t *testing.T) {
+	c, _, _ := newTestConn(t, "Alice")
 
-	c.handleCommand("/tp 100 10 100")
-
-	// Player should have been teleported.
-	pos := c.self.GetPosition()
-	if pos.X != 100 || pos.Y != 10 || pos.Z != 100 {
-		t.Errorf("expected position 100,10,100, got %.1f,%.1f,%.1f", pos.X, pos.Y, pos.Z)
-	}
-}
-
-func TestCmdTp_Player(t *testing.T) {
-	c, _, m := newTestConn(t, "Alice")
-
-	// Add target player at 50,20,50.
-	sp2 := &sentPackets{}
-	eid2 := m.AllocateEntityID()
-	uuid2 := [16]byte{byte(eid2)}
-	p2 := player.NewPlayer(eid2, "test-uuid-2", uuid2, "Bob", nil, sp2.write)
-	p2.SetPosition(50, 20, 50, 0, 0, true)
-	m.Add(p2)
-
-	c.handleCommand("/tp Bob")
-
-	pos := c.self.GetPosition()
-	if pos.X != 50 || pos.Y != 20 || pos.Z != 50 {
-		t.Errorf("expected position 50,20,50, got %.1f,%.1f,%.1f", pos.X, pos.Y, pos.Z)
-	}
-}
-
-func TestCmdTp_PlayerNotFound(t *testing.T) {
-	c, _, _, written := newTestConnWithCapture(t, "Alice")
-	written.reset()
-
-	c.handleCommand("/tp NoOne")
-
-	if written.len() == 0 {
-		t.Error("expected error message for missing player")
-	}
-}
-
-func TestCmdTp_BadCoordinates(t *testing.T) {
-	c, _, _, written := newTestConnWithCapture(t, "Alice")
-	written.reset()
-
-	c.handleCommand("/tp abc def ghi")
-
-	if written.len() == 0 {
-		t.Error("expected error message for bad coordinates")
-	}
-}
-
-func TestCmdGamemode(t *testing.T) {
-	c, _, _, written := newTestConnWithCapture(t, "Alice")
-	written.reset()
-
-	c.handleCommand("/gamemode survival")
-
-	// Should have written GameStateChange + AbilitiesCB + ChatCB to rw.
-	if written.len() == 0 {
-		t.Error("expected gamemode packets, got nothing")
-	}
-}
-
-func TestCmdGamemode_Invalid(t *testing.T) {
-	c, _, _, written := newTestConnWithCapture(t, "Alice")
-	written.reset()
-
-	c.handleCommand("/gamemode invalid")
-
-	if written.len() == 0 {
-		t.Error("expected error message for invalid gamemode")
-	}
-}
-
-func TestCmdTime(t *testing.T) {
-	c, sp, m := newTestConn(t, "Alice")
-
-	// Add another player to verify broadcast.
-	sp2 := &sentPackets{}
-	eid2 := m.AllocateEntityID()
-	uuid2 := [16]byte{byte(eid2)}
-	p2 := player.NewPlayer(eid2, "test-uuid-2", uuid2, "Bob", nil, sp2.write)
-	p2.SetPosition(0.5, 4, 0.5, 0, 0, true)
-	m.Add(p2)
-	sp.reset()
-	sp2.reset()
-
-	c.handleCommand("/time set night")
-
-	// Both players should get UpdateTime via Broadcast (through their WritePacket).
-	found := false
-	for _, p := range sp.get() {
-		if _, ok := p.(*v1_8.PlayClientboundUpdateTime); ok {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("Alice did not receive UpdateTime packet")
-	}
-
-	found = false
-	for _, p := range sp2.get() {
-		if _, ok := p.(*v1_8.PlayClientboundUpdateTime); ok {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("Bob did not receive UpdateTime packet")
-	}
-
-	// Verify the world time was actually updated.
-	_, tod := c.world.GetTime()
-	if tod != 13000 {
-		t.Errorf("world timeOfDay = %d, want 13000 (night)", tod)
-	}
-}
-
-func TestCmdKill(t *testing.T) {
-	c, _, _, written := newTestConnWithCapture(t, "Alice")
-	written.reset()
-
-	c.handleCommand("/kill")
-
-	// Should have written UpdateHealth + ChatCB.
-	if written.len() == 0 {
-		t.Error("expected kill packets, got nothing")
-	}
-}
-
-func TestCmdSay(t *testing.T) {
-	c, sp, _ := newTestConn(t, "Alice")
-	sp.reset()
-
-	c.handleCommand("/say hello everyone")
-
-	// Broadcast goes through player WritePacket.
-	found := false
-	for _, p := range sp.get() {
-		if chat, ok := p.(*v1_8.PlayClientboundChat); ok {
-			if strings.Contains(chat.Message, "[Server]") && strings.Contains(chat.Message, "hello everyone") {
-				found = true
-				break
-			}
-		}
-	}
-	if !found {
-		t.Error("expected broadcast with [Server] prefix")
-	}
-}
-
-func TestCmdMe(t *testing.T) {
-	c, sp, _ := newTestConn(t, "Alice")
-	sp.reset()
-
-	c.handleCommand("/me waves")
-
-	found := false
-	for _, p := range sp.get() {
-		if chat, ok := p.(*v1_8.PlayClientboundChat); ok {
-			if strings.Contains(chat.Message, "chat.type.emote") {
-				found = true
-				break
-			}
-		}
-	}
-	if !found {
-		t.Error("expected emote broadcast")
-	}
-}
-
-func TestCmdSeed(t *testing.T) {
-	c, _, _, written := newTestConnWithCapture(t, "Alice")
-	written.reset()
-
-	c.handleCommand("/seed")
-
-	if written.len() == 0 {
-		t.Error("expected seed output, got nothing")
-	}
-}
-
-func TestCmdSay_Empty(t *testing.T) {
-	c, _, _, written := newTestConnWithCapture(t, "Alice")
-	written.reset()
-
-	c.handleCommand("/say")
-
-	// Should get error message.
-	if written.len() == 0 {
-		t.Error("expected error for empty /say")
-	}
-}
-
-func TestCmdTime_BadUsage(t *testing.T) {
-	c, _, _, written := newTestConnWithCapture(t, "Alice")
-	written.reset()
-
-	c.handleCommand("/time")
-
-	if written.len() == 0 {
-		t.Error("expected error for bad /time usage")
+	if err := c.handleTabComplete(&v1_8.PlayServerboundTabComplete{Text: "/t"}); err != nil {
+		t.Fatalf("handleTabComplete: %v", err)
 	}
 }

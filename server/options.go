@@ -36,6 +36,9 @@ type builder struct {
 	worldStore  WorldStore
 	sideStore   SideStore
 	chunkDetail bool
+	commands    Set
+	hasCommands bool
+	authorizer  Authorizer
 	playerStore PlayerStore
 	observer    Observer
 
@@ -268,6 +271,53 @@ func WithPrivateKey(key *rsa.PrivateKey) Option {
 func WithChunkDetail() Option {
 	return func(b *builder) error {
 		b.chunkDetail = true
+
+		return nil
+	}
+}
+
+// WithCommands replaces the command set this server dispatches.
+//
+// Omit it and the server answers the built-ins. Compose rather than replace
+// wholesale when you only want to add one:
+//
+//	server.WithCommands(server.Merge(vanilla.Stubs(), server.BuiltinCommands(), mine))
+//
+// The later set wins for any name two of them answer to, which is what makes
+// the stub list useful rather than in the way.
+func WithCommands(set Set) Option {
+	return func(b *builder) error {
+		b.commands, b.hasCommands = set, true
+
+		return nil
+	}
+}
+
+// Authorizer decides whether a caller may run a command.
+//
+// It gates suggestion as well as execution: completing /ban for somebody who
+// cannot run it tells them the server has one.
+type Authorizer func(caller Caller, cmd *Command) bool
+
+// AllowAll grants every command to every caller. It is the default, and it
+// matches what this server did before it had an authorizer at all.
+//
+// That is deliberate rather than an oversight. This server has no operator
+// list, and a framework milestone that silently introduced one would lock
+// people out of their own worlds on upgrade.
+func AllowAll() Authorizer {
+	return func(Caller, *Command) bool { return true }
+}
+
+// WithAuthorizer gates command execution and suggestion.
+//
+// Without it every command is allowed. See AllowAll for why.
+func WithAuthorizer(a Authorizer) Option {
+	return func(b *builder) error {
+		if a == nil {
+			return fmt.Errorf("%w: nil authorizer, omit WithAuthorizer to allow everything", ErrInvalidOption)
+		}
+		b.authorizer = a
 
 		return nil
 	}

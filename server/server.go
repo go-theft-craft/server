@@ -79,6 +79,12 @@ type Server struct {
 	// time. See tickstats.go.
 	ticks *tickStats
 
+	// commands is what this server answers to, and authorizer decides who may
+	// run each one. A nil authorizer grants everything, which is what this
+	// server did before it had one.
+	commands   Set
+	authorizer Authorizer
+
 	// playerStore is the bridge from the public PlayerStore an application
 	// supplied to what a connection needs. It is nil when the server runs
 	// without player persistence.
@@ -175,6 +181,8 @@ func New(opts ...Option) (*Server, error) {
 		level:       level,
 		chunkDetail: b.chunkDetail,
 		ticks:       newTickStats(),
+		commands:    commandSet(b),
+		authorizer:  b.authorizer,
 	}
 
 	// The epoch advances once per start. Exhaustion refuses to mint and keeps
@@ -270,6 +278,17 @@ func New(opts ...Option) (*Server, error) {
 	}
 
 	return srv, nil
+}
+
+// commandSet is what the server dispatches: the application's set, or the
+// built-ins. A server that silently answered nothing would look broken rather
+// than configured.
+func commandSet(b *builder) Set {
+	if b.hasCommands {
+		return b.commands
+	}
+
+	return BuiltinCommands()
 }
 
 // WorldStore returns the world persistence the server was built with, or nil
@@ -453,6 +472,7 @@ func (s *Server) Start(ctx context.Context) error {
 		// goroutine.
 		connection.SetItemIndex(s.index)
 		connection.SetBlockIdentity(s.blocks, s.recorder)
+		connection.SetCommands(s.dispatchFor, s.completeFor)
 		if s.observed() {
 			connection.SetMeasure(s.measureConnection, s.countConnection)
 		}

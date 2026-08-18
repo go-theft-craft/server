@@ -2,7 +2,6 @@ package conn
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
@@ -11,54 +10,159 @@ import (
 	"github.com/go-theft-craft/server/internal/server/player"
 )
 
-type command struct {
-	name    string
-	usage   string
-	desc    string
-	handler func(c *Connection, args []string)
-}
+// The command path, from the connection's side.
+//
+// There used to be a package-level slice of commands built in init(), a linear
+// scan, and ten handlers that each took the whole connection and a slice of
+// unparsed words. All of it moved into the server package, where a command is a
+// value with a declared signature and can be run against a fake caller.
+//
+// What is left here is the two halves that genuinely belong to a connection:
+// turning a chat line into a dispatch, and doing the things a command asks of
+// the player who ran it. The Dispatcher and Completer are function seams
+// because this package sits below the one that publishes server.Command, so it
+// cannot name the types a command is written in.
 
-var commands []command
+// Dispatcher runs a command line for this connection and reports whether the
+// line was a command.
+type Dispatcher func(c *Connection, line string) bool
 
-func init() {
-	commands = []command{
-		{name: "help", usage: "/help", desc: "Show available commands", handler: cmdHelp},
-		{name: "list", usage: "/list", desc: "Show online players", handler: cmdList},
-		{name: "tp", usage: "/tp <player> | /tp <x> <y> <z>", desc: "Teleport to a player or coordinates", handler: cmdTp},
-		{name: "gamemode", usage: "/gamemode <survival|creative|adventure|spectator>", desc: "Change game mode", handler: cmdGamemode},
-		{name: "time", usage: "/time set <day|night|noon|midnight|number>", desc: "Set world time", handler: cmdTime},
-		{name: "say", usage: "/say <message>", desc: "Broadcast an announcement", handler: cmdSay},
-		{name: "me", usage: "/me <action>", desc: "Send an action message", handler: cmdMe},
-		{name: "kill", usage: "/kill", desc: "Kill yourself", handler: cmdKill},
-		{name: "seed", usage: "/seed", desc: "Show world seed", handler: cmdSeed},
-		{name: "save", usage: "/save", desc: "Save world and player data", handler: cmdSave},
-	}
+// Completer returns tab-complete matches for a line.
+type Completer func(c *Connection, line string) []string
+
+// SetCommands puts this connection on the server's command path. Set before
+// Handle starts, like SetItemIndex, and read without a lock.
+func (c *Connection) SetCommands(d Dispatcher, comp Completer) {
+	c.dispatch, c.complete = d, comp
 }
 
 // handleCommand intercepts /-prefixed messages and dispatches them.
-// Returns true if the message was a command (even if unknown).
+// It reports whether the message was a command, even an unknown one.
 func (c *Connection) handleCommand(msg string) bool {
 	if !strings.HasPrefix(msg, "/") {
 		return false
 	}
+	if c.dispatch == nil {
+		// A connection built without a server behind it. Saying so beats
+		// letting the line through to chat, where it would be broadcast.
+		c.sendErrorMsg("Commands are not available.")
 
-	parts := strings.Fields(msg)
-	if len(parts) == 0 {
 		return true
 	}
 
-	name := strings.ToLower(strings.TrimPrefix(parts[0], "/"))
-	args := parts[1:]
+	return c.dispatch(c, msg)
+}
 
-	for _, cmd := range commands {
-		if cmd.name == name {
-			cmd.handler(c, args)
-			return true
-		}
+// Username is the name of the player on this connection, or "" before login.
+func (c *Connection) Username() string {
+	if c.self == nil {
+		return ""
 	}
 
-	c.sendErrorMsg(fmt.Sprintf("Unknown command: /%s. Type /help for a list of commands.", name))
-	return true
+	return c.self.Username
+}
+
+// PlayerUUID is the UUID of the player on this connection, or "" before login.
+func (c *Connection) PlayerUUID() string { return c.playerID() }
+
+// PlayerPosition is where the player on this connection is standing.
+func (c *Connection) PlayerPosition() (x, y, z float64, yaw, pitch float32) {
+	if c.self == nil {
+		return 0, 0, 0, 0, 0
+	}
+	pos := c.self.GetPosition()
+
+	return pos.X, pos.Y, pos.Z, pos.Yaw, pos.Pitch
+}
+
+// SendMessage says something to this player and nobody else.
+func (c *Connection) SendMessage(text, color string) { c.sendSystemMsg(text, color) }
+
+// SendTranslated says something the client renders from its own language file,
+// which is how /me is drawn.
+func (c *Connection) SendTranslated(key string, with []string) {
+	_ = c.send(&v1_8.PlayClientboundChat{Message: translatedJSON(key, with), Position: 1})
+}
+
+// BroadcastMessage says something to everyone.
+func (c *Connection) BroadcastMessage(text, color string) {
+	c.players.Broadcast(&v1_8.PlayClientboundChat{
+		Message:  fmt.Sprintf(`{"text":%s,"color":%s}`, escapeJSON(text), escapeJSON(color)),
+		Position: 0,
+	})
+}
+
+// BroadcastTranslated is BroadcastMessage for a translated component.
+func (c *Connection) BroadcastTranslated(key string, with []string) {
+	c.players.Broadcast(&v1_8.PlayClientboundChat{Message: translatedJSON(key, with), Position: 0})
+}
+
+func translatedJSON(key string, with []string) string {
+	parts := make([]string, len(with))
+	for i, w := range with {
+		parts[i] = escapeJSON(w)
+	}
+
+	return fmt.Sprintf(`{"translate":%s,"with":[%s]}`,
+		escapeJSON(key), strings.Join(parts, ","))
+}
+
+// OnlineNames is every connected player's name, which /list reads.
+func (c *Connection) OnlineNames() []string {
+	var names []string
+	c.players.ForEach(func(p *player.Player) { names = append(names, p.Username) })
+
+	return names
+}
+
+// KillPlayer kills the player on this connection.
+func (c *Connection) KillPlayer() {
+	c.health = 0
+	_ = c.send(&v1_8.PlayClientboundUpdateHealth{Health: 0, Food: 0, FoodSaturation: 0})
+	c.die("death.attack.generic")
+}
+
+// SetGameModeByName resolves a mode name and applies it, reporting the
+// canonical name and whether the name was one.
+//
+// Resolving lives here rather than in the command because what "sp" means is a
+// property of this server's protocol layer, not of /gamemode: the short forms
+// and the numbers are what a 1.8 player types and what vanilla accepts.
+func (c *Connection) SetGameModeByName(name string) (string, bool) {
+	var mode uint8
+	var abilities int8
+
+	switch strings.ToLower(name) {
+	case "survival", "s", "0":
+		mode, abilities, name = packet.GameModeSurvival, 0, "survival"
+	case "creative", "c", "1":
+		mode = packet.GameModeCreative
+		abilities = packet.AbilityInvulnerable | packet.AbilityAllowFlight | packet.AbilityCreativeMode
+		name = "creative"
+	case "adventure", "a", "2":
+		mode, abilities, name = packet.GameModeAdventure, 0, "adventure"
+	case "spectator", "sp", "3":
+		mode = packet.GameModeSpectator
+		abilities = packet.AbilityInvulnerable | packet.AbilityAllowFlight
+		name = "spectator"
+	default:
+		return "", false
+	}
+
+	_ = c.send(&v1_8.PlayClientboundGameStateChange{
+		Reason:   3, // Change game mode
+		GameMode: float32(mode),
+	})
+	c.self.SetGameMode(mode)
+	_ = c.send(&v1_8.PlayClientboundAbilities{
+		Flags:        abilities,
+		FlyingSpeed:  0.05,
+		WalkingSpeed: 0.1,
+	})
+	// Broadcast the change so the tab list updates for everyone.
+	c.players.BroadcastGameMode(c.self)
+
+	return name, true
 }
 
 // sendSystemMsg sends a chat message (position=1, system) to this connection only.
@@ -74,13 +178,10 @@ func (c *Connection) sendErrorMsg(text string) {
 	c.sendSystemMsg(text, "red")
 }
 
-// sendSuccessMsg sends a gold system message.
-func (c *Connection) sendSuccessMsg(text string) {
-	c.sendSystemMsg(text, "gold")
-}
-
-// teleportSelf moves the connection's player to the given coordinates,
+// TeleportSelf moves the connection's player to the given coordinates,
 // broadcasting the teleport to trackers and updating tracking.
+func (c *Connection) TeleportSelf(x, y, z float64) { c.teleportSelf(x, y, z) }
+
 func (c *Connection) teleportSelf(x, y, z float64) {
 	pos := c.self.GetPosition()
 	c.setPositionAndUpdateChunks(x, y, z, pos.Yaw, pos.Pitch, false)
@@ -105,190 +206,4 @@ func (c *Connection) teleportSelf(x, y, z float64) {
 	}, c.self.EntityID)
 
 	c.players.UpdateTracking(c.self)
-}
-
-func cmdHelp(c *Connection, _ []string) {
-	c.sendSystemMsg("--- Available Commands ---", "yellow")
-	for _, cmd := range commands {
-		c.sendSystemMsg(fmt.Sprintf("%s - %s", cmd.usage, cmd.desc), "yellow")
-	}
-}
-
-func cmdList(c *Connection, _ []string) {
-	var names []string
-	c.players.ForEach(func(p *player.Player) {
-		names = append(names, p.Username)
-	})
-	c.sendSuccessMsg(fmt.Sprintf("Online players (%d): %s", len(names), strings.Join(names, ", ")))
-}
-
-func cmdTp(c *Connection, args []string) {
-	switch len(args) {
-	case 1:
-		target := c.players.GetByName(args[0])
-		if target == nil {
-			c.sendErrorMsg(fmt.Sprintf("Player %q not found.", args[0]))
-			return
-		}
-		pos := target.GetPosition()
-		c.teleportSelf(pos.X, pos.Y, pos.Z)
-		c.sendSuccessMsg(fmt.Sprintf("Teleported to %s.", target.Username))
-
-	case 3:
-		x, errX := strconv.ParseFloat(args[0], 64)
-		y, errY := strconv.ParseFloat(args[1], 64)
-		z, errZ := strconv.ParseFloat(args[2], 64)
-		if errX != nil || errY != nil || errZ != nil {
-			c.sendErrorMsg("Usage: /tp <x> <y> <z> (numbers)")
-			return
-		}
-		c.teleportSelf(x, y, z)
-		c.sendSuccessMsg(fmt.Sprintf("Teleported to %.1f, %.1f, %.1f.", x, y, z))
-
-	default:
-		c.sendErrorMsg("Usage: /tp <player> or /tp <x> <y> <z>")
-	}
-}
-
-func cmdGamemode(c *Connection, args []string) {
-	if len(args) != 1 {
-		c.sendErrorMsg("Usage: /gamemode <survival|creative|adventure|spectator>")
-		return
-	}
-
-	var mode uint8
-	var abilities int8
-	modeName := strings.ToLower(args[0])
-
-	switch modeName {
-	case "survival", "s", "0":
-		mode = packet.GameModeSurvival
-		abilities = 0
-		modeName = "survival"
-	case "creative", "c", "1":
-		mode = packet.GameModeCreative
-		abilities = packet.AbilityInvulnerable | packet.AbilityAllowFlight | packet.AbilityCreativeMode
-		modeName = "creative"
-	case "adventure", "a", "2":
-		mode = packet.GameModeAdventure
-		abilities = 0
-		modeName = "adventure"
-	case "spectator", "sp", "3":
-		mode = packet.GameModeSpectator
-		abilities = packet.AbilityInvulnerable | packet.AbilityAllowFlight
-		modeName = "spectator"
-	default:
-		c.sendErrorMsg("Unknown game mode. Use: survival, creative, adventure, spectator")
-		return
-	}
-
-	_ = c.send(&v1_8.PlayClientboundGameStateChange{
-		Reason:   3, // Change game mode
-		GameMode: float32(mode),
-	})
-
-	c.self.SetGameMode(mode)
-
-	_ = c.send(&v1_8.PlayClientboundAbilities{
-		Flags:        abilities,
-		FlyingSpeed:  0.05,
-		WalkingSpeed: 0.1,
-	})
-
-	// Broadcast gamemode change to all players (tab list update).
-	c.players.BroadcastGameMode(c.self)
-
-	c.sendSuccessMsg(fmt.Sprintf("Game mode set to %s.", modeName))
-}
-
-func cmdTime(c *Connection, args []string) {
-	if len(args) != 2 || strings.ToLower(args[0]) != "set" {
-		c.sendErrorMsg("Usage: /time set <day|night|noon|midnight|number>")
-		return
-	}
-
-	var ticks int64
-	switch strings.ToLower(args[1]) {
-	case "day":
-		ticks = 1000
-	case "noon":
-		ticks = 6000
-	case "night":
-		ticks = 13000
-	case "midnight":
-		ticks = 18000
-	default:
-		v, err := strconv.ParseInt(args[1], 10, 64)
-		if err != nil {
-			c.sendErrorMsg("Usage: /time set <day|night|noon|midnight|number>")
-			return
-		}
-		ticks = v
-	}
-
-	c.world.SetTimeOfDay(ticks)
-	age, _ := c.world.GetTime()
-	c.players.Broadcast(&v1_8.PlayClientboundUpdateTime{
-		Age:  age,
-		Time: ticks,
-	})
-	c.sendSuccessMsg(fmt.Sprintf("Time set to %d.", ticks))
-}
-
-func cmdSay(c *Connection, args []string) {
-	if len(args) == 0 {
-		c.sendErrorMsg("Usage: /say <message>")
-		return
-	}
-	msg := strings.Join(args, " ")
-	chatJSON := fmt.Sprintf(
-		`{"text":"[Server] %s","color":"light_purple"}`,
-		strings.ReplaceAll(strings.ReplaceAll(msg, `\`, `\\`), `"`, `\"`),
-	)
-	c.players.Broadcast(&v1_8.PlayClientboundChat{
-		Message:  chatJSON,
-		Position: 0,
-	})
-}
-
-func cmdMe(c *Connection, args []string) {
-	if len(args) == 0 {
-		c.sendErrorMsg("Usage: /me <action>")
-		return
-	}
-	action := strings.Join(args, " ")
-	chatJSON := fmt.Sprintf(
-		`{"translate":"chat.type.emote","with":[%s,%s]}`,
-		escapeJSON(c.self.Username), escapeJSON(action),
-	)
-	c.players.Broadcast(&v1_8.PlayClientboundChat{
-		Message:  chatJSON,
-		Position: 0,
-	})
-}
-
-func cmdKill(c *Connection, _ []string) {
-	c.health = 0
-	_ = c.send(&v1_8.PlayClientboundUpdateHealth{
-		Health:         0,
-		Food:           0,
-		FoodSaturation: 0,
-	})
-	c.die("death.attack.generic")
-}
-
-func cmdSeed(c *Connection, _ []string) {
-	c.sendSuccessMsg(fmt.Sprintf("Seed: [%d]", c.cfg.Seed))
-}
-
-func cmdSave(c *Connection, _ []string) {
-	if c.SaveAll == nil {
-		c.sendErrorMsg("Save is not available.")
-		return
-	}
-	c.sendSuccessMsg("Saving world and player data...")
-	go func() {
-		c.SaveAll()
-		c.sendSuccessMsg("Save complete.")
-	}()
 }

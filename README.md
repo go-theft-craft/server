@@ -30,10 +30,11 @@ return srv.Start(ctx)
 | `examples/custom` | A world generator defined and registered by the application, from outside the framework's module |
 | `examples/minimal` | The smallest server that still serves: logins into a generated world, no persistence, no configuration file |
 | `examples/flat` | A generator supplied directly through `WithGenerator` rather than selected by name in settings |
+| `examples/observed` | An `Observer` mapped onto Prometheus collectors, with a loopback `/metrics` endpoint |
 | `examples/vanilla` | Everything at once: every flag, a configuration file, file-backed persistence, and a generated RSA keypair |
 
 ```bash
-devbox run -- task build     # builds all three into build/
+devbox run -- task build     # builds them all into build/
 ./build/vanilla -port 25566
 ```
 
@@ -44,12 +45,10 @@ devbox run -- task build     # builds all three into build/
 | `server.WorldStore` | Blocks and biomes. `server.FileStore` is the default; supply your own to keep a world anywhere else |
 | `server.SideStore` | Per-chunk data the vanilla format has no field for |
 | `server.PlayerStore` | Per-player state, as the public `server.PlayerData` |
-| `server.Observer` | Measurement. Receives CPU, memory, and per-frame network samples; delivery never blocks the server |
+| `server.Observer` | Measurement. Receives timing, count, gauge, resource, and per-frame network samples, attributed to a player, a feature, and a region; delivery never blocks the server |
 | `gen.Generator` | World generation, through `server.WithGenerator` |
 
-`Store` still names Anvil in `SaveWorldAnvil`, and player persistence still runs
-on the concrete store. Both are M11.3's to fix, along with a version-neutral
-`WorldStore`; the command set becomes a seam in M11.7.
+The command set becomes a seam in M11.7.
 
 ## Features
 
@@ -551,12 +550,121 @@ in two places, and that the index agrees with where each item actually is.
 It costs about 145 bytes per live item — a hundred players each carrying 45 full
 stacks is 42 MB — and nothing at all when it is off, which is the default.
 
-**Two things are still missing.** A placed block gets no identity of its own, so
-the chain does not yet run from placement through destruction into the drop. And
-nothing reconciles identity at load: a stack restored from disk without IDs gets
-them minted at its own location on the first click that moves it, rather than
-being recognised as the items it was. Player inventories keep their identity
-across a restart; chest contents do not. See the M11.5 record in the master plan.
+### Block identity, and what happens at load
+
+A block somebody placed gets an identity of its own, kept in the chunk sidecar
+and released when the block breaks. The break record names both the block and
+the items that fell out of it, which is the join that makes one chain run from
+an inventory, through a wall, and back into an inventory. A block the generator
+made gets nothing: a 2000×2000 world is a billion blocks and 8.2 GB of identity
+alone, nearly all of it air and stone no query would reach, so identity is spent
+only on the blocks a person chose to put somewhere.
+
+Identity that comes off disk is squared with what is actually in the world
+before anyone can click on it. Per column: an identified block whose position
+now holds air has its identity retired, a stored stack with fewer IDs than items
+has the shortfall minted where it already is, a stack with more IDs than items
+has the surplus retired, and every surviving ID is claimed in the index at the
+location it was found — so an ID claimed twice is a duplication reported as it
+happens rather than discovered later. All of it is recorded with actor kind
+`reconcile`, because an external edit between two runs is one of the ways a
+duplication enters a world and absorbing it silently would be the same
+information loss as having no audit trail.
+
+Container contents keep their identity across a restart, in the sidecar, next to
+block identity. Player inventories keep theirs in their own file, where an
+`ItemStack` marshals its IDs without help.
+
+**One limit worth knowing.** The sidecar carries a generation stamp meant to say
+whether it still matches the column it names, and across a restart it cannot:
+the generation is a per-run counter and the world file does not carry it, so a
+sidecar written by a previous run never matches a stamp a fresh load produces.
+Nothing is discarded on a mismatch — that would discard all identity on every
+restart — so every column is reconciled at load rather than trusted. The stamp
+still does its in-run job of catching a world and a sidecar written at different
+moments.
+
+## Observability
+
+Off by default. Supply an `Observer` and the server reports what it is doing,
+attributed to a player, a feature, and a region of the world. Nothing is
+allocated and no clock is read when nobody is watching.
+
+```go
+srv, err := server.New(
+    server.WithSettings(cfg),
+    server.WithObserver(sink),      // your Observer
+    // server.WithChunkDetail(),    // exact chunk labels; read its cardinality note first
+)
+```
+
+`examples/observed` is the worked version: the same construction plus an
+`Observer` mapped onto Prometheus collectors and a `/metrics` endpoint bound to
+loopback. The mapping is the part worth copying, and it is compiled and started
+by `task test:examples` rather than living in this file.
+
+### Sample kinds
+
+| Kind | Means |
+| --- | --- |
+| `duration` | seconds a piece of work took, from `Measure` |
+| `count` | how many times something happened |
+| `bytes` | a payload size |
+| `gauge` | a level: players online, chunks resident, identified items live |
+| `cpu`, `memory` | process resource use, every ten seconds |
+| `network_in`, `network_out` | wire bytes, counted at the frame |
+| `dropped` | samples that never reached the observer because delivery fell behind |
+
+`dropped` matters more than it looks. Delivery is asynchronous and lossy under
+pressure — a stalled observer must never slow the server it is watching — so
+without this number a graph that goes quiet looks like a server that went quiet.
+
+### Features and labels
+
+A sample is attributed with a closed set of labels: player (the username, not
+the UUID), feature, region, world, and — for network samples — packet and
+direction. Closed is the point: an open map would let any call site coin a key,
+and the first one to add a UUID beside the username doubles every series.
+
+The feature list is in `server/labels.go` and `server.Features()` returns it, so
+a sink can register one series per feature up front instead of discovering them
+one sample at a time. Fourteen today: the five chunk features, tick, entity
+sync, block write, inventory, crafting, combat, command, login, and provenance.
+
+### Cardinality
+
+Chunk work is labelled with the 32×32 **region** it falls in, not the chunk.
+That is the same grouping the Anvil files use, so a slow region in a graph and a
+slow region file on disk are the same region, and it divides label cardinality
+by 1,024. `server.WithChunkDetail()` switches to exact chunk coordinates for
+someone investigating one column; a world with 10,000 resident chunks then
+produces 10,000 series per chunk metric, which the option's own documentation
+says at the place you read it before turning it on.
+
+### What it costs
+
+Measured on an AMD Ryzen 9 9950X:
+
+| Path | Cost |
+| --- | --- |
+| A span with no observer | 1.9 ns, no allocation |
+| A span with an observer | 148 ns — two clock reads and a queue send |
+| A join at view distance 12, cold | 8.1 ms for 625 chunks, 12.9 µs each |
+| The same join with the section cache warm | 1.7 ms, 2.8 µs per chunk |
+| The fixed workload, unobserved | 5.36–5.59 ms |
+| The same workload with a discarding observer | 5.48–5.71 ms — inside the floor's own spread |
+| The same workload with a recording observer | 6.53–6.67 ms |
+
+Producing the samples is not measurable against the work being sampled: 625
+spans at 148 ns is 92 µs against a 5.5 ms workload. What costs something is a
+consumer that keeps them, which is the third row and is yours rather than the
+server's.
+
+Anything that can happen more than once per tick per player — a block write, an
+inventory click, an entity position sync — is accumulated and flushed as one
+sample per (feature, player) at the end of the tick. A thousand block writes are
+one sample. That rule is what stops the measurement becoming the load, and it is
+the rule to follow when adding a call site.
 
 ## Protocol Coverage
 

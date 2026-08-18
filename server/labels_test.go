@@ -7,6 +7,7 @@ import (
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 
+	"github.com/go-theft-craft/server/pkg/world"
 	"github.com/go-theft-craft/server/server"
 )
 
@@ -170,5 +171,30 @@ func TestEveryFeatureIsInTheDeclaredList(t *testing.T) {
 	// accumulator needed and the design had nowhere to put.
 	if len(seen) != 14 {
 		t.Errorf("the list holds %d features, want 14", len(seen))
+	}
+}
+
+func TestTheFeatureNamesBelowAgreeWithTheOnesHere(t *testing.T) {
+	// pkg/world and internal/server/conn cannot name a Feature: this package
+	// imports them, not the other way round. So the seam is a function taking
+	// a string and the names are declared twice, which is exactly the thing
+	// that drifts. Renaming one half and not the other would produce a series
+	// under a name no sink registered, silently.
+	for _, pair := range []struct {
+		below string
+		here  server.Feature
+	}{
+		{world.MeasureChunkGenerate, server.FeatureChunkGenerate},
+		{world.MeasureChunkLoad, server.FeatureChunkLoad},
+		{world.MeasureChunkEncode, server.FeatureChunkEncode},
+		{world.MeasureChunkSend, server.FeatureChunkSend},
+		{world.MeasureChunkSave, server.FeatureChunkSave},
+		{world.MeasureBlockWrite, server.FeatureBlockWrite},
+		{world.MeasureInventory, server.FeatureInventory},
+		{world.MeasureEntitySync, server.FeatureEntitySync},
+	} {
+		if server.Feature(pair.below) != pair.here {
+			t.Errorf("pkg/world spells it %q and this package spells it %q", pair.below, pair.here)
+		}
 	}
 }

@@ -1,7 +1,9 @@
 package server_test
 
 import (
+	"os"
 	"testing"
+	"time"
 
 	"github.com/go-theft-craft/server/config"
 	"github.com/go-theft-craft/server/pkg/world"
@@ -188,5 +190,69 @@ func BenchmarkMeasureSpanUnobserved(b *testing.B) {
 
 	for b.Loop() {
 		srv.Measure(server.FeatureChunkEncode, labels)()
+	}
+}
+
+// TestJoinCostByFeature is the first real answer to the question this
+// milestone started from: what does a player joining actually cost, and where
+// does it go.
+//
+// It runs behind an environment variable because it is a measurement rather
+// than an assertion — the numbers it prints are the machine's as much as the
+// code's, and a threshold on them would fail on a slower CI runner without
+// anything having regressed:
+//
+//	M11_MEASURE=1 devbox run -- go test -mod vendor -run TestJoinCostByFeature -v ./server/
+//
+// The numbers this produced are in the M11.6 milestone record.
+func TestJoinCostByFeature(t *testing.T) {
+	if os.Getenv("M11_MEASURE") == "" {
+		t.Skip("set M11_MEASURE=1 to run the join-cost measurement")
+	}
+
+	obs := &collector{}
+	srv := newBenchServer(t, server.WithObserver(obs))
+
+	// A cold join: nothing generated, nothing encoded, nothing cached.
+	start := time.Now()
+	for cx := -benchViewDistance; cx <= benchViewDistance; cx++ {
+		for cz := -benchViewDistance; cz <= benchViewDistance; cz++ {
+			if _, err := srv.World().EncodeChunk(world.ChunkPos{X: cx, Z: cz}); err != nil {
+				t.Fatalf("EncodeChunk: %v", err)
+			}
+		}
+	}
+	cold := time.Since(start)
+
+	// A second pass over the same columns: everything is resident and the
+	// section encode cache is warm. The difference between the two is what
+	// M11.2's cache is worth, which M11.2's own record could only assert.
+	start = time.Now()
+	for cx := -benchViewDistance; cx <= benchViewDistance; cx++ {
+		for cz := -benchViewDistance; cz <= benchViewDistance; cz++ {
+			if _, err := srv.World().EncodeChunk(world.ChunkPos{X: cx, Z: cz}); err != nil {
+				t.Fatalf("EncodeChunk: %v", err)
+			}
+		}
+	}
+	warm := time.Since(start)
+
+	srv.DrainSamples()
+
+	t.Logf("join at view distance %d: %d chunks", benchViewDistance, benchChunks)
+	t.Logf("  cold pass (generate + encode): %v total, %v per chunk", cold, cold/benchChunks)
+	t.Logf("  warm pass (encode only):       %v total, %v per chunk", warm, warm/benchChunks)
+
+	for _, f := range server.Features() {
+		samples := obs.byFeature(f)
+		if len(samples) == 0 {
+			continue
+		}
+		var total float64
+		for _, s := range samples {
+			total += s.Value
+		}
+		t.Logf("  %-16s %5d samples, %.6fs total, %.9fs each",
+			f, len(samples), total, total/float64(len(samples)))
 	}
 }

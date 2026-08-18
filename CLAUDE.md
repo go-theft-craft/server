@@ -35,11 +35,12 @@ All commands use [Task](https://taskfile.dev) (`task <name>`):
 
 | Command | Description |
 |---------|-------------|
-| `task build` | Build the three examples to `build/` (linux/amd64,arm64, CGO disabled) |
+| `task build` | Build the examples to `build/` (linux/amd64,arm64, CGO disabled) |
 | `task deps` | Download, tidy, and vendor Go dependencies |
 | `task fmt` | Format code (gci for imports, gofumpt for formatting) |
 | `task lint` | Run golangci-lint (runs fmt first) |
 | `task test` | Run all tests with coverage, then the examples lane |
+| `task test:profile` | Run the observability off-profile benchmark and its exit-criterion test |
 | `task test:examples` | Build and start each example in the nested `examples` module |
 | `task test:race` | Run all tests with the race detector |
 | `task cleanup` | Remove `build/` directory |
@@ -117,11 +118,45 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
     count that moves without its IDs breaks the invariant that
     `len(IDs) == ItemCount`. `TestRandomClickSequencesNeverBreakTheInvariant` is
     what says it holds.
-  - **Still unfinished:** block identity in the sidecar and reconciliation at
-    load (M11.5 Tasks 6 and 7). Until then a stack restored from disk without
-    identity gets it minted at its own location on the first click that moves
-    it, and chest contents lose identity across a restart while player
-    inventories keep it.
+  - **Block identity is sparse and lives in the sidecar.** A placed block gets
+    an ID (`internal/server/storage/blockid.go`); a generated one never does,
+    and `TestUniversalIdentityIsOffByDefault` is what says a build cannot drift
+    into giving every block one. Container item identity is in the same sidecar
+    (`containerid.go`), because the vanilla format has a field for the items and
+    none for their identity.
+  - **Identity from disk is reconciled before it can be clicked**
+    (`internal/server/storage/reconcile.go`): orphaned block IDs retired,
+    shortfalls minted, surpluses retired, survivors claimed in the index. Run
+    from `storeLoader.LoadChunk` on the column *before the world publishes it*,
+    which is the only window in which writing into a chunk's containers is
+    safe — reading the world for a chunk it is still loading would ask it to
+    load the chunk again. Player inventories are reconciled in
+    `playerBridge.LoadPlayer`, under protocol slot numbering, which is what the
+    index and every click path use.
+  - **The sidecar generation stamp cannot match across a restart.** Generation
+    is a per-run counter the world file does not carry. Nothing is discarded on
+    a mismatch — that would discard all identity on every restart — so every
+    column is reconciled at load. Do not "fix" this by dropping identity when
+    the stamp disagrees.
+- **Observability** — off by default, and `TestOffProfileAllocatesNothingForMeasurement`
+  is what says so. `server/labels.go` holds the closed label set and the feature
+  list, which is the API: adding a feature means editing that file. `Measure`
+  returns a package-level no-op closure and reads no clock when there is no
+  observer, which is what makes it acceptable inside the 625-iteration loop that
+  sends a join's chunks. `pkg/world` and `internal/server/conn` cannot name a
+  `Feature` — they sit below the package that publishes it — so the seam is a
+  function taking a string, and the names are declared in `pkg/world/measure.go`
+  with a test in `server` asserting the two spellings agree.
+  - **Anything more frequent than once per tick per player is accumulated**
+    (`server/tickstats.go`) and flushed as one sample per (feature, player).
+    Sampling such a path directly is how measurement becomes load. The design
+    called the accumulator lock-free on the tick goroutine; it is not, because a
+    block write happens on the connection's goroutine.
+  - Chunk work is labelled by 32×32 region, not by chunk. `WithChunkDetail()`
+    changes that and states its cardinality where somebody reads it.
+  - The Prometheus client lives in `examples/go.mod` only. The core module's
+    dependency list does not grow for this.
+
 - **`interop/`** — the loopback lane that runs a pinned Node
   `minecraft-protocol` 1.66.2 client against this server.
 - **`vendor/`** — vendored Go dependencies. All builds use `-mod vendor`.

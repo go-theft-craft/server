@@ -2,6 +2,14 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Status: complete, 2026-08-18.** All eight tasks landed. Two deviations are
+> recorded in `MASTER_PLAN.md`: the feature list is fourteen rather than
+> thirteen, because the per-tick accumulator needed somewhere to put a block
+> write, and the accumulator is a map behind a mutex rather than the lock-free
+> struct the design described, because a block write happens on the
+> connection's goroutine rather than the tick's. Task 6's wall-time tolerance
+> was demoted to a recorded number before it was written.
+
 **Goal:** Turn M11.1's four process-wide counters into per-player, per-feature, and per-region attribution, with a measurement API that allocates nothing when nobody is observing, bounded label cardinality, a reference sink in `examples/`, and a CI benchmark that keeps the off path free.
 
 **Architecture:** `Sample.Labels` becomes a closed struct instead of a map, so no call site can coin a key and no sample allocates. `Measure(feature, labels)` returns a closure that records a duration on call and is a shared no-op when unobserved. Paths that can run more than once per tick per player accumulate on the tick goroutine and flush one sample; everything rarer samples directly. Chunk attribution is per 32×32 region by default.
@@ -88,7 +96,7 @@ can move.
 **Interfaces:**
 - Produces: `server.Labels`, `server.Feature` and its constants, `server.RegionPos`, `server.SampleDropped`, `SampleDuration`, `SampleCount`, `SampleBytes`, `SampleGauge`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```go
 func TestRegionOfNegativeChunkCoordinates(t *testing.T)
@@ -100,33 +108,33 @@ func TestASampleCarriesNoMapAndAllocatesNothing(t *testing.T)
 disagree for negatives, the Anvil layout uses the shift, and a metrics label
 that disagrees with the region file it names is worse than no label.
 
-- [ ] **Step 2: Implement the label struct and the feature list**
+- [x] **Step 2: Implement the label struct and the feature list**
 
 Exactly the thirteen features the design names. `Feature` is a string type
 with unexported-by-convention discipline: the list is the API, and adding one
 means editing `labels.go`.
 
-- [ ] **Step 3: Change `Sample.Labels`**
+- [x] **Step 3: Change `Sample.Labels`**
 
 From `map[string]string` to `Labels`. This is a breaking change to a type
 published in M11.1; the only consumers are in this repository and its
 examples, and a map allocated per sample on a per-frame path is the
 alternative. Say so in the commit message.
 
-- [ ] **Step 4: Report the dispatcher's drops**
+- [x] **Step 4: Report the dispatcher's drops**
 
 The dispatcher counts what it discards and emits `SampleDropped` on the same
 ten-second cadence as `SampleResources`, from its own goroutine. Without this,
 an observer under load silently sees less than it thinks — the gap M11.1 left.
 
-- [ ] **Step 5: Label the network sink**
+- [x] **Step 5: Label the network sink**
 
 `NetworkSink` gains packet name and direction. The packet name comes from the
 observation's `Packet` metadata when the stage carries one; a raw frame record
 does not, so raw frames carry direction only and the packet label is empty.
 Do not synthesize a name that the record does not have.
 
-- [ ] **Step 6: Gate and commit**
+- [x] **Step 6: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -144,7 +152,7 @@ git commit -m "feat(server): close the label set and report dropped samples"
 **Interfaces:**
 - Produces: `(*Server).Measure(Feature, Labels) func()`, `(*Server).Count(Feature, Labels, float64)`, `(*Server).Gauge(SampleKind, Labels, float64)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```go
 func TestMeasureAllocatesNothingWhenUnobserved(t *testing.T)   // AllocsPerRun == 0
@@ -158,7 +166,7 @@ clock through an unexported function variable in the test build. It matters
 because the whole argument for leaving `Measure` in a 625-iteration loop is
 that the unobserved path does nothing.
 
-- [ ] **Step 2: Implement**
+- [x] **Step 2: Implement**
 
 ```go
 // noopSpan is returned by Measure on an unobserved server. It is a
@@ -181,7 +189,7 @@ func (s *Server) Measure(f Feature, l Labels) func() {
 }
 ```
 
-- [ ] **Step 3: Gate and commit**
+- [x] **Step 3: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -202,7 +210,7 @@ git commit -m "feat(server): add a measurement span that is free when unobserved
 **Interfaces:**
 - Consumes: `Measure`, `Labels`, the M11.2 adapter.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```go
 func TestJoiningEmitsOneEncodeSamplePerChunkSent(t *testing.T)
@@ -213,7 +221,7 @@ func TestGenerateLoadAndSaveAreDistinguishable(t *testing.T)
 The first asserts 625 samples at view distance 12, which is the number that
 motivated the milestone.
 
-- [ ] **Step 2: Instrument, in this order**
+- [x] **Step 2: Instrument, in this order**
 
 | Feature | Site |
 | --- | --- |
@@ -228,12 +236,12 @@ cache hit shows as a fast encode rather than as no encode at all. A hit that
 records nothing would make the cache look like it removed the work rather than
 made it cheap.
 
-- [ ] **Step 3: Carry the player label without formatting per sample**
+- [x] **Step 3: Carry the player label without formatting per sample**
 
 The connection stores its `Labels` value once at login. No call site calls
 `p.Username` inside a loop.
 
-- [ ] **Step 4: Gate and commit**
+- [x] **Step 4: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -252,7 +260,7 @@ git commit -m "feat(server): attribute chunk work to a player and a region"
 **Interfaces:**
 - Produces: `tickStats`, flushed at the end of `tick`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```go
 func TestAThousandBlockWritesProduceOneSamplePerTick(t *testing.T)
@@ -260,7 +268,7 @@ func TestTheAccumulatorIsFreeWhenUnobserved(t *testing.T)
 func TestFlushEmitsOneSamplePerFeatureAndPlayer(t *testing.T)
 ```
 
-- [ ] **Step 2: Implement**
+- [x] **Step 2: Implement**
 
 A plain struct owned by the tick goroutine, so it needs no synchronization.
 Block writes, entity syncs, and packet counts accumulate into it; `tick`
@@ -270,13 +278,13 @@ The design's table is the rule: anything that can happen more than once per
 tick per player accumulates, anything rarer samples directly. Deviating from
 that in a call site is what turns measurement into load.
 
-- [ ] **Step 3: Add the gauges**
+- [x] **Step 3: Add the gauges**
 
 Players online, chunks resident, index size when M11.5 is present. Gauges are
 emitted on the ten-second cadence, not per tick: a level does not need 20
 samples a second.
 
-- [ ] **Step 4: Gate and commit**
+- [x] **Step 4: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -291,13 +299,13 @@ git commit -m "feat(server): aggregate hot-path samples per tick"
 **Files:**
 - Modify: `server/options.go`, `server/labels.go`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```go
 func TestChunkLabelIsEmptyByDefaultAndSetUnderWithChunkDetail(t *testing.T)
 ```
 
-- [ ] **Step 2: Implement and document the cost at the option**
+- [x] **Step 2: Implement and document the cost at the option**
 
 ```go
 // WithChunkDetail labels chunk samples with exact chunk coordinates instead
@@ -313,7 +321,7 @@ func WithChunkDetail() Option
 The number belongs at the option, where someone reads it at the moment they
 are about to turn it on.
 
-- [ ] **Step 3: Gate and commit**
+- [x] **Step 3: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -335,13 +343,13 @@ git commit -m "feat(server): allow exact chunk labels, with the cardinality stat
 **Interfaces:**
 - Produces: `task test:profile`.
 
-- [ ] **Step 1: Write the fixed workload**
+- [x] **Step 1: Write the fixed workload**
 
 One connection, join, 625 chunks sent, 1,000 block writes, disconnect, over a
 loopback pipe with a discarding client — the same harness shape
 `internal/server/conn/conn_test.go` already uses.
 
-- [ ] **Step 2: Three configurations**
+- [x] **Step 2: Three configurations**
 
 | Configuration | Assertion |
 | --- | --- |
@@ -354,7 +362,7 @@ machine it was measured on, because a wall-time assertion with no context is a
 flake waiting for a slower CI runner. If it proves flaky, the allocation
 assertion stays and the wall-time one becomes a recorded number.
 
-- [ ] **Step 3: Add the lane**
+- [x] **Step 3: Add the lane**
 
 ```yaml
   test:profile:
@@ -364,7 +372,7 @@ assertion stays and the wall-time one becomes a recorded number.
       - go test -mod vendor -run TestOffProfile -bench BenchmarkObserve -benchtime 3x ./server/
 ```
 
-- [ ] **Step 4: Gate and commit**
+- [x] **Step 4: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -380,7 +388,7 @@ git commit -m "test(server): pin the cost of observability being off"
 - Create: `examples/observed/main.go`
 - Modify: `examples/go.mod`, `examples/examples_test.go`, `Taskfile.yml`, `README.md`
 
-- [ ] **Step 1: Write the example**
+- [x] **Step 1: Write the example**
 
 Vanilla's construction plus an `Observer` that maps samples onto Prometheus
 collectors and an HTTP server exposing `/metrics`, **bound to loopback by
@@ -391,14 +399,14 @@ The mapping is the interesting part of the example: `Feature` becomes a label,
 `SampleDuration` becomes a histogram, `SampleCount` a counter,
 `SampleGauge` a gauge. That is the piece someone copying this needs.
 
-- [ ] **Step 2: Add it to the lane**
+- [x] **Step 2: Add it to the lane**
 
 `examples_test.go` gains `"observed"` with port 25705 and asserts `/metrics`
 answers after the server starts. That last assertion is what keeps the sink
 compiling and wired, which is the whole reason the example exists rather than
 a README snippet.
 
-- [ ] **Step 3: Gate and commit**
+- [x] **Step 3: Gate and commit**
 
 ```bash
 devbox run -- task lint
@@ -413,12 +421,12 @@ git commit -m "feat(examples): a server that exports its samples"
 **Files:**
 - Modify: `README.md`, `CLAUDE.md`, `../headless-minecraft/MASTER_PLAN.md`
 
-- [ ] **Step 1: Document the seam**
+- [x] **Step 1: Document the seam**
 
 A README section listing the sample kinds, the feature list, the label set,
 and the cardinality rule, with `examples/observed` as the worked example.
 
-- [ ] **Step 2: Record the milestone**
+- [x] **Step 2: Record the milestone**
 
 In `MASTER_PLAN.md`, tick M11.6 and record:
 
@@ -431,7 +439,7 @@ In `MASTER_PLAN.md`, tick M11.6 and record:
 - whether the wall-time tolerance in Task 6 survived CI or had to be demoted
   to a recorded number.
 
-- [ ] **Step 3: Final gate and commit**
+- [x] **Step 3: Final gate and commit**
 
 ```bash
 devbox run -- task lint

@@ -84,6 +84,12 @@ tasks:
     cmds:
       - go test -mod vendor -count=1 ./interop
 
+  test:profile:
+    desc: Run the observability off-profile benchmark and its exit-criterion test
+    deps: [ deps ]
+    cmds:
+      - go test -mod vendor -run TestOffProfile -bench BenchmarkObserve -benchtime 3x ./server/
+
   test:examples:
     desc: Build and start each example in the nested examples module
     deps: [ deps ]

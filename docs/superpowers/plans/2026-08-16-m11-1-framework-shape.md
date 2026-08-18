@@ -1,8 +1,9 @@
 # M11.1 Framework Shape Implementation Plan
 
 > **Status: complete, 2026-08-18.** Shipped as M11.1, and M11.2 through M11.7
-> have landed on top of it. The checkboxes below were never ticked and are not
-> evidence; do not re-run this plan. What each sub-milestone deviated from its
+> have landed on top of it. The boxes below are ticked by outcome, checked
+> against this repository on 2026-08-18, not as a record that each step ran as
+> written. Do not re-run this plan. What each sub-milestone deviated from its
 > own plan is recorded in
 > [the archived master plan](../../../../headless-minecraft/docs/archive/2026-08-18-master-plan.md).
 
@@ -115,7 +116,7 @@ so moving only one of them delivers nothing a reviewer could accept.
 - Consumes: nothing.
 - Produces: `server.Server`, `server.New(cfg *config.Config, log *slog.Logger, store *storage.Storage) (*Server, error)`, `(*Server).Start(ctx context.Context) error`, `config.Config`, `config.DefaultConfig() *Config`, `config.Merge(cfg, fromFile *Config, explicitFlags map[string]bool)`, `config.GeneratorDefault`, `config.GeneratorFlat`. Signatures are unchanged from today; Task 2 replaces `New`.
 
-- [ ] **Step 1: Confirm the baseline is green before moving anything**
+- [x] **Step 1: Confirm the baseline is green before moving anything**
 
 ```bash
 devbox run -- task test
@@ -125,7 +126,7 @@ devbox run -- task test:interop
 Expected: PASS. A move that starts from a red tree cannot be verified, and this
 milestone's whole claim is that nothing changed.
 
-- [ ] **Step 2: Move the packages**
+- [x] **Step 2: Move the packages**
 
 ```bash
 git mv internal/server/config config
@@ -140,7 +141,7 @@ nothing outside the module needs them.
 The package clause in the moved files is already `package server` and already
 `package config`, so neither changes.
 
-- [ ] **Step 3: Update every import path**
+- [x] **Step 3: Update every import path**
 
 Five packages import `internal/server/config`: `server`, `conn`, `player`,
 `storage`, and `cmd/server`. Two import `internal/server`: `cmd/server` and
@@ -156,7 +157,7 @@ Rewrite `github.com/go-theft-craft/server/internal/server/config` to
 `github.com/go-theft-craft/server/internal/server` to
 `github.com/go-theft-craft/server/server`.
 
-- [ ] **Step 4: Update the Taskfile paths**
+- [x] **Step 4: Update the Taskfile paths**
 
 `fmt` runs `gci` over a fixed directory list that no longer covers the moved
 code:
@@ -165,7 +166,7 @@ code:
       - gci write -s standard -s default -s "prefix(github.com/openserbia)" -s "prefix({{.PACKAGE_NAME}})" --skip-generated internal cmd server config pkg
 ```
 
-- [ ] **Step 5: Run the full gate**
+- [x] **Step 5: Run the full gate**
 
 ```bash
 devbox run -- task lint
@@ -176,7 +177,7 @@ devbox run -- task test:interop
 Expected: PASS, identical to Step 1. If the interoperability lane fails, the
 move changed behavior, which it must not.
 
-- [ ] **Step 6: Prove the package is importable from outside the module**
+- [x] **Step 6: Prove the package is importable from outside the module**
 
 ```bash
 cd /tmp && mkdir -p importcheck && cd importcheck
@@ -211,7 +212,7 @@ Expected: builds. This is the property the move exists to create, and it is
 worth checking directly rather than inferring from the in-module build. Delete
 `/tmp/importcheck` afterwards.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -234,7 +235,7 @@ way, and give every later sub-milestone one place to add a knob.
 - Consumes: `config.Config`, `config.DefaultConfig` from Task 1.
 - Produces: `server.Option`, `server.New(opts ...Option) (*Server, error)`, and `WithSettings(*config.Config)`, `WithLogger(*slog.Logger)`, `WithGenerator(gen.Generator)`, `WithPort(int)`, `WithSeed(int64)`, `WithMOTD(string)`, `WithOnlineMode(bool)`, `WithMaxPlayers(int)`, `WithViewDistance(int)`, `WithWorldRadius(int)`, `WithCompressionThreshold(int)`, `WithPrivateKey(*rsa.PrivateKey)`. `ErrInvalidOption`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `server/options_test.go`:
 
@@ -373,7 +374,7 @@ func TestWithPrivateKeyIsCarriedIntoSettings(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 ```bash
 devbox run -- task test
@@ -381,7 +382,7 @@ devbox run -- task test
 
 Expected: FAIL, `server.Option` and the `With*` constructors are undefined.
 
-- [ ] **Step 3: Implement the options**
+- [x] **Step 3: Implement the options**
 
 `server/options.go`:
 
@@ -555,7 +556,7 @@ func WithPrivateKey(key *rsa.PrivateKey) Option {
 }
 ```
 
-- [ ] **Step 4: Rewrite `New` and add the accessors**
+- [x] **Step 4: Rewrite `New` and add the accessors**
 
 In `server/server.go`, replace the existing `New` with:
 
@@ -618,7 +619,7 @@ Add `generator gen.Generator` to the `Server` struct. The `storage` field stays
 for now and Task 3 replaces it; `New` no longer sets it, so `Start` sees a nil
 store and skips persistence, which is the behavior `interop` already relies on.
 
-- [ ] **Step 5: Update the two callers**
+- [x] **Step 5: Update the two callers**
 
 `cmd/server/main.go` replaces `server.New(cfg, log, store)` with option calls.
 Because the file already merges flags over file config into one `*config.Config`,
@@ -646,7 +647,7 @@ noticed.
 	)
 ```
 
-- [ ] **Step 6: Run and verify it passes**
+- [x] **Step 6: Run and verify it passes**
 
 ```bash
 devbox run -- task test
@@ -655,7 +656,7 @@ devbox run -- task test:interop
 
 Expected: PASS, including the eight new option tests.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -686,7 +687,7 @@ M11.1 extracts the interface that exists today.
 - Consumes: `server.Option` from Task 2, `world.World` from `pkg/world`.
 - Produces: `server.Store` interface, `server.WithStore(Store) Option`, `server.FileStore(dir string, log *slog.Logger) (Store, error)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `server/store_test.go`:
 
@@ -780,7 +781,7 @@ func TestFileStoreSatisfiesTheSeam(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 ```bash
 devbox run -- task test
@@ -789,7 +790,7 @@ devbox run -- task test
 Expected: FAIL, `server.Store`, `server.WithStore`, `server.Store()`, and
 `server.FileStore` are undefined.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `server/store.go`:
 
@@ -898,7 +899,7 @@ existing store guards. `FileStore` returns the concrete storage type behind the
 `Store` interface, so the assertion succeeds for the default and fails
 harmlessly for an external store.
 
-- [ ] **Step 4: Restore persistence in `cmd/server`**
+- [x] **Step 4: Restore persistence in `cmd/server`**
 
 Add `server.WithStore(store)` back to the option list, and build `store` with
 `server.FileStore(dataDir, log)`. The config load and save still use the
@@ -907,7 +908,7 @@ application's business rather than the server's. Import
 `internal/server/storage` directly for those two calls; `cmd/server` is in the
 same module, so it may.
 
-- [ ] **Step 5: Run and verify it passes**
+- [x] **Step 5: Run and verify it passes**
 
 ```bash
 devbox run -- task test
@@ -916,7 +917,7 @@ devbox run -- task test:interop
 
 Expected: PASS, including the four new store tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A
@@ -941,7 +942,7 @@ than from new counting code. `newStream` already takes
 - Consumes: `server.Option` from Task 2.
 - Produces: `server.Observer` interface, `server.Sample`, `server.SampleKind` with `SampleCPU`, `SampleMemory`, `SampleNetworkIn`, `SampleNetworkOut`, `server.WithObserver(Observer) Option`, `server.NopObserver`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `server/observer_test.go`:
 
@@ -1167,7 +1168,7 @@ func TestResourceSamplesReportPlausibleValues(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 ```bash
 devbox run -- task test
@@ -1175,7 +1176,7 @@ devbox run -- task test
 
 Expected: FAIL, the observer and metrics identifiers are undefined.
 
-- [ ] **Step 3: Implement the observer**
+- [x] **Step 3: Implement the observer**
 
 `server/observer.go`:
 
@@ -1259,7 +1260,7 @@ Add `observer Observer` to `builder` and to `Server`, and default it in `New`:
 	}
 ```
 
-- [ ] **Step 4: Implement the metrics**
+- [x] **Step 4: Implement the metrics**
 
 `server/metrics.go`:
 
@@ -1352,7 +1353,7 @@ Call `SampleResources` from the existing tick loop on a
 `time.NewTicker(resourceSampleInterval)`, guarded so it does nothing when the
 observer is `NopObserver{}`.
 
-- [ ] **Step 5: Wire the sink into connections**
+- [x] **Step 5: Wire the sink into connections**
 
 `internal/server/conn/stream.go`'s `newStream` already accepts
 `...protocol.StreamOption`. Find its caller in `connection.go` and pass
@@ -1363,7 +1364,7 @@ Do not install a sink when the observer is the no-op: observation delivery has
 a cost per frame, and a server that was never asked for metrics should not pay
 it.
 
-- [ ] **Step 6: Run and verify it passes**
+- [x] **Step 6: Run and verify it passes**
 
 ```bash
 devbox run -- task test
@@ -1374,7 +1375,7 @@ Expected: PASS, including the four observer tests and the four metrics tests.
 The interoperability lane matters here: a sink that errored or blocked would
 show up as a failed or hung connection rather than as a failed unit test.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -1403,7 +1404,7 @@ has. That is the repository convention recorded in `MASTER_PLAN.md`.
 - Consumes: everything the `server` package produced in Tasks 1 through 4.
 - Produces: three runnable programs. No Go API.
 
-- [ ] **Step 1: Create the module**
+- [x] **Step 1: Create the module**
 
 `examples/go.mod`:
 
@@ -1425,7 +1426,7 @@ This module does not vendor. The parent vendors because it ships; examples do
 not ship, and vendoring a `replace`d parent duplicates the whole tree on disk
 for no benefit.
 
-- [ ] **Step 2: Write `examples/minimal`**
+- [x] **Step 2: Write `examples/minimal`**
 
 The smallest thing that is still a server: a login into an empty world, no
 storage, no generator choice, no flags.
@@ -1471,7 +1472,7 @@ func main() {
 }
 ```
 
-- [ ] **Step 3: Write `examples/flat`**
+- [x] **Step 3: Write `examples/flat`**
 
 Superflat and in-memory, and it supplies its own generator rather than naming
 one in settings, which is the seam `WithGenerator` exists for.
@@ -1522,7 +1523,7 @@ func main() {
 }
 ```
 
-- [ ] **Step 4: Write `examples/vanilla`**
+- [x] **Step 4: Write `examples/vanilla`**
 
 This is today's `cmd/server/main.go`, moved and rewritten against options.
 Every flag, the config file merge, the RSA key generation, and the storage
@@ -1555,7 +1556,7 @@ Copy the flag block verbatim from `cmd/server/main.go`, then:
 	)
 ```
 
-- [ ] **Step 5: Delete `cmd/server` and update the Taskfile**
+- [x] **Step 5: Delete `cmd/server` and update the Taskfile**
 
 ```bash
 git rm -r cmd/server
@@ -1583,7 +1584,7 @@ Drop `cmd` from the `fmt` target's directory list and add `examples`. Note that
 `gci` and `gofumpt` run from the repository root and reach into the nested
 module fine, because both work on files rather than on packages.
 
-- [ ] **Step 6: Verify each example builds and runs**
+- [x] **Step 6: Verify each example builds and runs**
 
 ```bash
 devbox run -- task build
@@ -1595,7 +1596,7 @@ kill %1
 Expected: all three build; `minimal` logs `server started` and exits cleanly on
 signal.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -1616,7 +1617,7 @@ from now.
 - Consumes: the three example programs from Task 5.
 - Produces: `task test:examples`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `examples/examples_test.go`:
 
@@ -1699,7 +1700,7 @@ func portFlag(name string) []string {
 }
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 ```bash
 cd examples && go test ./...
@@ -1708,13 +1709,13 @@ cd examples && go test ./...
 Expected: FAIL. `minimal` and `flat` accept no flags, so they bind the default
 port and two of the three subtests collide.
 
-- [ ] **Step 3: Give `minimal` and `flat` a port flag**
+- [x] **Step 3: Give `minimal` and `flat` a port flag**
 
 Add a single `flag.Int` for the port to each, defaulting to `25565`, and pass it
 through `server.WithPort`. Nothing else about either example changes; an example
 that cannot be told where to listen cannot be tested alongside its siblings.
 
-- [ ] **Step 4: Run and verify it passes**
+- [x] **Step 4: Run and verify it passes**
 
 ```bash
 cd examples && go test ./...
@@ -1722,7 +1723,7 @@ cd examples && go test ./...
 
 Expected: PASS, three subtests.
 
-- [ ] **Step 5: Add the CI lane**
+- [x] **Step 5: Add the CI lane**
 
 The nested module is invisible to `go test ./...` from the root, so it needs its
 own target:
@@ -1739,7 +1740,7 @@ own target:
 Add `test:examples` to the `default` task alongside `test`, so it runs without
 anyone remembering to ask for it. That is the whole point.
 
-- [ ] **Step 6: Run the full gate**
+- [x] **Step 6: Run the full gate**
 
 ```bash
 devbox run -- task lint
@@ -1750,7 +1751,7 @@ devbox run -- task test:interop
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -1767,7 +1768,7 @@ git commit -m "test(examples): build and start each example in CI"
 - Modify: `README.md`
 - Modify: `../headless-minecraft/MASTER_PLAN.md`
 
-- [ ] **Step 1: Rewrite the README's usage section**
+- [x] **Step 1: Rewrite the README's usage section**
 
 It documents `cmd/server`, which no longer exists. Replace it with:
 
@@ -1784,7 +1785,7 @@ Do not document `Sample.Labels` as usable. It is present for M11.6 and nothing
 populates it yet, and a README that promises attribution this milestone does not
 deliver is worse than one that stays quiet about it.
 
-- [ ] **Step 2: Record the milestone**
+- [x] **Step 2: Record the milestone**
 
 In `../headless-minecraft/MASTER_PLAN.md`, tick M11.1 in the M11 section and
 record, specifically:
@@ -1797,7 +1798,7 @@ record, specifically:
 - anything the external-import check in Task 1 Step 6 turned up, since that is
   the first time this repository has been consumed as a library.
 
-- [ ] **Step 3: Run the full gate one last time**
+- [x] **Step 3: Run the full gate one last time**
 
 ```bash
 devbox run -- task lint
@@ -1809,7 +1810,7 @@ devbox run -- task test:interop
 Expected: PASS, and the interoperability lane byte-identical to the baseline
 captured in Task 1 Step 1.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A

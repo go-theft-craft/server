@@ -5,8 +5,9 @@
 > through `login.Acceptor`, compression is negotiated, legacy pings are
 > answered, and `minecraft-protocol` is consumed as a released module with no
 > `replace`. Both client checks passed on 2026-08-15 with zero decode errors
-> (`docs/verification/2026-08-15-m3-client-checks.md`). The checkboxes below
-> were never ticked and are not evidence; do not re-run this plan.
+> (`docs/verification/2026-08-15-m3-client-checks.md`). The boxes below are
+> ticked by outcome, checked against this repository on 2026-08-18, not as a
+> record that each step ran as written. Do not re-run this plan.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -113,7 +114,7 @@ already holds `packetKeyForValue`, so it can answer this itself.
   `var ErrUnregisteredPacket = errors.New("unregistered packet value")` in
   every generated protocol package.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `generated/java/v1_8/envelope_test.go`:
 
@@ -178,12 +179,12 @@ generated `packetNames` map and use the exact string; if it is not
 `"login/clientbound/success"`, correct the test to the real value before
 running it.
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `devbox run -- go test ./generated/java/v1_8/ -run TestEnvelope -v`
 Expected: FAIL, `undefined: v1_8.Envelope`.
 
-- [ ] **Step 3: Add the helper to the template**
+- [x] **Step 3: Add the helper to the template**
 
 Append to `internal/codegen/generator/templates/protocol.go.tmpl`, after the
 session methods:
@@ -218,19 +219,19 @@ func Envelope(value any) (protocol.Packet, error) {
 
 Add `"errors"` to the template's import list if it is not already there.
 
-- [ ] **Step 4: Regenerate and verify**
+- [x] **Step 4: Regenerate and verify**
 
 Run: `devbox run -- task generate`
 Then: `devbox run -- go test ./generated/java/v1_8/ -run TestEnvelope -v`
 Expected: PASS.
 
-- [ ] **Step 5: Verify the generator is reproducible**
+- [x] **Step 5: Verify the generator is reproducible**
 
 Run: `devbox run -- task generate:check`
 Expected: PASS with no diff. A failure here means the template writes
 non-deterministic output.
 
-- [ ] **Step 6: Run the full gate and commit**
+- [x] **Step 6: Run the full gate and commit**
 
 ```bash
 devbox run -- task precommit
@@ -267,7 +268,7 @@ consumed `LoginStart` before it knows a login is starting. `Negotiate` reads
 that packet and delegates; `NegotiateFrom` takes it as an argument. Task 11
 calls the second. Both own inbound delivery for the rest of the sequence.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `login/server_test.go`. `newLoginPair` builds two streams over an
 `net.Pipe`, one per role; copy the helper the M2 client negotiator tests
@@ -370,12 +371,12 @@ The offline UUID in the first test is the version 3 MD5 UUID of
 and paste the literal; do not leave it as a call, because that would test the
 implementation against itself.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `devbox run -- go test ./login/ -run TestServerNegotiate -v`
 Expected: FAIL, `undefined: login.NewServerNegotiator`.
 
-- [ ] **Step 3: Write the offline implementation**
+- [x] **Step 3: Write the offline implementation**
 
 Create `login/server.go`:
 
@@ -494,12 +495,12 @@ func OfflineUUID(username java.Username) java.UUID {
 a security decision. If `golangci-lint` flags the import, add a
 `//nolint:gosec` comment naming that reason.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `devbox run -- go test ./login/ -run TestServerNegotiate -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 devbox run -- task precommit
@@ -523,7 +524,7 @@ git commit -m "feat(login): add the offline server negotiator"
 - Produces: `func WithServerKey(*rsa.PrivateKey) ServerOption`;
   `func WithVerifier(Verifier) ServerOption`; `login.ErrVerificationFailed`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `login/server_test.go`:
 
@@ -746,12 +747,12 @@ Three helpers keep these readable, all in `server_test.go`:
 `java.ErrVerifyTokenMismatch` is the sentinel M2's `java.VerifyToken` returns,
 defined in `wire/java/identity.go`.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `devbox run -- go test ./login/ -run TestServerNegotiate -v`
 Expected: FAIL, `undefined: login.WithServerKey`.
 
-- [ ] **Step 3: Implement the online path**
+- [x] **Step 3: Implement the online path**
 
 Add to `login/server.go`. The negotiator holds `key *rsa.PrivateKey` and
 `verifier Verifier`; when both are nil it keeps the offline path from Task 2.
@@ -829,12 +830,12 @@ client encrypts everything it sends after its `EncryptionResponse`. Installing
 it after the verifier call would mean reading the next client bytes as
 plaintext.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `devbox run -- go test ./login/ -run TestServerNegotiate -v -race`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 devbox run -- task precommit
@@ -853,7 +854,7 @@ git commit -m "feat(login): add online mode to the server negotiator"
 **Interfaces:**
 - Produces: `func WithCompression(threshold int32) ServerOption`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```go
 func TestServerNegotiateEnablesCompressionBeforeSuccess(t *testing.T) {
@@ -926,12 +927,12 @@ Read the real pipeline key from the generated session's `Snapshot` before
 running this; use whatever key it publishes rather than assuming
 `compression.threshold`.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `devbox run -- go test ./login/ -run TestServerNegotiate -v`
 Expected: FAIL, `undefined: login.WithCompression`.
 
-- [ ] **Step 3: Implement it**
+- [x] **Step 3: Implement it**
 
 The negotiator holds `threshold int32` defaulting to `-1`. `WithCompression`
 stores it. `sendSuccess` gains a step before the success write:
@@ -950,12 +951,12 @@ stores it. `sendSuccess` gains a step before the success write:
 	}
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `devbox run -- go test ./login/ -v -race`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 devbox run -- task precommit
@@ -976,7 +977,7 @@ git commit -m "feat(login): let the server negotiator enable compression"
 - Produces: scenarios `server-offline-login` and `server-online-login` in
   `--mode client`; a pushed commit whose pseudo-version Task 6 pins.
 
-- [ ] **Step 1: Add the Node client scenarios**
+- [x] **Step 1: Add the Node client scenarios**
 
 In `runner.mjs`, `--mode client` already connects with the pinned
 `minecraft-protocol` package. Add two scenarios that connect to a Go server
@@ -984,7 +985,7 @@ built on `login.ServerNegotiator` and report `login-success` with the username
 and UUID they received, plus `compression` with the threshold when the server
 sends one.
 
-- [ ] **Step 2: Write the failing Go tests**
+- [x] **Step 2: Write the failing Go tests**
 
 In `interop/node_test.go`, add `TestNodeClientCompletesAnOfflineLogin` and
 `TestNodeClientCompletesAnOnlineLogin`. Each starts a loopback listener, wraps
@@ -993,19 +994,19 @@ starts the Node runner against the bound port and asserts the transcript. The
 online test supplies a stub verifier and the `yggdrasil` stub the M2 interop
 task added.
 
-- [ ] **Step 3: Run them**
+- [x] **Step 3: Run them**
 
 Run: `devbox run -- task test:interop`
 Expected: PASS. If Node is not on PATH the existing helpers skip rather than
 fail; a skip is not a pass, so re-run inside devbox until they execute.
 
-- [ ] **Step 4: Update the documentation**
+- [x] **Step 4: Update the documentation**
 
 `README.md` gains `ServerNegotiator` beside the client negotiator.
 `CHANGELOG.md` records the negotiator and the `Envelope` helper.
 `ROADMAP.md` records that the server-side login sequence is available.
 
-- [ ] **Step 5: Commit and push**
+- [x] **Step 5: Commit and push**
 
 ```bash
 devbox run -- task release:check
@@ -1014,7 +1015,7 @@ git commit -m "test(interop): verify the server negotiator against Node"
 git push origin main
 ```
 
-- [ ] **Step 6: Record the pseudo-version**
+- [x] **Step 6: Record the pseudo-version**
 
 ```bash
 git rev-parse HEAD
@@ -1045,13 +1046,13 @@ line.
 - Produces: `github.com/go-theft-craft/minecraft-protocol` importable from
   server packages, vendored.
 
-- [ ] **Step 1: Confirm the current state is green**
+- [x] **Step 1: Confirm the current state is green**
 
 Run: `devbox run -- task test`
 Expected: PASS. Record the result. A pre-existing failure must be understood
 before anything below changes, otherwise it will be blamed on the migration.
 
-- [ ] **Step 2: Switch the Devbox package set**
+- [x] **Step 2: Switch the Devbox package set**
 
 Replace the `go`, `golangci-lint`, `gofumpt`, `gopls`, and `delve` entries in
 `devbox.json` with the go-flake references the other repositories use:
@@ -1076,12 +1077,12 @@ and `glibcLocales`. Add the `GOROOT` env entry the other repositories set:
   },
 ```
 
-- [ ] **Step 3: Verify the toolchain**
+- [x] **Step 3: Verify the toolchain**
 
 Run: `devbox run -- go version`
 Expected: `go1.26.5`.
 
-- [ ] **Step 4: Raise the language version and add the dependency**
+- [x] **Step 4: Raise the language version and add the dependency**
 
 In `go.mod`, change `go 1.25.2` to `go 1.26.5` and add:
 
@@ -1089,7 +1090,7 @@ In `go.mod`, change `go 1.25.2` to `go 1.26.5` and add:
 require github.com/go-theft-craft/minecraft-protocol v0.0.0-<PIN>
 ```
 
-- [ ] **Step 5: Vendor and verify nothing else moved**
+- [x] **Step 5: Vendor and verify nothing else moved**
 
 Run: `devbox run -- task deps`
 Then: `git status --short vendor/`
@@ -1097,7 +1098,7 @@ Expected: exactly one new tree,
 `vendor/github.com/go-theft-craft/minecraft-protocol/`. Any other vendored
 module changing means an unintended upgrade came along; revert and pin it back.
 
-- [ ] **Step 6: Prove the dependency links**
+- [x] **Step 6: Prove the dependency links**
 
 Create `internal/server/conn/protocol_link_test.go`:
 
@@ -1122,7 +1123,7 @@ func TestSharedProtocolIsLinked(t *testing.T) {
 Run: `devbox run -- task test`
 Expected: PASS, including every pre-existing test.
 
-- [ ] **Step 7: Update CLAUDE.md and commit**
+- [x] **Step 7: Update CLAUDE.md and commit**
 
 `CLAUDE.md` says "Go 1.24" and describes an `internal/` that is "currently
 empty". Correct both, and record that the repository depends on
@@ -1156,7 +1157,7 @@ a single encoder.
   `login_encryptionbegin_sb.bin`, `login_success_offline.bin`,
   `login_disconnect.bin`.
 
-- [ ] **Step 1: Write the capture harness**
+- [x] **Step 1: Write the capture harness**
 
 ```go
 package conn
@@ -1199,7 +1200,7 @@ func readGolden(t *testing.T, name string) []byte {
 }
 ```
 
-- [ ] **Step 2: Write the capture tests against the current encoder**
+- [x] **Step 2: Write the capture tests against the current encoder**
 
 Each case marshals a fully populated packet with the current
 `mcnet.Marshal` and compares against its golden file. Populate every field with
@@ -1253,20 +1254,20 @@ Write the matching `TestParityLogin` covering `LoginStart`,
 `EncryptionBeginCB`, `EncryptionBeginSB`, `Success`, and `Disconnect` in the
 same table form.
 
-- [ ] **Step 3: Capture the goldens**
+- [x] **Step 3: Capture the goldens**
 
 Run: `devbox run -- go test -mod vendor ./internal/server/conn/ -run TestParity -update`
 Then: `devbox run -- go test -mod vendor ./internal/server/conn/ -run TestParity`
 Expected: PASS on the second run with no `-update`.
 
-- [ ] **Step 4: Inspect one golden by hand**
+- [x] **Step 4: Inspect one golden by hand**
 
 Run: `xxd internal/server/conn/testdata/parity/handshake_setprotocol.bin`
 Confirm it begins `2f` (VarInt 47) and that the host string is
 length-prefixed. A golden that encodes the current server's bug is still the
 right baseline, but the reviewer must know what it contains.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -1293,13 +1294,13 @@ in the form the current server actually emits.
   `play_entityequipment.bin`, `play_playerinfo.bin`, `play_entitydestroy.bin`,
   `play_spawnentity.bin`, `play_worldparticles.bin`, `play_tabcomplete.bin`.
 
-- [ ] **Step 1: Capture the eight renameable play packets**
+- [x] **Step 1: Capture the eight renameable play packets**
 
 Extend the table from Task 7 with `pkt.Login`, `pkt.MapChunk`,
 `pkt.PositionCB`, `pkt.BlockChange`, `pkt.KeepAliveCB`, `pkt.UpdateHealth`,
 `pkt.Respawn`, and `pkt.ChatCB`, populated with distinctive values.
 
-- [ ] **Step 2: Capture the ten opaque packets through their real builders**
+- [x] **Step 2: Capture the ten opaque packets through their real builders**
 
 These have no typed fields, so the fixture must run the code that assembles
 their bytes rather than marshalling a struct literal. For entity metadata:
@@ -1343,20 +1344,20 @@ Read `player/manager.go` for `PlayerInfo`, `EntityDestroy`, and
 blob carries its own prefix, and copying the caller is the only way to capture
 what actually goes on the wire.
 
-- [ ] **Step 3: Capture and verify**
+- [x] **Step 3: Capture and verify**
 
 Run: `devbox run -- go test -mod vendor ./internal/server/conn/ -run TestParity -update`
 Then: `devbox run -- go test -mod vendor ./internal/server/conn/ -run TestParity`
 Expected: PASS.
 
-- [ ] **Step 4: Record what each opaque golden contains**
+- [x] **Step 4: Record what each opaque golden contains**
 
 Add a comment above each opaque fixture test naming the field order the bytes
 encode, for example
 `// entity id varint, metadata entries, 0x7f terminator`. Tasks 12 to 15 read
 these comments to know what the typed replacement must produce.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -1389,7 +1390,7 @@ passes.
   `func (c *Connection) sendRaw(ctx context.Context, p mcnet.Packet) error`;
   `func serverLimits() (protocol.Limits, error)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `stream_test.go` dials a loopback listener, drives a real handshake and status
 exchange with a `RoleClient` stream built from the same generated protocol, and
@@ -1428,12 +1429,12 @@ func TestConnectionAnswersStatusOverTheManagedStream(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `devbox run -- go test -mod vendor ./internal/server/conn/ -run TestConnectionAnswersStatus -v`
 Expected: FAIL to compile, `dialTestServer` undefined, then FAIL on behavior.
 
-- [ ] **Step 3: Write `stream.go`**
+- [x] **Step 3: Write `stream.go`**
 
 ```go
 package conn
@@ -1494,7 +1495,7 @@ when `Value` is nil, and inbound `protocol.Packet` retains `Payload` alongside
 the decoded value, so the not-yet-migrated handlers keep reading
 `(id, payload)` exactly as they do today.
 
-- [ ] **Step 4: Rewrite the connection loop**
+- [x] **Step 4: Rewrite the connection loop**
 
 In `connection.go`: delete the `State` enum, the `state` field, the `mu` mutex,
 the `rw` field, `writePacket`, `enableEncryption`, and `handleNextPacket`. Add
@@ -1549,26 +1550,26 @@ logs and returns nil; everything else falls through to the existing
 state-based handlers using `packet.ID` and `packet.Payload`, reading the state
 from a `snapshot` taken once per dispatch.
 
-- [ ] **Step 5: Migrate the three handlers**
+- [x] **Step 5: Migrate the three handlers**
 
 `handler_handshake.go` loses its own state assignment entirely — the session
 proposes the handshake transition and the stream commits it, so the handler
 only logs. `handler_status.go` builds `v1_8.StatusClientboundServerInfo` and
 `v1_8.StatusClientboundPing` and calls `c.send`.
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 Run: `devbox run -- task test`
 Expected: PASS, including every pre-existing test and the Task 7 and 8 parity
 tests, which still exercise the old encoder.
 
-- [ ] **Step 7: Run with the race detector**
+- [x] **Step 7: Run with the race detector**
 
 Run: `devbox run -- go test -mod vendor -race ./internal/server/...`
 Expected: PASS. The write mutex is gone, so this is the first proof that
 concurrent broadcasts are safe through the stream.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -1594,7 +1595,7 @@ the hook.
   `java.LegacyStatusHandler`, `protocol.WithPreFrameHook`.
 - Produces: `func (c *Connection) legacyStatus(context.Context, java.LegacyPing) (java.LegacyStatus, error)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```go
 func TestLegacyPingAnswersWithServerStatus(t *testing.T) {
@@ -1627,12 +1628,12 @@ Write the second test out in full as a normal status exchange, identical to
 Task 9's status test. It is the regression that proves the hook declines
 without consuming bytes.
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `devbox run -- go test -mod vendor ./internal/server/conn/ -run 'TestLegacyPing|TestNonLegacy' -v`
 Expected: FAIL, the connection closes with no response.
 
-- [ ] **Step 3: Implement the handler and install the hook**
+- [x] **Step 3: Implement the handler and install the hook**
 
 ```go
 // legacyStatus answers the legacy FE 01 server list ping.
@@ -1661,12 +1662,12 @@ The `Connection` value must exist before the hook closes over its method, so
 construct it, then build the hook, then the stream, then assign
 `connection.stream`.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `devbox run -- task test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -1698,7 +1699,7 @@ git commit -m "feat(conn): answer the legacy server list ping"
   `func (c *Connection) disconnect(context.Context, string)`, now taking a
   context.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `dialTestServer` from Task 9 starts a `Connection` on an accepted socket and
 returns a client stream. Add a variant, `dialTestServerWithConfig(t, cfg)`,
@@ -1837,12 +1838,12 @@ map before writing the last test: login-state disconnect is
 `LoginClientboundDisconnect` and play-state disconnect is
 `PlayClientboundKickDisconnect`, and `Stream.Shutdown` picks by state.
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `devbox run -- go test -mod vendor ./internal/server/conn/ -run 'TestOfflineLogin|TestOnlineLogin|TestCompression|TestDisconnect' -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Add the configuration field**
+- [x] **Step 3: Add the configuration field**
 
 In `config.Config`:
 
@@ -1856,7 +1857,7 @@ Default it to 256 wherever the config defaults are applied, and confirm a
 config file without the key still gets 256 rather than 0. A zero threshold
 means "compress everything" and would be a silent behavior change.
 
-- [ ] **Step 4: Write the verifier**
+- [x] **Step 4: Write the verifier**
 
 `login.go` holds the adapter. `verifyWithMojang` and `fetchSkinByUsername`
 already exist in `crypto.go`; the adapter calls them and returns a
@@ -1900,7 +1901,7 @@ func (v mojangVerifier) Verify(
 negative-hash two's-complement representation, and adjust the call rather than
 reimplementing the hash.
 
-- [ ] **Step 5: Wire the negotiator into dispatch**
+- [x] **Step 5: Wire the negotiator into dispatch**
 
 When `dispatch` sees `*v1_8.LoginServerboundLoginStart` it calls
 `NegotiateFrom`, the entry point Task 2 added for exactly this: the read loop
@@ -1927,7 +1928,7 @@ Skin properties stay in the server: after `Negotiate` returns a profile, the
 existing `fetchSkinByUsername` call runs and `startPlay` follows exactly as it
 does today.
 
-- [ ] **Step 6: Replace disconnect**
+- [x] **Step 6: Replace disconnect**
 
 ```go
 // disconnect sends the state-appropriate disconnect packet and stops the
@@ -1944,13 +1945,13 @@ func (c *Connection) disconnect(ctx context.Context, reason string) {
 Update every caller to pass a context. The reason must be a JSON chat
 component, matching what the current code writes by hand.
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [x] **Step 7: Run the tests to verify they pass**
 
 Run: `devbox run -- task test`
 Then: `devbox run -- go test -mod vendor -race ./internal/server/...`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -1989,7 +1990,7 @@ Add that assertion in the task that migrates the packet, not later.
 - Produces: `func BuildEntityMetadata(*Player) java.EntityMetadata` replacing
   the `[]byte` version.
 
-- [ ] **Step 1: Extend the parity test first**
+- [x] **Step 1: Extend the parity test first**
 
 ```go
 func TestParityEntityMetadataMatchesTheGeneratedCodec(t *testing.T) {
@@ -2015,12 +2016,12 @@ func TestParityEntityMetadataMatchesTheGeneratedCodec(t *testing.T) {
 same shape Task 8 captured. Write it once in `parity_test.go` and reuse it in
 Tasks 13 to 15.
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `devbox run -- go test -mod vendor ./internal/server/conn/ -run TestParityEntityMetadata -v`
 Expected: FAIL, `BuildEntityMetadata` returns `[]byte`.
 
-- [ ] **Step 3: Rewrite the metadata builder**
+- [x] **Step 3: Rewrite the metadata builder**
 
 ```go
 // BuildEntityMetadata returns the metadata entries broadcast for a player's
@@ -2037,21 +2038,21 @@ The `0x7f` terminator and the `(index & 0x1F) | (type << 5)` header packing are
 the codec's job now. Delete `writeMetaByte`, the `metaType*` constants, and the
 `pkt.MetadataEnd` reference.
 
-- [ ] **Step 4: Migrate the rest of the package**
+- [x] **Step 4: Migrate the rest of the package**
 
 Substitute every `pkt.` reference in `manager.go`, `item_entity.go`, and
 `metadata.go` using the map. `NamedEntitySpawn` and `EntityEquipment` are
 rewrites: their hand-built payloads become typed fields, with `CurrentItem` and
 `Item` as `java.Slot` values.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `devbox run -- task test`
 Expected: PASS, including the new parity assertions. A mismatch here is the
 real finding this task exists to surface; investigate against the descriptor
 before changing the golden.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -2075,36 +2076,36 @@ git commit -m "refactor(player): build entity metadata with typed values"
 - Produces: no new API; `handler_play.go` dispatches on decoded values rather
   than `(id, payload)`.
 
-- [ ] **Step 1: Extend the parity test**
+- [x] **Step 1: Extend the parity test**
 
 Add generated-codec assertions for `play_mapchunk.bin`, `play_login.bin`, and
 `play_position.bin` in the shape from Task 12 Step 1.
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `devbox run -- go test -mod vendor ./internal/server/conn/ -run TestParity -v`
 Expected: FAIL to compile.
 
-- [ ] **Step 3: Migrate `pkg/world/chunk.go`**
+- [x] **Step 3: Migrate `pkg/world/chunk.go`**
 
 Two `pkt.` references, both renames. The positional chunk payload stays
 byte-identical because `ChunkData []byte` is the same field in both types; only
 the type name changes.
 
-- [ ] **Step 4: Migrate the play handler**
+- [x] **Step 4: Migrate the play handler**
 
 The 51 `pkt.` references in `handler_play.go` are renames. The dispatch changes
 from `switch packetID` plus `mcnet.Unmarshal` to `switch value := packet.Value.(type)`
 with the decoded struct already in hand. Delete every `mcnet.Unmarshal` call
 in this file. Replace `c.writePacket` with `c.send`.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `devbox run -- task test`
 Then: `devbox run -- go test -mod vendor -race ./...`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -2136,7 +2137,7 @@ item's NBT tag byte and then discards the remaining payload with `io.ReadAll`;
 - Produces: `func toJavaSlot(player.Slot) java.Slot` and
   `func fromJavaSlot(java.Slot) player.Slot` in `inventory.go`.
 
-- [ ] **Step 1: Write the failing conversion tests**
+- [x] **Step 1: Write the failing conversion tests**
 
 ```go
 func TestSlotConversionRoundTrips(t *testing.T) {
@@ -2168,12 +2169,12 @@ func TestEmptySlotIsAbsentNotZero(t *testing.T) {
 `player.Slot` is `{BlockID int16; ItemCount int8; ItemDamage int16}` with
 `BlockID: -1` meaning empty, and `player.EmptySlot` is the convenience value.
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `devbox run -- go test -mod vendor ./internal/server/conn/ -run TestSlot -v`
 Expected: FAIL, `undefined: toJavaSlot`.
 
-- [ ] **Step 3: Write the conversions and migrate the packets**
+- [x] **Step 3: Write the conversions and migrate the packets**
 
 `toJavaSlot` maps an empty slot to `java.Slot{Present: false}` and a populated
 one to `Present: true` with block ID, count, and damage, leaving `NBT` nil.
@@ -2192,22 +2193,22 @@ is the point; changing it is a later milestone's work.
 Migrate `SetSlot`, `WindowItems`, `WindowClick`, `SetCreativeSlot`, and
 `OpenWindow` to their typed forms, deleting the hand-written payload assembly.
 
-- [ ] **Step 4: Delete `conn/slot.go`**
+- [x] **Step 4: Delete `conn/slot.go`**
 
 Its `readSlot` has no remaining callers once `WindowClick` decodes typed
 fields. Delete the file.
 
-- [ ] **Step 5: Extend the parity assertions**
+- [x] **Step 5: Extend the parity assertions**
 
 Add generated-codec comparisons for `play_setslot.bin`, `play_windowitems.bin`,
 and `play_entityequipment.bin`.
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 Run: `devbox run -- task test`
 Expected: PASS, including the existing `inventory_test.go` suite.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -2231,18 +2232,18 @@ git commit -m "refactor(conn): encode inventory slots with java.Slot"
   `v1_8.PlayClientboundSpawnEntity`, `v1_8.PlayClientboundWorldParticles`,
   `v1_8.PlayClientboundTabComplete`.
 
-- [ ] **Step 1: Extend the parity assertions for all five**
+- [x] **Step 1: Extend the parity assertions for all five**
 
 Add generated-codec comparisons for `play_playerinfo.bin`,
 `play_entitydestroy.bin`, `play_spawnentity.bin`, `play_worldparticles.bin`,
 and `play_tabcomplete.bin`.
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `devbox run -- go test -mod vendor ./internal/server/conn/ -run TestParity -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Migrate each one**
+- [x] **Step 3: Migrate each one**
 
 `PlayerInfo` is the most involved: its `Data` blob becomes
 `[]PlayClientboundPlayerInfoDataItem`, and the skin properties the server
@@ -2253,14 +2254,14 @@ current payload writes. `WorldParticles` gains a `Data` switch of its own.
 `TabCompleteCB` becomes `Matches []string`, replacing the manual VarInt-counted
 string list in `tab_complete.go`.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `devbox run -- task test`
 Then: `devbox run -- go test -mod vendor -race ./...`
 Expected: PASS. Every parity golden now has both an old-encoder and a
 new-encoder assertion.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -2286,7 +2287,7 @@ it by removing the code and letting the compiler find any remaining caller.
 **Interfaces:**
 - Produces: a server with one framing implementation and one packet source.
 
-- [ ] **Step 1: Delete the raw bridge and confirm it has no callers**
+- [x] **Step 1: Delete the raw bridge and confirm it has no callers**
 
 Remove `sendRaw` from `stream.go` and the `(id, payload)` fallback branch from
 `dispatch`.
@@ -2295,7 +2296,7 @@ Run: `devbox run -- task test`
 Expected: PASS. A compile error here names a packet Tasks 12 to 15 missed;
 migrate it before continuing rather than restoring the bridge.
 
-- [ ] **Step 2: Make unknown packets non-fatal**
+- [x] **Step 2: Make unknown packets non-fatal**
 
 `dispatch`'s default branch logs and returns nil rather than returning an
 error:
@@ -2311,7 +2312,7 @@ error:
 Add `TestUnknownPacketDoesNotCloseTheConnection`, which writes a play packet ID
 protocol 47 does not define and asserts the next keep-alive still round trips.
 
-- [ ] **Step 3: Delete the framing and cipher packages**
+- [x] **Step 3: Delete the framing and cipher packages**
 
 ```bash
 git rm -r pkg/protocol
@@ -2322,7 +2323,7 @@ git rm internal/server/conn/cfb8.go internal/server/conn/cfb8_test.go \
 Run: `devbox run -- task test`
 Expected: PASS.
 
-- [ ] **Step 4: Stop generating packets**
+- [x] **Step 4: Stop generating packets**
 
 Remove packet emission from `cmd/codegen` and delete
 `pkg/gamedata/versions/pc_1_8/packets.go`. Registry generation stays: blocks,
@@ -2335,20 +2336,20 @@ Run: `devbox run -- task gen:codegen`
 Then: `git status --short pkg/gamedata/`
 Expected: no `packets.go` reappears and no registry file changes.
 
-- [ ] **Step 5: Rewrite the parity tests**
+- [x] **Step 5: Rewrite the parity tests**
 
 The old encoder no longer exists, so every parity test loses its old-encoder
 half and keeps the generated-codec assertion against the same golden bytes.
 The goldens do not change. This is the point of capturing them in Tasks 7 and
 8: they outlive the code that produced them.
 
-- [ ] **Step 6: Run everything**
+- [x] **Step 6: Run everything**
 
 Run: `devbox run -- task lint test`
 Then: `devbox run -- go test -mod vendor -race ./...`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -2371,7 +2372,7 @@ git commit -m "refactor: remove the server's duplicate protocol implementation"
   `legacy-ping`, `offline-login`, `encrypted-login`, `compression-on`,
   `compression-off`.
 
-- [ ] **Step 1: Port the harness**
+- [x] **Step 1: Port the harness**
 
 Copy `interop/node_test.go` and `interop/node/` from `minecraft-protocol` and
 reduce them to `--mode client` against a server this repository starts. The
@@ -2381,7 +2382,7 @@ repositories' builds the first time either moves.
 Pin `minecraft-protocol` to `1.66.2` in `package.json`, matching the upstream
 pin exactly. Add `interop/node/node_modules/` to `.gitignore`.
 
-- [ ] **Step 2: Add the task**
+- [x] **Step 2: Add the task**
 
 ```yaml
   test:interop:
@@ -2392,19 +2393,19 @@ pin exactly. Add `interop/node/node_modules/` to `.gitignore`.
       - go test -mod vendor -tags interop ./interop/...
 ```
 
-- [ ] **Step 3: Write the six scenarios**
+- [x] **Step 3: Write the six scenarios**
 
 Each starts the real `internal/server` on a loopback port with a temporary
 world directory, runs the Node client, and asserts the transcript. The
 `compression-off` scenario sets `CompressionThreshold: -1`; `compression-on`
 sets 256 and asserts the client reports the threshold.
 
-- [ ] **Step 4: Run them**
+- [x] **Step 4: Run them**
 
 Run: `devbox run -- task test:interop`
 Expected: PASS, all six.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 devbox run -- task lint test
@@ -2422,7 +2423,7 @@ git commit -m "test(interop): verify the server against the Node client"
 - Modify: `../headless-minecraft/MASTER_PLAN.md`,
   `../headless-minecraft/ROADMAP.md`
 
-- [ ] **Step 1: Run the checklist against a real 1.8.9 client**
+- [x] **Step 1: Run the checklist against a real 1.8.9 client**
 
 Start the server with `devbox run -- task server`, then, from an actual
 Minecraft 1.8.9 client, confirm each item and record the result in the
@@ -2441,12 +2442,12 @@ checklist file:
 Run the whole checklist twice: once with `CompressionThreshold: 256` and once
 with `-1`. Record both.
 
-- [ ] **Step 2: Run the online-mode path once**
+- [x] **Step 2: Run the online-mode path once**
 
 Set `OnlineMode: true` and join with an authenticated account. This is the only
 check that exercises the real Mojang session service; the Node lane stubs it.
 
-- [ ] **Step 3: Run the full gate**
+- [x] **Step 3: Run the full gate**
 
 ```bash
 devbox run -- task lint
@@ -2459,7 +2460,7 @@ git status --short
 
 Expected: all pass, worktree clean.
 
-- [ ] **Step 4: Update the milestone records**
+- [x] **Step 4: Update the milestone records**
 
 In `../headless-minecraft/MASTER_PLAN.md`:
 
@@ -2479,7 +2480,7 @@ client, which this milestone does not touch.
 In the server's `CHANGELOG.md`, record the migration, compression, the legacy
 ping, the disconnect fix, and the removed packages.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add CHANGELOG.md README.md docs/

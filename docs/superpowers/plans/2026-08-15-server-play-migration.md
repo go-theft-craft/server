@@ -2,8 +2,9 @@
 
 > **Status: complete, 2026-08-18.** Shipped as M6.1; see the execution status
 > below, which was corrected on 2026-08-18 after it had been reading "task 5 is
-> in progress" for three days. The checkboxes under tasks 5 through 9 were never
-> ticked and are not evidence; do not re-run this plan.
+> in progress" for three days. The boxes under tasks 5 through 9 were ticked on
+> 2026-08-18 by outcome, against the shipped tree rather than as a record that
+> each step ran as written. Do not re-run this plan.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -478,18 +479,18 @@ git commit -m "refactor(world,player): use generated protocol 47 packets"
 - Modify: `internal/server/player/manager.go`, `player.go`
 - Modify: `internal/server/player/manager_test.go`, `tracking_test.go`
 
-- [ ] **Step 1: Retype the manager**
+- [x] **Step 1: Retype the manager**
 
 Same substitution as Task 4. `player.NewPlayer` takes a
 `writePacket func(java.PacketValue) error` parameter; change it to the
 connection's `send` signature so a player writes generated values too.
 
-- [ ] **Step 2: Retype the tests**
+- [x] **Step 2: Retype the tests**
 
 `packetCollector.writePacket` in `manager_test.go` mirrors the production
 signature and must change with it.
 
-- [ ] **Step 3: Run and verify**
+- [x] **Step 3: Run and verify**
 
 ```bash
 devbox run -- task test
@@ -497,7 +498,7 @@ devbox run -- task test
 
 Expected: PASS, parity count unchanged.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -u
@@ -513,11 +514,11 @@ The largest area: `handler_play.go`, `handler_handshake.go`,
 **Files:**
 - Modify: the eight files above and their tests
 
-- [ ] **Step 1: Retype the clientbound writes**
+- [x] **Step 1: Retype the clientbound writes**
 
 Every `c.writePacket(&pkt.X{...})` becomes `c.send(&v1_8.PlayClientboundX{...})`.
 
-- [ ] **Step 2: Retype the serverbound decodes**
+- [x] **Step 2: Retype the serverbound decodes**
 
 The play read path currently decodes into local structs. The stream already
 returns `protocol.Packet` with `Value` populated by the generated session, so
@@ -536,7 +537,7 @@ strict where the old loop was not — this task is where the second decode goes
 away, and where a serverbound packet whose generated model is wrong becomes a
 visible failure rather than a silent one.
 
-- [ ] **Step 3: Run and verify**
+- [x] **Step 3: Run and verify**
 
 ```bash
 devbox run -- task test
@@ -545,7 +546,7 @@ devbox run -- task test
 Expected: PASS, parity count unchanged. A parity failure here is a real
 encoding difference; find it before continuing.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -u
@@ -560,7 +561,7 @@ because a raw-payload write proposed no transition. Task 3 removed that cause.
 **Files:**
 - Modify: `internal/server/conn/stream.go` and whichever file holds the local state enum
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```go
 func TestSessionStateFollowsAWrittenPacket(t *testing.T) {
@@ -583,9 +584,9 @@ func TestSessionStateFollowsAWrittenPacket(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
-- [ ] **Step 3: Remove the mirror**
+- [x] **Step 3: Remove the mirror**
 
 Delete the local state field and make `streamState()` read
 `stream.Snapshot(ctx).State`. M1 recorded that a running stream owns its
@@ -597,7 +598,7 @@ Give the connection a cached state updated from the transition it observes,
 or change `streamState()` to return an error — the first is simpler and is
 what the write path needs, since it already holds `c.ctx`.
 
-- [ ] **Step 4: Run and verify**
+- [x] **Step 4: Run and verify**
 
 ```bash
 devbox run -- task test
@@ -605,7 +606,7 @@ devbox run -- task test
 
 Expected: PASS, parity count unchanged.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -u
@@ -622,14 +623,14 @@ git commit -m "refactor(conn): read protocol state from the session, not a local
 - Delete: `pkg/gamedata/`, `cmd/codegen/`, `cmd/dmd/`, and the downloaded schemas they read
 - Modify: `Taskfile.yml`
 
-- [ ] **Step 1: Confirm nothing references them**
+- [x] **Step 1: Confirm nothing references them**
 
 ```bash
 grep -rn 'gamedata/versions/pc_1_8' --include='*.go' . ; echo "(empty = clean)"
 grep -rn 'cmd/codegen\|cmd/dmd' Taskfile.yml .github/ 2>/dev/null
 ```
 
-- [ ] **Step 2: Delete**
+- [x] **Step 2: Delete**
 
 ```bash
 git rm -r pkg/gamedata cmd/codegen cmd/dmd
@@ -638,19 +639,19 @@ git rm -r pkg/gamedata cmd/codegen cmd/dmd
 Remove the downloaded `protocol.json` and any schema files `cmd/dmd` fetched,
 and remove their paths from `.gitignore` if they are listed there.
 
-- [ ] **Step 3: Drop the tasks**
+- [x] **Step 3: Drop the tasks**
 
 Remove the `codegen` and `dmd` tasks from `Taskfile.yml`, and any task that
 depends on them. M3 noted `cmd/dmd` survived only because the retained packet
 codegen read what it downloaded; both go together.
 
-- [ ] **Step 4: Remove the test bridge**
+- [x] **Step 4: Remove the test bridge**
 
 Delete `marshalWithOldCodec` from Task 3's test file and the byte-equality test
 that used it. It compared the new encoding against a package that no longer
 exists; the parity fixtures are what carry that guarantee from here on.
 
-- [ ] **Step 5: Run the full gate**
+- [x] **Step 5: Run the full gate**
 
 ```bash
 devbox run -- task verify
@@ -659,7 +660,7 @@ devbox run -- task verify
 Expected: PASS. If `task build` pointed at a directory that is now gone, fix
 the task — M3 found and fixed one of those already.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A
@@ -672,13 +673,13 @@ git commit -m "refactor: delete the server's last wire types and code generation
 - Modify: `README.md`, `CHANGELOG.md`, `docs/`, `../headless-minecraft/MASTER_PLAN.md`
 - Create: `docs/verification/2026-08-15-m6-1-client-check.md`
 
-- [ ] **Step 1: Document**
+- [x] **Step 1: Document**
 
 Update any document that describes the server as owning packet structs or
 running its own code generation. README's development section loses the
 codegen step.
 
-- [ ] **Step 2: Run a real client**
+- [x] **Step 2: Run a real client**
 
 The parity fixtures prove the bytes did not change; they do not prove the
 strict generated decode accepts everything a real client sends. M3's client
@@ -693,13 +694,13 @@ disconnect. Record every decode error, and record zero if there are none.
 Write the record to `docs/verification/2026-08-15-m6-1-client-check.md` in the
 same shape as M3's.
 
-- [ ] **Step 3: Update the milestone record**
+- [x] **Step 3: Update the milestone record**
 
 Mark M6.1 complete in `MASTER_PLAN.md`. Record any generated codec that
 rejected a real client's packet, because each one is a bug to fix in
 `minecraft-protocol`, not in the server.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A

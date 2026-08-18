@@ -20,6 +20,9 @@ import (
 
 func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinProperty) error {
 	c.log = c.log.With("player", username)
+	// Stored once. Every chunk this player is sent is a span, and a join at
+	// view distance 12 is 625 of them.
+	c.metricsPlayer = username
 
 	uuidBytes := parseUUID(uuid)
 	entityID := c.players.AllocateEntityID()
@@ -910,15 +913,33 @@ func (c *Connection) sendInitialChunks() error {
 	})
 
 	for _, pos := range chunks {
-		chunk, err := c.world.Adapter().EncodeChunk(c.world.Chunk(pos))
-		if err != nil {
+		if err := c.sendChunk(pos); err != nil {
 			return err
 		}
-		if err := c.send(chunk); err != nil {
-			return err
-		}
-		c.loadedChunks[pos] = struct{}{}
 	}
+	return nil
+}
+
+// sendChunk encodes one column and puts it on the wire.
+//
+// The span covers the send, not the encode: the encode is measured inside the
+// world, where the cache it consults lives, and measuring both here would
+// double-count the same microseconds under two feature names.
+func (c *Connection) sendChunk(pos world.ChunkPos) error {
+	chunk, err := c.world.EncodeChunk(pos)
+	if err != nil {
+		return err
+	}
+
+	span := c.span(world.MeasureChunkSend, pos)
+	err = c.send(chunk)
+	endSpan(span)
+
+	if err != nil {
+		return err
+	}
+	c.loadedChunks[pos] = struct{}{}
+
 	return nil
 }
 
@@ -936,18 +957,11 @@ func (c *Connection) updateLoadedChunks(newCX, newCZ int) {
 			if !c.isChunkInBounds(cx, cz) {
 				continue
 			}
-			chunk, err := c.world.Adapter().EncodeChunk(c.world.Chunk(pos))
-			if err != nil {
-				c.log.Error("encode chunk", "cx", cx, "cz", cz, "error", err)
-
-				return
-			}
-			if err := c.send(chunk); err != nil {
+			if err := c.sendChunk(pos); err != nil {
 				c.log.Error("send chunk", "cx", cx, "cz", cz, "error", err)
 
 				return
 			}
-			c.loadedChunks[pos] = struct{}{}
 		}
 	}
 

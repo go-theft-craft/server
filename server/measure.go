@@ -1,6 +1,10 @@
 package server
 
-import "time"
+import (
+	"time"
+
+	"github.com/go-theft-craft/server/pkg/world"
+)
 
 // Measurement.
 //
@@ -80,6 +84,41 @@ func (s *Server) Gauge(kind SampleKind, l Labels, v float64) {
 // feature once rather than in both the argument and the label.
 func (l Labels) withFeature(f Feature) Labels {
 	l.Feature = f
+
+	return l
+}
+
+// measureChunk is the seam the world and the stores report through.
+//
+// They cannot name a Feature or a Labels — this package imports them, not the
+// other way round — so the feature crosses as a string and the labels are
+// built here, which is also the one place that decides whether the chunk label
+// is set. See chunkLabels.
+func (s *Server) measureChunk(feature string, pos world.ChunkPos) func() {
+	return s.Measure(Feature(feature), s.chunkLabels("", pos))
+}
+
+// measureConnection is the same seam for a connection, which knows which
+// player its work is for.
+func (s *Server) measureConnection(feature, player string, pos world.ChunkPos) func() {
+	return s.Measure(Feature(feature), s.chunkLabels(player, pos))
+}
+
+// chunkLabels attributes a piece of chunk work.
+//
+// The region is always set and the exact chunk only under WithChunkDetail,
+// which is the cardinality decision in the one place both branches are
+// visible. Building the chunk string is the only formatting on this path, and
+// it happens exactly when somebody asked for it.
+func (s *Server) chunkLabels(player string, pos world.ChunkPos) Labels {
+	l := Labels{
+		Player: player,
+		World:  DefaultWorld,
+		Region: RegionOf(pos.X, pos.Z),
+	}
+	if s.chunkDetail {
+		l.Chunk = ChunkPosLabel(pos.X, pos.Z)
+	}
 
 	return l
 }

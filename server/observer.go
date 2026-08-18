@@ -98,6 +98,12 @@ type dispatcher struct {
 	observer Observer
 	queue    chan Sample
 	dropped  atomic.Uint64
+
+	// enqueued and delivered exist so a test can wait for delivery instead of
+	// sleeping. Delivery is asynchronous by design, and a test that slept
+	// would be asserting on the scheduler.
+	enqueued  atomic.Uint64
+	delivered atomic.Uint64
 }
 
 func newDispatcher(obs Observer) *dispatcher {
@@ -115,11 +121,13 @@ func newDispatcher(obs Observer) *dispatcher {
 func (d *dispatcher) run() {
 	for sample := range d.queue {
 		d.observer.Observe(sample)
+		d.delivered.Add(1)
 	}
 }
 
 // Observe enqueues a sample, dropping it when the queue is full.
 func (d *dispatcher) Observe(sample Sample) {
+	d.enqueued.Add(1)
 	select {
 	case d.queue <- sample:
 	default:

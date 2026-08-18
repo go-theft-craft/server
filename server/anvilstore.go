@@ -43,6 +43,10 @@ type anvilStore struct {
 	// store's own bookkeeping and not the world's: a second store with its
 	// own idea of what it has written must not share state with the first.
 	written map[world.ChunkPos]world.Generation
+
+	// measure is where a region write reports how long it took, or nil when
+	// nobody is watching.
+	measure world.Measure
 }
 
 func newAnvilStore(dir string, log *slog.Logger) (*anvilStore, error) {
@@ -111,6 +115,25 @@ func (s *anvilStore) LoadChunk(ctx context.Context, name string, pos world.Chunk
 	return c, nil
 }
 
+// SetMeasure gives the store somewhere to report how long a region write took.
+// It is set at server construction and read under the store's own lock.
+func (s *anvilStore) SetMeasure(m world.Measure) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.measure = m
+}
+
+// span starts a measurement, or does nothing. The caller already holds the
+// store's lock.
+func (s *anvilStore) span(feature string, pos world.ChunkPos) func() {
+	if s.measure == nil {
+		return nil
+	}
+
+	return s.measure(feature, pos)
+}
+
 func (s *anvilStore) SaveSnapshot(ctx context.Context, name string, snap world.Snapshot) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -147,7 +170,17 @@ func (s *anvilStore) SaveSnapshot(ctx context.Context, name string, snap world.S
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		if err := s.saveRegion(dir, key[0], key[1], chunks); err != nil {
+		// Measured per region rather than per chunk: a region is one file
+		// rewritten whole, so the chunk that takes the time and the chunk that
+		// is slow to write are not the same question. The position names the
+		// region's first column, which is what the region label is derived
+		// from anyway.
+		span := s.span(world.MeasureChunkSave, world.ChunkPos{X: key[0] << 5, Z: key[1] << 5})
+		err := s.saveRegion(dir, key[0], key[1], chunks)
+		if span != nil {
+			span()
+		}
+		if err != nil {
 			return err
 		}
 		for pos, c := range chunks {

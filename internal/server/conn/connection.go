@@ -125,6 +125,13 @@ type Connection struct {
 	blocks   *storage.BlockIdentity
 	blockRec BlockRecorder
 
+	// measure is where this connection reports how long a piece of work took,
+	// or nil when nobody is watching. metricsPlayer is the label it carries,
+	// stored once at login rather than read out of the player on every sample:
+	// a join sends 625 chunks and each one is a span.
+	measure       Measure
+	metricsPlayer string
+
 	// SaveAll triggers a server-wide save (set by Server).
 	SaveAll func()
 }
@@ -222,6 +229,37 @@ type BlockRecorder interface {
 // SetItemIndex it is set before Handle starts and read without a lock.
 func (c *Connection) SetBlockIdentity(blocks *storage.BlockIdentity, rec BlockRecorder) {
 	c.blocks, c.blockRec = blocks, rec
+}
+
+// Measure is where a connection reports how long a piece of work took.
+//
+// The player is a parameter rather than baked into the closure because a
+// connection exists before anyone has logged in on it, and the server that
+// supplies this has no name to bake in at that point.
+type Measure func(feature, player string, pos world.ChunkPos) func()
+
+// SetMeasure gives the connection somewhere to report. Set before Handle
+// starts, like SetItemIndex, and read without a lock.
+func (c *Connection) SetMeasure(m Measure) { c.measure = m }
+
+// span starts a measurement, or does nothing.
+//
+// It returns nil rather than a no-op closure so that an unobserved server pays
+// one branch here and one at the end, and no indirect call at all inside the
+// loop that sends a join's chunks.
+func (c *Connection) span(feature string, pos world.ChunkPos) func() {
+	if c.measure == nil {
+		return nil
+	}
+
+	return c.measure(feature, c.metricsPlayer, pos)
+}
+
+// endSpan closes a span that may be nil.
+func endSpan(span func()) {
+	if span != nil {
+		span()
+	}
 }
 
 // Handle runs the connection lifecycle. It reads packets and dispatches

@@ -35,6 +35,7 @@ type builder struct {
 	migrateFrom string
 	worldStore  WorldStore
 	sideStore   SideStore
+	chunkDetail bool
 	playerStore PlayerStore
 	observer    Observer
 

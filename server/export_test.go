@@ -23,3 +23,18 @@ func SetClock(fn func() time.Time) func() {
 
 	return func() { now = previous }
 }
+
+// DrainSamples waits until every sample the server produced has reached the
+// observer. Delivery is asynchronous by design, so a test that read the
+// observer immediately would be asserting on the scheduler and a test that
+// slept would be flaky on a loaded machine.
+func (s *Server) DrainSamples() {
+	if s.dispatch == nil {
+		return
+	}
+
+	d := s.dispatch
+	for d.delivered.Load()+d.dropped.Load() < d.enqueued.Load() {
+		time.Sleep(100 * time.Microsecond)
+	}
+}

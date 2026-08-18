@@ -71,6 +71,10 @@ type Server struct {
 	// that rather than measuring for a no-op.
 	dispatch *dispatcher
 
+	// chunkDetail labels chunk samples with exact coordinates instead of the
+	// region they fall in. See WithChunkDetail for what it costs.
+	chunkDetail bool
+
 	// playerStore is the bridge from the public PlayerStore an application
 	// supplied to what a connection needs. It is nil when the server runs
 	// without player persistence.
@@ -165,6 +169,7 @@ func New(opts ...Option) (*Server, error) {
 		genParams:   genParams,
 		hasLevel:    hasLevel,
 		level:       level,
+		chunkDetail: b.chunkDetail,
 	}
 
 	// The epoch advances once per start. Exhaustion refuses to mint and keeps
@@ -245,6 +250,18 @@ func New(opts ...Option) (*Server, error) {
 
 	if b.observer != nil {
 		srv.dispatch = newDispatcher(b.observer)
+	}
+
+	// Instrumentation is wired after the dispatcher, so a server with no
+	// observer hands out no measure functions at all and the seams below stay
+	// nil rather than pointing at a closure that returns a no-op.
+	if srv.observed() {
+		w.SetMeasure(srv.measureChunk)
+		for _, store := range []any{b.worldStore, b.sideStore} {
+			if m, ok := store.(StoreMeasurer); ok {
+				m.SetMeasure(srv.measureChunk)
+			}
+		}
 	}
 
 	return srv, nil
@@ -431,6 +448,9 @@ func (s *Server) Start(ctx context.Context) error {
 		// goroutine.
 		connection.SetItemIndex(s.index)
 		connection.SetBlockIdentity(s.blocks, s.recorder)
+		if s.observed() {
+			connection.SetMeasure(s.measureConnection)
+		}
 
 		s.track(connection)
 

@@ -115,6 +115,13 @@ type Sidecar struct {
 // whole reason the sidecar exists.
 type SidecarSource func(pos world.ChunkPos, c *world.Chunk) Sidecar
 
+// StoreMeasurer is a store that reports how long its writes took. The default
+// world store implements it; a store that does not simply produces no
+// chunk_save samples.
+type StoreMeasurer interface {
+	SetMeasure(m world.Measure)
+}
+
 // SidecarWriter is a SideStore that writes contents rather than an empty
 // container. The default store implements it; a store that does not simply
 // keeps writing generation stamps, and block identity is not persisted.

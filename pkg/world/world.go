@@ -52,6 +52,9 @@ type World struct {
 	air       State
 	generator Generator
 	loader    Loader
+	// measure is where chunk work reports how long it took, or nil when
+	// nobody is watching. See measure.go.
+	measure Measure
 
 	// adapter renders the world for the version its clients speak. The world
 	// itself never calls it: it holds it so a connection and a saver can ask
@@ -153,6 +156,8 @@ func (w *World) generate(pos ChunkPos) *Chunk {
 		return c
 	}
 
+	defer end(w.span(MeasureChunkGenerate, pos))
+
 	b := NewBuilder(w.dim, pos, w.air)
 	if w.generator != nil {
 		if err := w.generator.Generate(pos, b); err != nil {
@@ -178,7 +183,15 @@ func (w *World) load(pos ChunkPos) *Chunk {
 		return nil
 	}
 
+	// The span is discarded when the store had nothing. Asking a store about a
+	// column it has never seen is a stat call, not a load, and counting it as
+	// one would make a brand new world look like it was reading from disk.
+	span := w.span(MeasureChunkLoad, pos)
 	c, err := w.loader.LoadChunk(pos)
+	if c != nil || err != nil {
+		end(span)
+	}
+
 	if err != nil {
 		wrapped := fmt.Errorf("world: load chunk %v: %w", pos, err)
 		w.genErr.CompareAndSwap(nil, &wrapped)

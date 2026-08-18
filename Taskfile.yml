@@ -42,19 +42,26 @@ tasks:
         platforms: [linux/amd64,linux/arm64]
 
   deps:
-    desc: Install go vendor dependencies
+    desc: Download Go dependencies
+    # Download only. This task used to run `go env -w GOSUMDB=off` — which
+    # writes to the user's Go environment file and silently opts every later
+    # `go get`, in every repository on the machine, out of sum.golang.org —
+    # plus `go mod tidy`, which let any task rewrite the module graph, and
+    # `go mod vendor` into a directory that is gitignored and untracked, so
+    # `-mod vendor` passed on a prepared machine and failed in every fresh
+    # clone. Tidying moved to its own task, vendoring is gone (the other five
+    # repositories resolve from the module cache, and so does CI), and the Go
+    # environment is nobody's to write.
     sources:
       - go.mod
       - go.sum
     cmds:
-      - go env -w GOPROXY=https://proxy.golang.org,direct
-      - go env -w GOSUMDB=off
       - go mod download
+
+  tidy:
+    desc: Normalize go.mod and go.sum
+    cmds:
       - go mod tidy
-      - go mod vendor
-    generates:
-      - vendor/modules.txt
-    method: timestamp
 
   fmt:
     desc: Format go code
@@ -63,11 +70,47 @@ tasks:
       - gci write -s standard -s default -s "prefix(github.com/openserbia)" -s "prefix({{.PACKAGE_NAME}})" --skip-generated internal server config pkg examples
       - gofumpt -l -w .
 
+  fmt:check:
+    desc: Check Go formatting without changing files
+    # lint depends on this rather than on fmt, because a lint that rewrites
+    # the tree is a lint whose findings a reviewer never sees and a clean-tree
+    # release check would fail.
+    deps: [ deps ]
+    cmds:
+      - |
+        formatting_diff="$(golangci-lint fmt --diff)"
+        if [ -n "$formatting_diff" ]; then
+          printf '%s\n' "$formatting_diff"
+          exit 1
+        fi
+
   lint:
     desc: Run go linters
-    deps: [ fmt ]
+    deps: [ fmt:check ]
     cmds:
       - golangci-lint run
+
+  secrets:
+    desc: Scan the repository tree for secrets and private keys
+    cmds:
+      - gitleaks dir --no-banner --redact --verbose .
+
+  secrets:staged:
+    desc: Scan staged changes for secrets and private keys
+    cmds:
+      - gitleaks git --no-banner --redact --verbose --staged
+
+  precommit:
+    desc: Run checks required before a commit
+    cmds:
+      - task: lint
+      - task: secrets:staged
+
+  vuln:
+    desc: Check dependencies for known vulnerabilities
+    deps: [ deps ]
+    cmds:
+      - govulncheck ./...
 
   interop:deps:
     desc: Install the pinned Node dependencies the interop lane runs against
@@ -86,13 +129,13 @@ tasks:
     desc: Run the loopback interoperability lane against the pinned Node client
     deps: [ deps, interop:deps ]
     cmds:
-      - go test -mod vendor -count=1 ./interop
+      - go test -count=1 ./interop
 
   test:profile:
     desc: Run the observability off-profile benchmark and its exit-criterion test
     deps: [ deps ]
     cmds:
-      - go test -mod vendor -run TestOffProfile -bench BenchmarkObserve -benchtime 3x ./server/
+      - go test -run TestOffProfile -bench BenchmarkObserve -benchtime 3x ./server/
 
   test:examples:
     desc: Build and start each example in the nested examples module
@@ -106,7 +149,7 @@ tasks:
     desc: Run go unit tests
     deps: [ deps ]
     cmds:
-      - go test -mod vendor -covermode=count -coverprofile=../service-unit.cov -coverpkg ./... ./...
+      - go test -covermode=count -coverprofile=coverage.out -coverpkg ./... ./...
       # The examples are a nested module, so `go test ./...` from the root
       # cannot see them. Running them here is what stops them rotting.
       - task: test:examples
@@ -119,7 +162,35 @@ tasks:
     env:
       CGO_ENABLED: 1
     cmds:
-      - go test -race -mod vendor -covermode=atomic -coverprofile=../service-unit-race.cov -coverpkg ./... ./...
+      - go test -race -covermode=atomic -coverprofile=coverage-race.out -coverpkg ./... ./...
+
+  verify:
+    desc: Run all local and CI checks
+    cmds:
+      - task: lint
+      - task: secrets
+      - task: test:race
+      - task: test:examples
+      - task: test:profile
+      - task: test:interop
+      - task: vuln
+      - task: build
+
+  release:check:
+    desc: Verify a clean release candidate
+    requires:
+      vars: [VERSION]
+    cmds:
+      - task: verify
+      - cmd: test -z "$(git status --porcelain)"
+        platforms: [linux, darwin]
+      # This repository requires both minecraft-protocol and
+      # minecraft-simulation, so it is where a release-order mistake — a
+      # replace directive left pointing at a sibling checkout — would land.
+      - cmd: '! grep -Eq ''^replace[[:space:]]'' go.mod'
+        platforms: [linux, darwin]
+      - cmd: printf '%s\n' '{{.VERSION}}' | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(alpha|beta|rc)\.[1-9][0-9]*)?$'
+        platforms: [linux, darwin]
 
   server:
     desc: Run the vanilla example server

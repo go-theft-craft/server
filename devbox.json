@@ -8,6 +8,7 @@
     "github:openserbia/go-flake#gopls_0_22_0":         "",
     "github:openserbia/go-flake#delve_1_27_0":         "",
     "gci":                                             "0.13.7",
+    "gitleaks":                                        "8.30.1",
     "gcc":                                             "latest",
     "libcap":                                          "latest",
     "go-task":                                         "latest",

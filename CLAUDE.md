@@ -36,9 +36,9 @@ All commands use [Task](https://taskfile.dev) (`task <name>`):
 | Command | Description |
 |---------|-------------|
 | `task build` | Build the examples to `build/` (linux/amd64,arm64, CGO disabled) |
-| `task deps` | Download, tidy, and vendor Go dependencies |
+| `task deps` | Download Go dependencies (`task tidy` normalizes go.mod) |
 | `task fmt` | Format code (gci for imports, gofumpt for formatting) |
-| `task lint` | Run golangci-lint (runs fmt first) |
+| `task lint` | Run golangci-lint (checks formatting first, without writing) |
 | `task test` | Run all tests with coverage, then the examples lane |
 | `task test:profile` | Run the observability off-profile benchmark and its exit-criterion test |
 | `task test:examples` | Build and start each example in the nested `examples` module |
@@ -46,7 +46,7 @@ All commands use [Task](https://taskfile.dev) (`task <name>`):
 | `task cleanup` | Remove `build/` directory |
 | `task test:interop` | Run the pinned Node client against the server over loopback |
 
-Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
+Run a single test: `go test -run TestName ./path/to/package/...`
 
 ## Architecture
 
@@ -186,7 +186,9 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
 
 - **`interop/`** — the loopback lane that runs a pinned Node
   `minecraft-protocol` 1.66.2 client against this server.
-- **`vendor/`** — vendored Go dependencies. All builds use `-mod vendor`.
+- Dependencies resolve from the module cache; `vendor/` is gitignored and
+  unused. (`task deps` used to vendor into it, which broke every fresh clone
+  because the directory was never tracked.)
 
 ## Protocol rules
 
@@ -211,4 +213,4 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
 - Formatting via `gofumpt` (stricter than `gofmt`)
 - Linting via `golangci-lint`
 - Build uses `-trimpath` and strips debug info (`-w -s` ldflags)
-- Vendored dependencies — always run `task deps` after modifying go.mod
+- After modifying go.mod, run `task tidy`; `task deps` only downloads

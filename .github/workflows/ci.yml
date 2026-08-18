@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Devbox
+        uses: jetify-com/devbox-install-action@v0.12.0
+
+      # Devbox supplies Node, so only the npm download cache is cached here.
+      # node_modules stays out of the repository and out of the cache.
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('interop/node/package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+
+      # verify runs test:race, which includes the nested examples module —
+      # M11 made examples/ this repository's test surface.
+      - name: Verify
+        run: devbox run -- task verify

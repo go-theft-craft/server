@@ -13,16 +13,16 @@ import (
 
 	"github.com/go-theft-craft/minecraft-protocol/data"
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+	"github.com/go-theft-craft/minecraft-protocol/wire/java/chunk"
 
 	"github.com/go-theft-craft/server/pkg/world"
 )
 
-const (
-	sections          = 16
-	sectionBlockBytes = 16 * 16 * 16 * 2 // 8192: 4096 blocks × 2 bytes
-	sectionLightBytes = 16 * 16 * 16 / 2 // 2048: 4096 nibbles
-	biomeBytes        = 256              // 16×16 biome IDs
-)
+// sections is the height of a protocol 47 dimension, in sections. The sizes
+// that go with it -- 8192 block bytes, 2048 light nibbles, 256 biomes -- are
+// wire/java/chunk's, because what this server writes is what a client reads and
+// the two agreeing by construction is the point of taking them from there.
+const sections = 16
 
 // maxCachedSections bounds the encode cache. 4096 entries × 8 KB per encoded
 // section is 32 MB, which covers a full 16-section column for 256 resident
@@ -94,9 +94,9 @@ func New(reg world.StateRegistry, set *data.Set) (*Adapter, error) {
 		}
 	}
 
-	a.airSection = make([]byte, sectionBlockBytes)
+	a.airSection = make([]byte, chunk.SectionBlockBytes47)
 	air := a.encode[reg.Air()]
-	for i := 0; i < sectionBlockBytes; i += 2 {
+	for i := 0; i < chunk.SectionBlockBytes47; i += 2 {
 		binary.LittleEndian.PutUint16(a.airSection[i:], air)
 	}
 
@@ -217,15 +217,11 @@ func (a *Adapter) EncodeChunk(c *world.Chunk) (world.Packet, error) {
 		bitMap = 0x0001
 	}
 
-	present := 0
-	for i := range sections {
-		if bitMap&(1<<uint(i)) != 0 {
-			present++
-		}
-	}
-
-	dataLen := present*(sectionBlockBytes+2*sectionLightBytes) + biomeBytes
-	out := make([]byte, 0, dataLen)
+	// The column this writes is ground-up and carries sky light, which is
+	// what makes its length the layout a client slices it back apart with.
+	layout := chunk.Layout47{Bitmap: bitMap, SkyLight: true, GroundUp: true}
+	present := layout.Sections()
+	out := make([]byte, 0, layout.Bytes())
 
 	for i := range sections {
 		if bitMap&(1<<uint(i)) == 0 {
@@ -258,8 +254,8 @@ func (a *Adapter) EncodeChunk(c *world.Chunk) (world.Packet, error) {
 
 // fullLight is one section's worth of maximum light. The server does no
 // lighting, so every nibble is 15.
-var fullLight = func() [sectionLightBytes]byte {
-	var b [sectionLightBytes]byte
+var fullLight = func() [chunk.SectionLightBytes47]byte {
+	var b [chunk.SectionLightBytes47]byte
 	for i := range b {
 		b[i] = 0xFF
 	}
@@ -278,7 +274,7 @@ func (a *Adapter) encodeSection(sec *world.Section) ([]byte, error) {
 	}
 
 	states := sec.States()
-	b := make([]byte, sectionBlockBytes)
+	b := make([]byte, chunk.SectionBlockBytes47)
 	for i, s := range states {
 		if int(s) >= len(a.encode) {
 			return nil, fmt.Errorf("state %d at index %d is not from this adapter's registry", s, i)

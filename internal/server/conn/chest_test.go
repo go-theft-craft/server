@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
+	"github.com/go-theft-craft/minecraft-protocol/wire/java/chunk"
 
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
@@ -248,15 +249,29 @@ func TestChest_PlacedChestIsInTheChunkAClientRejoinsWith(t *testing.T) {
 	if err != nil {
 		t.Fatalf("EncodeChunk: %v", err)
 	}
-	chunk := encoded.(*v1_8.PlayClientboundMapChunk)
-	if chunk.BitMap&(1<<0) == 0 {
+	column := encoded.(*v1_8.PlayClientboundMapChunk)
+	if column.BitMap&(1<<0) == 0 {
 		t.Fatal("section 0 is missing from the chunk a rejoining client gets")
 	}
 
-	idx := (5*256 + 5*16 + 5) * 2
-	got := int32(chunk.ChunkData[idx]) | int32(chunk.ChunkData[idx+1])<<8
-	if got>>4 != chestBlockID {
-		t.Errorf("chunk sent on rejoin has block %d at the chest position, want %d", got>>4, chestBlockID)
+	// Read the column back the way a client does. What matters is that the
+	// bytes this server wrote decode to a chest, which an offset computed here
+	// cannot say: it would agree with an encoder that had the layout wrong in
+	// exactly the way this test had it wrong too.
+	sections, _, err := chunk.Split47(column.BitMap, column.ChunkData)
+	if err != nil {
+		t.Fatalf("split the encoded column: %v", err)
+	}
+	if len(sections) == 0 || sections[0].Y != 0 {
+		t.Fatalf("the column's first section is not section 0")
+	}
+	states, err := chunk.DecodeSection47(sections[0].Blocks)
+	if err != nil {
+		t.Fatalf("decode section 0: %v", err)
+	}
+
+	if got := states[5*256+5*16+5] >> 4; got != chestBlockID {
+		t.Errorf("chunk sent on rejoin has block %d at the chest position, want %d", got, chestBlockID)
 	}
 }
 

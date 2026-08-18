@@ -54,7 +54,12 @@ func (s filePlayerStore) Close() error { return nil }
 // PlayerData is public and internal/server/conn cannot import it, and the
 // runtime player is internal and an application implementing PlayerStore must
 // never see it.
-type playerBridge struct{ store PlayerStore }
+type playerBridge struct {
+	store PlayerStore
+	// srv is what a loaded inventory is reconciled against. It is nil in a
+	// server built without item identity, and reconcileInventory tolerates it.
+	srv *Server
+}
 
 var _ conn.PlayerStore = playerBridge{}
 
@@ -68,6 +73,12 @@ func (b playerBridge) LoadPlayer(p *player.Player) (bool, error) {
 	// the stack through whole — identity included.
 	slots := data.Inventory.Slots
 	armor := data.Inventory.Armor
+
+	// Squared with the index before the player can click anything: an ID that
+	// came off disk is claimed where it was found, an item that came off disk
+	// without one gets it minted here, and either way the first click sees an
+	// index that already agrees with the inventory in front of it.
+	b.srv.reconcileInventory(p.UUID, slots[:], armor[:])
 
 	p.ApplyData(player.Position{
 		X:     data.Position.X,

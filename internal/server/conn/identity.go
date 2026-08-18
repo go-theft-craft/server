@@ -95,12 +95,14 @@ func (c *Connection) locationOf(l windowLayout, slot int16) world.Location {
 // ensureIdentity gives a stack the IDs it is missing, minted where it already
 // is, and returns it.
 //
-// It stands in for the load-time reconciliation this milestone did not build:
-// a stack restored from disk has no identity, and something has to give it one
-// before it moves or the invariant is false from the first click. Minting at
-// the source is the honest description — the item was already there — and a
-// freshly minted ID cannot collide with a live one, so this can never invent a
-// duplication.
+// Reconciliation at load is what gives a stack from disk its identity, so this
+// is the second line rather than the first: what reaches it is a stack that
+// appeared without going through a path that mints — a creative slot set, an
+// extension writing into an inventory — and something has to give it identity
+// before it moves or the invariant is false from the click that moves it.
+// Minting at the source is the honest description — the items were already
+// there — and a freshly minted ID cannot collide with a live one, so this can
+// never invent a duplication.
 func (c *Connection) ensureIdentity(l windowLayout, slot int16, s player.Slot) player.Slot {
 	if !c.identityOn() || s.IsEmpty() {
 		return s

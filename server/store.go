@@ -100,6 +100,11 @@ type Sidecar struct {
 	// decimal — to the "epoch:counter" text of the block's ItemID. It is
 	// absent for a chunk holding no placed block, which is nearly all of them.
 	BlockIdentity map[string]string `json:"block_identity,omitempty"`
+
+	// ItemIdentity maps a container slot — "<block key>:<slot>" — to the IDs
+	// of the stack in it. The vanilla format has a field for the items and
+	// none for their identity, which is what the sidecar is here to hold.
+	ItemIdentity map[string][]string `json:"item_identity,omitempty"`
 }
 
 // SidecarSource supplies the contents a SideStore writes for one chunk.
@@ -108,7 +113,7 @@ type Sidecar struct {
 // through SaveSnapshot, because a snapshot is the world's and the sidecar's
 // contents are not in it: block identity lives beside the world, which is the
 // whole reason the sidecar exists.
-type SidecarSource func(pos world.ChunkPos) Sidecar
+type SidecarSource func(pos world.ChunkPos, c *world.Chunk) Sidecar
 
 // SidecarWriter is a SideStore that writes contents rather than an empty
 // container. The default store implements it; a store that does not simply

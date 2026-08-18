@@ -17,7 +17,7 @@ import (
 
 // newIdentifiedServer is a stored server with item identity, and therefore
 // block identity, switched on.
-func newIdentifiedServer(t *testing.T, dir string) (*server.Server, *server.Storage) {
+func newIdentifiedServer(t *testing.T, dir string, extra ...server.Option) (*server.Server, *server.Storage) {
 	t.Helper()
 
 	settings := config.DefaultConfig()
@@ -34,6 +34,8 @@ func newIdentifiedServer(t *testing.T, dir string) (*server.Server, *server.Stor
 		server.WithSettings(settings),
 		server.WithItemIdentity(server.DuplicateAllow),
 	)
+	opts = append(opts, extra...)
+
 	srv, err := server.New(opts...)
 	if err != nil {
 		t.Fatalf("New: %v", err)

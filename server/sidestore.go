@@ -61,7 +61,7 @@ func (s *sidecarStore) SaveSnapshot(ctx context.Context, name string, snap world
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	dirty := map[[2]int]map[world.ChunkPos]world.Generation{}
+	dirty := map[[2]int]map[world.ChunkPos]*world.Chunk{}
 	for pos, c := range snap.Chunks {
 		if c.Unreadable {
 			continue
@@ -71,9 +71,9 @@ func (s *sidecarStore) SaveSnapshot(ctx context.Context, name string, snap world
 		}
 		key := [2]int{pos.X >> 5, pos.Z >> 5}
 		if dirty[key] == nil {
-			dirty[key] = map[world.ChunkPos]world.Generation{}
+			dirty[key] = map[world.ChunkPos]*world.Chunk{}
 		}
-		dirty[key][pos] = c.Gen
+		dirty[key][pos] = c
 	}
 
 	for key, chunks := range dirty {
@@ -83,15 +83,15 @@ func (s *sidecarStore) SaveSnapshot(ctx context.Context, name string, snap world
 		if err := s.saveRegion(name, key[0], key[1], chunks); err != nil {
 			return err
 		}
-		for pos, gen := range chunks {
-			s.written[pos] = gen
+		for pos, c := range chunks {
+			s.written[pos] = c.Gen
 		}
 	}
 
 	return nil
 }
 
-func (s *sidecarStore) saveRegion(name string, rx, rz int, chunks map[world.ChunkPos]world.Generation) error {
+func (s *sidecarStore) saveRegion(name string, rx, rz int, chunks map[world.ChunkPos]*world.Chunk) error {
 	path := s.path(name, rx, rz)
 	if err := storage.EnsureDir(filepath.Dir(path)); err != nil {
 		return err
@@ -106,12 +106,14 @@ func (s *sidecarStore) saveRegion(name string, rx, rz int, chunks map[world.Chun
 	}
 	file.Version = SidecarVersion
 
-	for pos, gen := range chunks {
+	for pos, c := range chunks {
 		entry := file.Chunks[chunkKey(pos)]
 		entry.Version = SidecarVersion
-		entry.Generation = gen
+		entry.Generation = c.Gen
 		if s.source != nil {
-			entry.BlockIdentity = s.source(pos).BlockIdentity
+			contents := s.source(pos, c)
+			entry.BlockIdentity = contents.BlockIdentity
+			entry.ItemIdentity = contents.ItemIdentity
 		}
 		file.Chunks[chunkKey(pos)] = entry
 	}

@@ -46,9 +46,16 @@ type Server struct {
 	recorder *Recorder
 	index    ItemIndex
 
-	// blocks is the sparse table of identified blocks. It is nil unless item
-	// identity is on, and every method on it tolerates that.
-	blocks *storage.BlockIdentity
+	// blocks is the sparse table of identified blocks, and reconcile is the
+	// pass that squares stored identity with what is actually in the world.
+	// Both are nil unless item identity is on, and every method on them
+	// tolerates that.
+	blocks    *storage.BlockIdentity
+	reconcile *storage.Reconciler
+
+	// reconciled accumulates what every chunk load reconciled, so the counts
+	// can be reported as one line rather than one per column.
+	reconciled reconcileCounts
 
 	// minter hands out item IDs for this run. Its epoch is the world's stored
 	// one plus one, and the advance is written back at the first save.
@@ -187,6 +194,15 @@ func New(opts ...Option) (*Server, error) {
 		// A dropped item is the one place items live outside a window, so the
 		// player manager is on the write path as much as the click paths are.
 		srv.players.SetItemIndex(srv.index, b.log)
+
+		srv.reconcile = &storage.Reconciler{
+			Index:  srv.index,
+			Blocks: srv.blocks,
+			Sink:   reconcileSink{recorder: srv.recorder},
+			Log:    b.log,
+			Dim:    dimension,
+			Air:    w.Air(),
+		}
 	}
 
 	// A store is built by the application, before this function ran, so it
@@ -210,6 +226,7 @@ func New(opts ...Option) (*Server, error) {
 			store:  b.worldStore,
 			side:   b.sideStore,
 			blocks: srv.blocks,
+			server: srv,
 			log:    b.log,
 			name:   DefaultWorld,
 		})
@@ -223,7 +240,7 @@ func New(opts ...Option) (*Server, error) {
 	}
 
 	if b.playerStore != nil {
-		srv.playerStore = playerBridge{store: b.playerStore}
+		srv.playerStore = playerBridge{store: b.playerStore, srv: srv}
 	}
 
 	if b.observer != nil {
@@ -243,6 +260,7 @@ type storeLoader struct {
 	store  WorldStore
 	side   SideStore
 	blocks *storage.BlockIdentity
+	server *Server
 	log    *slog.Logger
 	name   string
 }
@@ -253,7 +271,12 @@ func (l storeLoader) LoadChunk(pos world.ChunkPos) (*world.Chunk, error) {
 		return c, err
 	}
 
-	l.loadIdentity(pos, c.Gen)
+	stale := l.loadIdentity(pos, c)
+	// Reconciled here, on the column the world is about to publish, because
+	// this is the last moment it is private: the pass writes into containers,
+	// and asking the world for a chunk it is still loading would ask it to
+	// load the chunk again.
+	l.server.recordReconciliation(l.server.reconcile.Chunk(pos, c, stale))
 
 	return c, nil
 }
@@ -267,18 +290,20 @@ func (l storeLoader) LoadChunk(pos world.ChunkPos) (*world.Chunk, error) {
 // every restart. What the stamp still says is that the pair needs squaring
 // against what is actually in the chunk, which is what reconcile does — and
 // after a restart that is every chunk, deliberately.
-func (l storeLoader) loadIdentity(pos world.ChunkPos, gen world.Generation) {
+// It reports whether the sidecar's stamp disagreed with the column's, which is
+// what the reconciliation pass counts as stale.
+func (l storeLoader) loadIdentity(pos world.ChunkPos, c *world.Chunk) bool {
 	if l.side == nil || l.blocks == nil {
-		return
+		return false
 	}
 
-	sc, found, err := l.side.Load(context.Background(), l.name, pos, gen)
+	sc, found, err := l.side.Load(context.Background(), l.name, pos, c.Gen)
 	if !found {
 		if err != nil {
 			l.log.Warn("read sidecar", "chunk", pos, "error", err)
 		}
 
-		return
+		return false
 	}
 	if err != nil {
 		l.log.Debug("sidecar stamp does not match the column; reconciling", "chunk", pos, "error", err)
@@ -287,11 +312,23 @@ func (l storeLoader) loadIdentity(pos world.ChunkPos, gen world.Generation) {
 	if bad := l.blocks.LoadChunk(pos, sc.BlockIdentity); bad > 0 {
 		l.log.Warn("dropped unreadable block identity entries", "chunk", pos, "entries", bad)
 	}
+	// Written into the column before anyone can see it, which is the same
+	// window the reconciliation pass runs in and the reason both live here.
+	if bad := storage.ApplyContainerIdentity(pos, c, sc.ItemIdentity); bad > 0 {
+		l.log.Warn("dropped unreadable container identity entries", "chunk", pos, "entries", bad)
+	}
+
+	return err != nil
 }
 
-// sidecarFor is what the sidecar store writes for one chunk.
-func (s *Server) sidecarFor(pos world.ChunkPos) Sidecar {
-	return Sidecar{BlockIdentity: s.blocks.Chunk(pos)}
+// sidecarFor is what the sidecar store writes for one chunk: the identity of
+// the blocks somebody placed in it, and the identity of the items in its
+// containers.
+func (s *Server) sidecarFor(pos world.ChunkPos, c *world.Chunk) Sidecar {
+	return Sidecar{
+		BlockIdentity: s.blocks.Chunk(pos),
+		ItemIdentity:  storage.ContainerIdentity(c),
+	}
 }
 
 // BlockIdentity is the sparse table of identified blocks, or nil when item

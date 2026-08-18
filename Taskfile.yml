@@ -38,6 +38,8 @@ tasks:
         platforms: [linux/amd64,linux/arm64]
       - cmd: go build -ldflags="-w -s" -trimpath -o ../{{.BUILD_PATH}}/observed ./observed
         platforms: [linux/amd64,linux/arm64]
+      - cmd: go build -ldflags="-w -s" -trimpath -o ../{{.BUILD_PATH}}/custom-command ./custom-command
+        platforms: [linux/amd64,linux/arm64]
 
   deps:
     desc: Install go vendor dependencies

@@ -138,6 +138,33 @@ Run a single test: `go test -mod vendor -run TestName ./path/to/package/...`
     a mismatch — that would discard all identity on every restart — so every
     column is reconciled at load. Do not "fix" this by dropping identity when
     the stamp disagrees.
+- **Commands** — a `Command` is a value with a `Signature`, and the signature is
+  the single declaration behind three things: the parser (`server/args.go`),
+  tab-complete (`server/complete.go`), and the protocol 775 brigadier tree
+  (`server/commands/v775`). Adding an argument to one and not the others stopped
+  being possible.
+  - The ten built-ins are in `server/builtin.go`, in package `server` and not in
+    the `server/commands/builtin` the plan named: a command has to name
+    `server.Command` and the server has to default to the built-ins, which
+    together are an import cycle.
+  - `internal/server/conn` cannot name a `server.Command`, so the command and
+    completion paths are two function seams (`conn.Dispatcher`,
+    `conn.Completer`) set by the server, and `server/conncaller.go` is the
+    adapter that turns a `*conn.Connection` into a `server.Caller`.
+  - **Suggestions are behavior.** `server/complete_table_test.go` holds 79 cases
+    pinned from the `switch cmdName` block that used to be in
+    `tab_complete.go`, before it was deleted. A case that changes is a change to
+    what a player sees, and the commit that changes it has to say why.
+  - `Param.NoSuggest` and `Param.Also` exist because of that table:
+    `/tp`'s first argument must offer player names rather than the caller's own
+    x, and `/gamemode` must still take `sp` without offering all twelve forms.
+  - Permissions default to allowing everything. This server has no operator
+    list, and introducing one by default would lock people out of their own
+    worlds. An `Authorizer` gates suggestion as well as execution.
+  - `server/commands/vanilla/testdata/commands-1.8.txt` is derived from the 1.8
+    client language file in `minecraft-protocol`, not typed from memory. Its
+    header says which part of it — the aliases — has no upstream source.
+
 - **Observability** — off by default, and `TestOffProfileAllocatesNothingForMeasurement`
   is what says so. `server/labels.go` holds the closed label set and the feature
   list, which is the API: adding a feature means editing that file. `Measure`

@@ -55,7 +55,7 @@ func fetch(url string) (string, error) {
 }
 
 func TestEachExampleBuildsAndStarts(t *testing.T) {
-	for _, name := range []string{"minimal", "flat", "vanilla", "custom", "observed"} {
+	for _, name := range []string{"minimal", "flat", "vanilla", "custom", "observed", "custom-command"} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -120,6 +120,8 @@ func arguments(t *testing.T, name string) []string {
 		return []string{"-port", "25702"}
 	case "custom":
 		return []string{"-port", "25704"}
+	case "custom-command":
+		return []string{"-port", "25706"}
 	case "observed":
 		return []string{
 			"-port", "25705", "-data-dir", t.TempDir(),

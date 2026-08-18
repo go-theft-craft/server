@@ -30,6 +30,7 @@ return srv.Start(ctx)
 | `examples/custom` | A world generator defined and registered by the application, from outside the framework's module |
 | `examples/minimal` | The smallest server that still serves: logins into a generated world, no persistence, no configuration file |
 | `examples/flat` | A generator supplied directly through `WithGenerator` rather than selected by name in settings |
+| `examples/custom-command` | A command written outside the framework's module, composed with the stub list and the built-ins |
 | `examples/observed` | An `Observer` mapped onto Prometheus collectors, with a loopback `/metrics` endpoint |
 | `examples/vanilla` | Everything at once: every flag, a configuration file, file-backed persistence, and a generated RSA keypair |
 
@@ -47,8 +48,9 @@ devbox run -- task build     # builds them all into build/
 | `server.PlayerStore` | Per-player state, as the public `server.PlayerData` |
 | `server.Observer` | Measurement. Receives timing, count, gauge, resource, and per-frame network samples, attributed to a player, a feature, and a region; delivery never blocks the server |
 | `gen.Generator` | World generation, through `server.WithGenerator` |
+| `server.Set` | The command set, through `server.WithCommands`; `server.Authorizer` gates who may run each one |
 
-The command set becomes a seam in M11.7.
+
 
 ## Features
 
@@ -354,6 +356,68 @@ generation.
 | `/kill` | Kill yourself (triggers death screen + respawn) |
 | `/seed` | Show world seed |
 | `/save` | Save world and player data |
+
+### Adding or replacing one
+
+A command is a value with a declared signature. The signature is what the parser
+reads, what tab-complete suggests from, and what the protocol 775 brigadier tree
+is rendered from, so the three cannot disagree about what a command takes.
+
+```go
+ping := server.Command{
+    Name:        "ping",
+    Aliases:     []string{"pong"},
+    Description: "Reply with where you are standing",
+    Signature: server.Signature{Overloads: []server.Overload{
+        {},                                                              // /ping
+        {Params: []server.Param{{Name: "player", Type: server.ParamPlayer}}}, // /ping <player>
+    }},
+    Run: func(ctx context.Context, caller server.Caller, args server.Args) error {
+        caller.Reply(server.Success("pong, " + caller.Name()))
+
+        return nil
+    },
+}
+
+mine, _ := server.NewSet(ping)
+srv, _ := server.New(server.WithCommands(
+    server.Merge(vanilla.Stubs(), server.BuiltinCommands(), mine),
+))
+```
+
+`Merge` prefers the later set for any name two of them answer to, which is what
+makes composition work in that order: stubs first, the framework's second, yours
+last. `examples/custom-command` is the running version, from a module that only
+sees what any consumer sees.
+
+A command never sees a connection. It gets a `server.Caller` — reply, broadcast,
+teleport, change mode, die — and `server.ServicesFrom(ctx)` for the things that
+belong to the server rather than to whoever ran it. That is what lets every one
+of them be tested against a fake.
+
+Eight parameter types cover everything here: `word`, `message` (greedy, and the
+last parameter of its overload), `int`, `float`, `player`, `coordinates`,
+`duration`, and `command`. Adding a ninth means adding a line to
+`server/labels.go`'s neighbour `server/command.go` and a brigadier parser for it
+in `server/commands/v775`, which fails the build until it has one.
+
+### What this server still owes
+
+`vanilla.Stubs()` is every command name Java Edition 1.8 answers to — sixty of
+them, derived from the 1.8 client language file rather than typed from memory —
+each one replying that it is not implemented rather than that it is unknown.
+Those are different answers: unknown means a typo, unimplemented means a to-do,
+and both a player and a server builder need to tell them apart.
+`vanilla.Missing(set)` is the list, and `examples/custom-command` puts it behind
+a `/missing` command.
+
+### Permissions
+
+Every command is allowed to everyone unless you supply an
+`server.WithAuthorizer`. That is deliberate: this server has no operator list,
+and introducing one by default would lock people out of their own worlds on
+upgrade. An authorizer gates suggestion as well as execution — completing `/ban`
+for somebody who cannot run it tells them the server has one.
 
 ## World Generation
 

@@ -53,6 +53,15 @@ func Notice(s string) Message { return Message{Text: s, Color: "yellow"} }
 // A console or an extension is a Caller with no position and full permission,
 // which is why Position returns a value rather than the caller being required
 // to be a player.
+//
+// # Concurrency
+//
+// An implementation must tolerate Reply and Broadcast being called from a
+// goroutine other than the one the command ran on. /save is why: it starts the
+// save off the dispatch's goroutine — a save walks the resident world and the
+// player who asked for it should not be frozen while it does — and reports the
+// result when it finishes. Any command may do the same. The rest of the methods
+// are called on the dispatching goroutine only.
 type Caller interface {
 	// Name is the caller's display name: a username, or something like
 	// "Server" for one that is not a player.

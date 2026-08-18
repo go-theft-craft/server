@@ -3,7 +3,9 @@ package server_test
 import (
 	"context"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/go-theft-craft/server/server"
 )
@@ -16,12 +18,18 @@ import (
 // assert the line a player actually reads.
 
 // fakeCaller records everything a command did to whoever ran it.
+//
+// The mutex is not decoration. A Caller has to tolerate Reply from a goroutine
+// other than the one the command ran on — /save is the case, and the race
+// detector found this the first time it ran — so a fake that did not would be
+// asserting something no real implementation is allowed to rely on.
 type fakeCaller struct {
 	name       string
 	uuid       string
 	pos        server.Position
 	permission server.PermissionLevel
 
+	mu         sync.Mutex
 	replies    []server.Message
 	broadcasts []server.Message
 	teleports  [][3]float64
@@ -50,8 +58,40 @@ func (f *fakeCaller) Name() string                       { return f.name }
 func (f *fakeCaller) UUID() string                       { return f.uuid }
 func (f *fakeCaller) Position() server.Position          { return f.pos }
 func (f *fakeCaller) Permission() server.PermissionLevel { return f.permission }
-func (f *fakeCaller) Reply(m server.Message)             { f.replies = append(f.replies, m) }
-func (f *fakeCaller) Broadcast(m server.Message)         { f.broadcasts = append(f.broadcasts, m) }
+
+func (f *fakeCaller) Reply(m server.Message) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.replies = append(f.replies, m)
+}
+
+func (f *fakeCaller) Broadcast(m server.Message) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.broadcasts = append(f.broadcasts, m)
+}
+
+// sawReply waits for a reply containing text and reports whether one arrived.
+// A command that replies from its own goroutine — /save does — is why waiting
+// beats reading.
+func (f *fakeCaller) sawReply(text string) bool {
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		f.mu.Lock()
+		for _, m := range f.replies {
+			if strings.Contains(m.Text, text) {
+				f.mu.Unlock()
+
+				return true
+			}
+		}
+		f.mu.Unlock()
+		time.Sleep(time.Millisecond)
+	}
+
+	return false
+}
+
 func (f *fakeCaller) Teleport(x, y, z float64) {
 	f.teleports = append(f.teleports, [3]float64{x, y, z})
 }
@@ -68,6 +108,9 @@ func (f *fakeCaller) SetGameMode(name string) (string, bool) {
 
 // lastReply is the last thing the caller was told, or "" if nothing.
 func (f *fakeCaller) lastReply() string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	if len(f.replies) == 0 {
 		return ""
 	}
@@ -147,9 +190,8 @@ func TestEveryBuiltinRunsAgainstAFakeCaller(t *testing.T) {
 	set := server.BuiltinCommands()
 
 	for _, tc := range []struct {
-		line    string
-		check   func(t *testing.T, c *fakeCaller, s *fakeServices)
-		nothing bool
+		line  string
+		check func(t *testing.T, c *fakeCaller, s *fakeServices)
 	}{
 		{line: "/help", check: func(t *testing.T, c *fakeCaller, _ *fakeServices) {
 			if len(c.replies) < 2 {
@@ -320,9 +362,12 @@ func TestSaveRunsThroughServices(t *testing.T) {
 
 	dispatchOn(t, caller, svc, "/save")
 
-	// The save itself runs off this goroutine, as it always did, so what this
-	// asserts is that the player was told it started.
-	if !strings.Contains(caller.replies[0].Text, "Saving") {
-		t.Errorf("/save replied %q", caller.replies[0].Text)
+	// The save runs off the dispatching goroutine, as it always did, so both
+	// replies are waited for rather than read.
+	if !caller.sawReply("Saving") {
+		t.Error("/save did not say it had started")
+	}
+	if !caller.sawReply("Save complete") {
+		t.Error("/save did not say it had finished")
 	}
 }

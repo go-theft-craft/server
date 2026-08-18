@@ -1,5 +1,13 @@
 # Server protocol migration implementation plan
 
+> **Status: complete, 2026-08-18.** Shipped as M3: every connection runs on the
+> managed stream, handshake and status come from generated packets, logins go
+> through `login.Acceptor`, compression is negotiated, legacy pings are
+> answered, and `minecraft-protocol` is consumed as a released module with no
+> `replace`. Both client checks passed on 2026-08-15 with zero decode errors
+> (`docs/verification/2026-08-15-m3-client-checks.md`). The checkboxes below
+> were never ticked and are not evidence; do not re-run this plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move the `server` repository's entire connection path onto

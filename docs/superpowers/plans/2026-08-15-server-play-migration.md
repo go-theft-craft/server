@@ -1,5 +1,10 @@
 # Server Play-State Migration Implementation Plan
 
+> **Status: complete, 2026-08-18.** Shipped as M6.1; see the execution status
+> below, which was corrected on 2026-08-18 after it had been reading "task 5 is
+> in progress" for three days. The checkboxes under tasks 5 through 9 were never
+> ticked and are not evidence; do not re-run this plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the server's last locally-owned wire types with `minecraft-protocol`'s generated protocol 47 packets, delete the server's remaining code generation, and let the session propose state transitions instead of the connection mirroring them.
@@ -25,8 +30,17 @@ None. M6.1 needs only the released `minecraft-protocol`, whose `generated/java/v
 
 ## Execution status
 
-Tasks 1 through 4 are complete and each passed a task review. Task 5 is in
-progress. Commits, rulings, and deferred minor findings are recorded in
+**All nine tasks are complete, 2026-08-18.** M6.1 shipped: the play path runs on
+generated protocol 47 packets, `pkg/gamedata`, `cmd/codegen`, and `cmd/dmd` are
+gone, and the client check is recorded in
+`docs/verification/2026-08-15-m6-1-client-check.md`. One deviation worth naming,
+because it looks like an unfinished task 8: `internal/server/packet` survives as
+a file of game constants — game modes, dimensions, difficulties — which is
+task 2's rehome and not the packet package task 8 deleted.
+
+The table below stops at task 4 because it was written while the work was
+running; the unticked steps under tasks 5 through 9 are not outstanding work.
+Commits, rulings, and deferred minor findings are recorded in
 `.superpowers/sdd/2026-08-15-server-play-migration/progress.md`, which is
 git-ignored scratch.
 

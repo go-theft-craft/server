@@ -1,5 +1,11 @@
 # M11.1 Framework Shape Implementation Plan
 
+> **Status: complete, 2026-08-18.** Shipped as M11.1, and M11.2 through M11.7
+> have landed on top of it. The checkboxes below were never ticked and are not
+> evidence; do not re-run this plan. What each sub-milestone deviated from its
+> own plan is recorded in
+> [the archived master plan](../../../../headless-minecraft/docs/archive/2026-08-18-master-plan.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn `server` from an application into an importable framework: a public `server` package constructed with functional options, the `Store` and `Observer` seams declared, and `cmd/server` replaced by an `examples/` module holding three programs that compose the pieces differently.

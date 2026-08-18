@@ -37,17 +37,27 @@ func (s *networkSink) Observe(_ context.Context, record protocol.Observation) er
 		return nil
 	}
 
-	kind := SampleNetworkOut
+	kind, direction := SampleNetworkOut, DirectionOut
 	if record.Direction == protocol.DirectionServerbound {
-		kind = SampleNetworkIn
+		kind, direction = SampleNetworkIn, DirectionIn
+	}
+
+	// The packet name comes from the record's own metadata when it has any. A
+	// raw frame does not — it is bytes before anything decided what they mean
+	// — so raw frames carry direction only. Synthesizing a name the record
+	// does not have would put a guess in a label that reads like a fact.
+	labels := Labels{Direction: direction}
+	if record.Packet != nil {
+		labels.Packet = record.Packet.Name
 	}
 
 	// OriginalLen rather than len(Bytes): a redacted record drops its
 	// payload but still reports the size it withheld.
 	s.observer.Observe(Sample{
-		Kind:  kind,
-		Value: float64(record.OriginalLen),
-		At:    record.Elapsed,
+		Kind:   kind,
+		Value:  float64(record.OriginalLen),
+		At:     record.Elapsed,
+		Labels: labels,
 	})
 
 	return nil

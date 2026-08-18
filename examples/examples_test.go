@@ -10,6 +10,8 @@ package examples_test
 import (
 	"bufio"
 	"context"
+	"io"
+	"net/http"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -19,8 +21,41 @@ import (
 
 const startTimeout = 30 * time.Second
 
+// metricsAddr is loopback, like the example's own default. A metrics endpoint
+// is not a public one.
+const metricsAddr = "127.0.0.1:25805"
+
+// assertMetricsAnswer polls the observed example's endpoint until it serves
+// the server's own metrics.
+func assertMetricsAnswer(t *testing.T) {
+	t.Helper()
+
+	deadline := time.Now().Add(startTimeout)
+	for time.Now().Before(deadline) {
+		body, err := fetch("http://" + metricsAddr + "/metrics")
+		if err == nil && strings.Contains(body, "minecraft_") {
+			return
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	t.Fatal("the observed example never served its own metrics")
+}
+
+func fetch(url string) (string, error) {
+	resp, err := http.Get(url) //nolint:gosec,noctx // a fixed loopback URL in a test
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+
+	return string(body), err
+}
+
 func TestEachExampleBuildsAndStarts(t *testing.T) {
-	for _, name := range []string{"minimal", "flat", "vanilla", "custom"} {
+	for _, name := range []string{"minimal", "flat", "vanilla", "custom", "observed"} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -50,13 +85,24 @@ func TestEachExampleBuildsAndStarts(t *testing.T) {
 			}()
 
 			scanner := bufio.NewScanner(stdout)
+			started := false
 			for scanner.Scan() {
 				if strings.Contains(scanner.Text(), "server started") {
-					return
+					started = true
+
+					break
 				}
 			}
+			if !started {
+				t.Fatalf("%s never logged that it started", name)
+			}
 
-			t.Fatalf("%s never logged that it started", name)
+			if name == "observed" {
+				// The reason this example exists rather than a README
+				// snippet: a sink that stopped compiling or stopped being
+				// wired shows up here as an endpoint that answers nothing.
+				assertMetricsAnswer(t)
+			}
 		})
 	}
 }
@@ -74,6 +120,11 @@ func arguments(t *testing.T, name string) []string {
 		return []string{"-port", "25702"}
 	case "custom":
 		return []string{"-port", "25704"}
+	case "observed":
+		return []string{
+			"-port", "25705", "-data-dir", t.TempDir(),
+			"-world-radius", "0", "-metrics", metricsAddr,
+		}
 	default:
 		return []string{"-port", "25703"}
 	}

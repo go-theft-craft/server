@@ -1,0 +1,82 @@
+# Vanilla Java Edition 1.8 command names.
+#
+# Source: source/java/1.8/language.json in the minecraft-protocol repository,
+# the client language file shipped with the game. Every line below is derived
+# from a commands.<name>.usage key in it: the name is the first token of the
+# usage line and the usage line is reproduced verbatim.
+#
+# Captured 2026-08-18 by reading that file, not by running a server and paging
+# through /help, which is what the plan called for. The language file is an
+# upstream artifact that can be diffed and re-derived; a transcript of /help is
+# neither, and typing the list from memory would have been worse than both.
+#
+# What is NOT here: aliases. The language file has one usage key per command,
+# so /msg and /w do not appear beside /tell even though 1.8 accepts all three.
+# The aliases are hand-listed in stubs.go and marked as such, so the next person
+# knows which half of this list has an upstream source and which does not.
+#
+# A command whose usage line has subcommands (/scoreboard, /worldborder) is
+# listed once, with the shortest of its usage lines — the one that names the
+# command's own shape rather than one branch of it.
+#
+# Format: <name>\t<vanilla usage line>
+achievement	/achievement <give|take> <stat_name|*> [player]
+ban	/ban <name> [reason ...]
+ban-ip	/ban-ip <address|name> [reason ...]
+banlist	/banlist [ips|players]
+blockdata	/blockdata <x> <y> <z> <dataTag>
+chunkinfo	/chunkinfo [<x> <y> <z>]
+clear	/clear [player] [item] [data] [maxCount] [dataTag]
+clone	/clone <x1> <y1> <z1> <x2> <y2> <z2> <x> <y> <z> [maskMode] [cloneMode]
+debug	/debug <start|stop>
+defaultgamemode	/defaultgamemode <mode>
+deop	/deop <player>
+difficulty	/difficulty <new difficulty>
+effect	/effect <player> clear
+enchant	/enchant <player> <enchantment ID> [level]
+entitydata	/entitydata <entity> <dataTag>
+execute	/execute <entity> <x> <y> <z> <command>
+fill	/fill <x1> <y1> <z1> <x2> <y2> <z2> <TileName> [dataValue] [oldBlockHandling] [dataTag]
+gamemode	/gamemode <mode> [player]
+gamerule	/gamerule <rule name> [value]
+give	/give <player> <item> [amount] [data] [dataTag]
+help	/help [page|command name]
+kick	/kick <player> [reason ...]
+kill	/kill [player|entity]
+list	/list
+me	/me <action ...>
+op	/op <player>
+pardon	/pardon <name>
+pardon-ip	/pardon-ip <address>
+particle	/particle <name> <x> <y> <z> <xd> <yd> <zd> <speed> [count] [mode]
+playsound	/playsound <sound> <player> [x] [y] [z] [volume] [pitch] [minimumVolume]
+publish	/publish
+replaceitem	/replaceitem <entity|block> ...
+save-all	/save-all
+save-off	/save-off
+save-on	/save-on
+say	/say <message ...>
+scoreboard	/scoreboard teams list [name]
+seed	/seed
+setblock	/setblock <x> <y> <z> <TileName> [dataValue] [oldBlockHandling] [dataTag]
+setidletimeout	/setidletimeout <Minutes until kick>
+setworldspawn	/setworldspawn [<x> <y> <z>]
+spawnpoint	/spawnpoint [player] [<x> <y> <z>]
+spreadplayers	/spreadplayers <x> <z> <spreadDistance> <maxRange> <respectTeams true|false> <player ...>
+stats	/stats <entity|block> ...
+stop	/stop
+summon	/summon <EntityName> [x] [y] [z] [dataTag]
+tell	/tell <player> <private message ...>
+tellraw	/tellraw <player> <raw json message>
+testfor	/testfor <player> [dataTag]
+testforblock	/testforblock <x> <y> <z> <TileName> [dataValue] [dataTag]
+testforblocks	/testforblocks <x1> <y1> <z1> <x2> <y2> <z2> <x> <y> <z> [mode]
+time	/time <set|add|query> <value>
+title	/title <player> <title|subtitle|clear|reset|times> ...
+toggledownfall	/toggledownfall
+tp	/tp [target player] <destination player>
+trigger	/trigger <objective> <add|set> <value>
+weather	/weather <clear|rain|thunder> [duration in seconds]
+whitelist	/whitelist add <player>
+worldborder	/worldborder center <x> <z>
+xp	/xp <amount> [player]

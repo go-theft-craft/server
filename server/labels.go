@@ -44,7 +44,14 @@ const (
 // the other is bytes through a stream, and those are two different problems.
 type Feature string
 
-// The thirteen features this server measures.
+// The features this server measures.
+//
+// The design named thirteen. block_write is the fourteenth, added because the
+// per-tick accumulator needs somewhere to put a block write and the honest
+// alternatives were worse: filing it under inventory would make two unrelated
+// numbers one, and leaving it out would leave the most frequent write in the
+// server unmeasured. The list is meant to be extended by editing it here,
+// where the whole set is visible.
 const (
 	FeatureChunkGenerate Feature = "chunk_generate"
 	FeatureChunkEncode   Feature = "chunk_encode"
@@ -59,6 +66,7 @@ const (
 	FeatureCommand       Feature = "command"
 	FeatureLogin         Feature = "login"
 	FeatureProvenance    Feature = "provenance"
+	FeatureBlockWrite    Feature = "block_write"
 )
 
 // Features is every feature this server measures, in the order they are
@@ -70,6 +78,7 @@ func Features() []Feature {
 		FeatureChunkLoad, FeatureChunkSave, FeatureTick,
 		FeatureEntitySync, FeatureInventory, FeatureCrafting,
 		FeatureCombat, FeatureCommand, FeatureLogin, FeatureProvenance,
+		FeatureBlockWrite,
 	}
 }
 

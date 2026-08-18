@@ -38,3 +38,13 @@ func (s *Server) DrainSamples() {
 		time.Sleep(100 * time.Microsecond)
 	}
 }
+
+// FlushTickStats runs the flush a tick would run, so a test does not have to
+// start a server and wait 50 milliseconds for one.
+func (s *Server) FlushTickStats() { s.flushTickStats() }
+
+// PendingTickStats is how many (feature, player) pairs are waiting.
+func (s *Server) PendingTickStats() int { return s.ticks.pending() }
+
+// SampleLevels emits the gauges the ten-second cadence emits.
+func (s *Server) SampleLevels() { s.sampleLevels() }

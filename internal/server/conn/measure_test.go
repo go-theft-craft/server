@@ -22,10 +22,13 @@ func TestAChunkSendIsAttributedToThePlayerItIsFor(t *testing.T) {
 	c, _, _, _ := newTestConnWithCapture(t, "Alice")
 
 	var spans []recordedSpan
+	counted := map[string]float64{}
 	c.SetMeasure(func(feature, player string, pos world.ChunkPos) func() {
 		spans = append(spans, recordedSpan{feature: feature, player: player, pos: pos})
 
 		return func() {}
+	}, func(feature, _ string, n float64) {
+		counted[feature] += n
 	})
 	c.metricsPlayer = "Alice"
 
@@ -45,6 +48,16 @@ func TestAChunkSendIsAttributedToThePlayerItIsFor(t *testing.T) {
 	}
 	if spans[0].pos != pos {
 		t.Errorf("span chunk is %v, want %v", spans[0].pos, pos)
+	}
+
+	// A block write is counted rather than timed, which is the rule the whole
+	// accumulator exists to enforce.
+	c.setBlockAt(0, 5, 0, c.states.air)
+	if got := counted[world.MeasureBlockWrite]; got != 1 {
+		t.Errorf("one block write counted %v, want 1", got)
+	}
+	if len(spans) != 1 {
+		t.Errorf("a block write produced %d spans; it is counted, not timed", len(spans)-1)
 	}
 }
 

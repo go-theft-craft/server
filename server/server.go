@@ -75,6 +75,10 @@ type Server struct {
 	// region they fall in. See WithChunkDetail for what it costs.
 	chunkDetail bool
 
+	// ticks accumulates the events that happen too often to sample one at a
+	// time. See tickstats.go.
+	ticks *tickStats
+
 	// playerStore is the bridge from the public PlayerStore an application
 	// supplied to what a connection needs. It is nil when the server runs
 	// without player persistence.
@@ -170,6 +174,7 @@ func New(opts ...Option) (*Server, error) {
 		hasLevel:    hasLevel,
 		level:       level,
 		chunkDetail: b.chunkDetail,
+		ticks:       newTickStats(),
 	}
 
 	// The epoch advances once per start. Exhaustion refuses to mint and keeps
@@ -449,7 +454,7 @@ func (s *Server) Start(ctx context.Context) error {
 		connection.SetItemIndex(s.index)
 		connection.SetBlockIdentity(s.blocks, s.recorder)
 		if s.observed() {
-			connection.SetMeasure(s.measureConnection)
+			connection.SetMeasure(s.measureConnection, s.countConnection)
 		}
 
 		s.track(connection)
@@ -534,6 +539,7 @@ func (s *Server) tickLoop(ctx context.Context) {
 			s.tick(tickCount)
 		case <-resources.C:
 			s.SampleResources()
+			s.sampleLevels()
 		}
 	}
 }
@@ -551,6 +557,13 @@ func (s *Server) streamOptions() []protocol.StreamOption {
 
 // tick advances the world by one tick and broadcasts time every 20 ticks (~1 second).
 func (s *Server) tick(tickCount int) {
+	// The tick's own duration is sampled directly: it happens twenty times a
+	// second, which is rare enough to measure one at a time and important
+	// enough that an average would hide the tick that took a second.
+	defer s.Measure(FeatureTick, Labels{World: DefaultWorld})()
+	// Flushed at the end, after everything this tick did has been counted.
+	defer s.flushTickStats()
+
 	s.players.Tick()
 	age, timeOfDay := s.world.Tick()
 

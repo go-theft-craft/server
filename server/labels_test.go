@@ -166,7 +166,9 @@ func TestEveryFeatureIsInTheDeclaredList(t *testing.T) {
 		}
 		seen[f] = true
 	}
-	if len(seen) != 13 {
-		t.Errorf("the list holds %d features, want the 13 the design names", len(seen))
+	// Fourteen: the design's thirteen plus block_write, which the per-tick
+	// accumulator needed and the design had nowhere to put.
+	if len(seen) != 14 {
+		t.Errorf("the list holds %d features, want 14", len(seen))
 	}
 }

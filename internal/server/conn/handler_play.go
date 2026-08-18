@@ -338,6 +338,11 @@ func (c *Connection) handlePlay(inbound protocol.Packet) error {
 }
 
 func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, onGround bool, posChanged, lookChanged bool) {
+	// A moving player sends one of these every tick and each becomes a
+	// broadcast to everyone tracking them, which is the most frequent thing
+	// this server does. Counted for that reason.
+	c.counted(world.MeasureEntitySync, 1)
+
 	if c.self == nil {
 		return
 	}

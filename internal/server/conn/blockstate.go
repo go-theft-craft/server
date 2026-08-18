@@ -60,6 +60,10 @@ func (c *Connection) blockAt(x, y, z int) world.State {
 // setBlockAt writes a state at a position.
 func (c *Connection) setBlockAt(x, y, z int, state world.State) {
 	c.world.SetBlock(world.BlockPos{X: x, Y: y, Z: z}, state)
+	// Counted, not timed. A player holding a button down writes a block every
+	// few ticks and a piece of world-editing code writes thousands, and the
+	// useful number is how many, not how long each took.
+	c.counted(world.MeasureBlockWrite, 1)
 }
 
 // isAir reports whether a state is the dimension's empty block.

@@ -23,6 +23,12 @@ const (
 	MeasureChunkEncode   = "chunk_encode"
 	MeasureChunkSend     = "chunk_send"
 	MeasureChunkSave     = "chunk_save"
+	// MeasureBlockWrite and MeasureInventory are counted rather than timed:
+	// they happen thousands of times a second, and a sample each would make
+	// the measurement the load.
+	MeasureBlockWrite = "block_write"
+	MeasureInventory  = "inventory"
+	MeasureEntitySync = "entity_sync"
 )
 
 // SetMeasure gives the world somewhere to report how long its work took.

@@ -130,6 +130,7 @@ type Connection struct {
 	// stored once at login rather than read out of the player on every sample:
 	// a join sends 625 chunks and each one is a span.
 	measure       Measure
+	count         Count
 	metricsPlayer string
 
 	// SaveAll triggers a server-wide save (set by Server).
@@ -238,9 +239,23 @@ func (c *Connection) SetBlockIdentity(blocks *storage.BlockIdentity, rec BlockRe
 // supplies this has no name to bake in at that point.
 type Measure func(feature, player string, pos world.ChunkPos) func()
 
+// Count is where a connection reports an event too frequent to time: a block
+// write, an inventory click. The server accumulates them and emits one sample
+// per tick rather than one per event.
+type Count func(feature, player string, n float64)
+
 // SetMeasure gives the connection somewhere to report. Set before Handle
 // starts, like SetItemIndex, and read without a lock.
-func (c *Connection) SetMeasure(m Measure) { c.measure = m }
+func (c *Connection) SetMeasure(m Measure, count Count) { c.measure, c.count = m, count }
+
+// counted records n of something, or nothing at all.
+func (c *Connection) counted(feature string, n float64) {
+	if c.count == nil {
+		return
+	}
+
+	c.count(feature, c.metricsPlayer, n)
+}
 
 // span starts a measurement, or does nothing.
 //

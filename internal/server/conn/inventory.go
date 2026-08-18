@@ -209,6 +209,8 @@ func (c *Connection) sendSetSlot(windowID int8, slotIndex int16, slot player.Slo
 // handleWindowClick processes a WindowClick (0x0E) packet. The clicked item
 // the client echoes back (value.Item) is not needed for validation.
 func (c *Connection) handleWindowClick(value *v1_8.PlayServerboundWindowClick) error {
+	c.counted(world.MeasureInventory, 1)
+
 	windowID := int8(value.WindowID)
 	slotIndex := value.Slot
 	button := value.MouseButton

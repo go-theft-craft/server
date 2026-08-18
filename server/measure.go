@@ -122,3 +122,9 @@ func (s *Server) chunkLabels(player string, pos world.ChunkPos) Labels {
 
 	return l
 }
+
+// countConnection is the accumulating half of the same seam: an event a
+// connection reports that is too frequent to time.
+func (s *Server) countConnection(feature, player string, n float64) {
+	s.CountPerTick(Feature(feature), player, n)
+}

@@ -174,3 +174,54 @@ func newObservedStoredServer(t *testing.T, dir string, obs server.Observer) (*se
 
 	return srv, store
 }
+
+func TestChunkLabelIsEmptyByDefaultAndSetUnderWithChunkDetail(t *testing.T) {
+	settings := config.DefaultConfig()
+	settings.GeneratorType = config.GeneratorFlat
+	pos := world.ChunkPos{X: -1, Z: 40}
+
+	byDefault := &collector{}
+	plain, err := server.New(server.WithSettings(settings), server.WithObserver(byDefault))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if _, err := plain.World().EncodeChunk(pos); err != nil {
+		t.Fatalf("EncodeChunk: %v", err)
+	}
+	plain.DrainSamples()
+
+	got := byDefault.byFeature(server.FeatureChunkEncode)
+	if len(got) == 0 {
+		t.Fatal("no encode sample")
+	}
+	if got[0].Labels.Chunk != "" {
+		t.Errorf("chunk label is %q by default, want empty", got[0].Labels.Chunk)
+	}
+
+	detailed := &collector{}
+	srv, err := server.New(
+		server.WithSettings(settings),
+		server.WithObserver(detailed),
+		server.WithChunkDetail(),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if _, err := srv.World().EncodeChunk(pos); err != nil {
+		t.Fatalf("EncodeChunk: %v", err)
+	}
+	srv.DrainSamples()
+
+	got = detailed.byFeature(server.FeatureChunkEncode)
+	if len(got) == 0 {
+		t.Fatal("no encode sample under WithChunkDetail")
+	}
+	if want := "-1,40"; got[0].Labels.Chunk != want {
+		t.Errorf("chunk label is %q, want %q", got[0].Labels.Chunk, want)
+	}
+	// The region stays set, so a query written against regions keeps working
+	// while somebody is investigating one column.
+	if want := "r.-1.1"; got[0].Labels.Region.String() != want {
+		t.Errorf("region label is %q under chunk detail, want %q", got[0].Labels.Region.String(), want)
+	}
+}

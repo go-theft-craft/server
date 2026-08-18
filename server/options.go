@@ -251,3 +251,24 @@ func WithPrivateKey(key *rsa.PrivateKey) Option {
 		return nil
 	}
 }
+
+// WithChunkDetail labels chunk samples with exact chunk coordinates instead of
+// the 32×32 region they fall in.
+//
+// Cardinality: one label value per resident chunk. A world with 10,000
+// resident chunks produces 10,000 series per chunk metric, against about 10
+// with the region default. That is the difference between a graph and a
+// memory incident in whatever is storing the series, and it is stated here
+// because here is where somebody reads it at the moment they are about to turn
+// it on.
+//
+// Use it to investigate a specific column, not as a standing configuration.
+// The region label stays set either way, so a query written against regions
+// keeps working while this is on.
+func WithChunkDetail() Option {
+	return func(b *builder) error {
+		b.chunkDetail = true
+
+		return nil
+	}
+}

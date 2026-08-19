@@ -1,0 +1,13 @@
+# The frozen public surface of github.com/go-theft-craft/server.
+# One export-data file per package; task api:check compares them
+# through apidiff and task api:accept rewrites them on purpose.
+github.com/go-theft-craft/server/config github.com_go-theft-craft_server_config.export
+github.com/go-theft-craft/server/interop github.com_go-theft-craft_server_interop.export
+github.com/go-theft-craft/server/pkg/world github.com_go-theft-craft_server_pkg_world.export
+github.com/go-theft-craft/server/pkg/world/anvil github.com_go-theft-craft_server_pkg_world_anvil.export
+github.com/go-theft-craft/server/pkg/world/gen github.com_go-theft-craft_server_pkg_world_gen.export
+github.com/go-theft-craft/server/pkg/world/nbt github.com_go-theft-craft_server_pkg_world_nbt.export
+github.com/go-theft-craft/server/pkg/world/v47 github.com_go-theft-craft_server_pkg_world_v47.export
+github.com/go-theft-craft/server/server github.com_go-theft-craft_server_server.export
+github.com/go-theft-craft/server/server/commands/v775 github.com_go-theft-craft_server_server_commands_v775.export
+github.com/go-theft-craft/server/server/commands/vanilla github.com_go-theft-craft_server_server_commands_vanilla.export

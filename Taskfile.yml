@@ -67,7 +67,7 @@ tasks:
     desc: Format go code
     deps: [ deps ]
     cmds:
-      - gci write -s standard -s default -s "prefix(github.com/openserbia)" -s "prefix({{.PACKAGE_NAME}})" --skip-generated internal server config pkg examples
+      - gci write -s standard -s default -s "prefix(github.com/openserbia)" -s "prefix({{.PACKAGE_NAME}})" --skip-generated internal server config pkg examples apicompat
       - gofumpt -l -w .
 
   fmt:check:
@@ -164,11 +164,33 @@ tasks:
     cmds:
       - go test -race -covermode=atomic -coverprofile=coverage-race.out -coverpkg ./... ./...
 
+  api:check:
+    desc: Compare the public surface against the committed baseline
+    # The baseline under api/ is per-package export data compared through
+    # apidiff. The tooling lives in the nested apicompat module so a module
+    # embedding this server does not inherit apidiff and its loader, which is
+    # the same reason the examples module owns the Prometheus client.
+    #
+    # -count=1 is load-bearing. This test reads the parent module's source at
+    # run time, and Go's test cache hashes only the files of the module under
+    # test — so a cached pass would survive any change to the surface it is
+    # meant to be watching, which is every change it exists for.
+    cmds:
+      - cd apicompat && go test -count=1 ./apicheck
+
+  api:accept:
+    desc: Rewrite the public surface baseline, deliberately
+    # Run this in the same commit as the change it accepts, so a reviewer sees
+    # the new surface and the reason for it at once.
+    cmds:
+      - cd apicompat && go run ./cmd/apibaseline -module .. -out ../api
+
   verify:
     desc: Run all local and CI checks
     cmds:
       - task: lint
       - task: secrets
+      - task: api:check
       - task: test:race
       - task: test:examples
       - task: test:profile

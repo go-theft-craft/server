@@ -43,6 +43,16 @@ This file records notable user-visible changes. It follows [Keep a Changelog](ht
   on push and pull request. This is the sixth repository to carry the same
   five task names, so "run every gate in every repository" stays one command.
 
+- The public surface is frozen: `api/` holds per-package export data,
+  `task api:check` compares the tree against it through `apidiff`, and
+  `task api:accept` rewrites it deliberately in the same commit as the change
+  it accepts. `verify` runs the check. The tooling is a nested `apicompat`
+  module, so a module embedding this server does not inherit `apidiff` and its
+  loader.
+
+- `MIGRATION.md`: what breaks and what to do about it, for embedders and for
+  world owners separately.
+
 ### Changed
 
 - `task test` no longer passes `-mod vendor`, and `task deps` no longer

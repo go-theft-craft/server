@@ -4,6 +4,11 @@ This file records notable user-visible changes. It follows [Keep a Changelog](ht
 
 ## Unreleased
 
+## 0.1.0 — 2026-08-19
+
+First tagged release. Everything below is what the module is, rather than what
+changed in it: there is no earlier version to have changed from.
+
 ### Added
 
 - The M11 framework: `server.New` and its options turn this repository from a
@@ -53,7 +58,20 @@ This file records notable user-visible changes. It follows [Keep a Changelog](ht
 - `MIGRATION.md`: what breaks and what to do about it, for embedders and for
   world owners separately.
 
+- `RELEASING.md`: the versioning rules, which is what the first tag needs to
+  exist. It says what the compatibility contract covers beyond the Go API —
+  the on-disk formats and the bytes a client is sent — because breaking either
+  of those costs somebody their world rather than their build.
+
 ### Changed
+
+- Requires `minecraft-protocol` v0.8.0 and `minecraft-simulation` v0.4.0. The
+  simulation pin moved from v0.1.0 for this release rather than after it: its
+  v0.2.0 gives `profile/java/v1_8` a handle per block *state* rather than per
+  block, which fixes a body walking through the top half of a slab. Nothing
+  attaches `internal/sim` yet, so no player met that defect here — but a first
+  tag that shipped three minors behind a fix is the shape of the problem the
+  project already has a rule about.
 
 - `task test` no longer passes `-mod vendor`, and `task deps` no longer
   vendors: `vendor/` was gitignored and untracked, so the gate passed on a

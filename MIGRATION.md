@@ -4,14 +4,18 @@ What breaks between versions, and what to do about it. Each entry says who it
 affects — somebody who **embeds** this module, or somebody who **owns a world**
 this server wrote — because the two rarely overlap.
 
-This module has no tags yet, so everything below is a migration off a commit
-rather than off a release. From the first tag onward each entry names the
-versions it spans, and the public surface under `api/` is what decides whether
-an entry is needed: `task api:check` fails on an incompatible change, and
-`task api:accept` records the new surface in the same commit as the change and
-the note.
+`0.1.0` is the first tag, so the entries under it are migrations off an
+untagged commit rather than off a release — they are here for anybody who was
+building against this repository before it had versions. From `0.1.0` onward
+each entry names the versions it spans, and the public surface under `api/` is
+what decides whether an entry is needed: `task api:check` fails on an
+incompatible change, and `task api:accept` records the new surface in the same
+commit as the change and the note.
 
-## Unreleased
+While the module is in `0.x`, a minor release may break the public API. Each
+break gets an entry here and a `**Breaking:**` marker in the changelog.
+
+## 0.1.0
 
 ### `server` is a framework, not a program — for embedders
 

@@ -247,44 +247,82 @@ func TestAHighBlockIDRoundTripsThroughAdd(t *testing.T) {
 }
 
 // TestAVanillaRegionReads is the check that this reader handles a file it did
-// not write, and it is the one test in this package with no fixture.
+// not write.
 //
-// The plan calls for a region written by a vanilla 1.8.9 server: run vanilla
-// locally, walk a small area, copy one region file into testdata, and confirm
-// it holds no player data before committing it. That cannot be done from
-// inside this repository — it needs a Mojang server jar and a running world —
-// so the gap is recorded here rather than quietly omitted. What stands in for
-// it today: every chunk this package writes is validated by
-// minecraft-protocol's own NBT reader (see assertUpstreamAccepts), which has
-// no stake in this writer and already caught one malformed structure.
+// testdata/r.0.0.mca holds nine chunks generated and saved by a vanilla 1.8.9
+// server. How it was made, why nine of the 225 chunks that server wrote are
+// here rather than all of them, and what the file was scanned for before it
+// was committed are in
+// docs/verification/2026-08-19-vanilla-region-fixture.md. No player ever
+// joined the world it came from.
+//
+// The second opinion this replaces was assertUpstreamAccepts, which says a
+// payload this package writes is well-formed NBT. It cannot say this package
+// reads what somebody else's writer produced, which is what a stored world
+// costs if it is wrong.
 func TestAVanillaRegionReads(t *testing.T) {
-	if _, err := os.Stat(filepath.Join("testdata", "r.0.0.mca")); err != nil {
-		t.Skip("no vanilla-written region fixture: see this test's comment")
-	}
-
 	a, reg := javaCodec(t)
 	region, err := OpenRegion("testdata", 0, 0, world.Overworld18(), a, reg.Air())
 	if err != nil {
 		t.Fatalf("OpenRegion: %v", err)
 	}
 
-	found := 0
+	air := reg.Air()
+	stone := reg.Intern("minecraft:stone", nil)
+
+	found, withStone := 0, 0
 	for cx := range 32 {
 		for cz := range 32 {
 			c, present, err := region.Chunk(world.ChunkPos{X: cx, Z: cz})
 			if err != nil {
 				t.Fatalf("chunk (%d,%d): %v", cx, cz, err)
 			}
-			if present && c != nil {
-				found++
+			if !present || c == nil {
+				continue
+			}
+			found++
+
+			solid, stones := 0, 0
+			for _, section := range c.Sections {
+				if section == nil {
+					continue
+				}
+				for x := range 16 {
+					for y := range 16 {
+						for z := range 16 {
+							switch section.At(world.SectionBlockIndex(x, y, z)) {
+							case air:
+							case stone:
+								stones++
+								solid++
+							default:
+								solid++
+							}
+						}
+					}
+				}
+			}
+			if solid == 0 {
+				t.Errorf("chunk (%d,%d) came back with nothing but air", cx, cz)
+			}
+			if stones > 0 {
+				withStone++
 			}
 		}
 	}
-	if found == 0 {
-		t.Fatal("the vanilla fixture holds no chunks")
+
+	if found != vanillaFixtureChunks {
+		t.Fatalf("read %d chunks from the vanilla fixture, want %d", found, vanillaFixtureChunks)
 	}
-	t.Logf("read %d chunks from the vanilla fixture", found)
+	if withStone != vanillaFixtureChunks {
+		t.Errorf("%d of %d chunks hold stone; a generated overworld column holds stone", withStone, vanillaFixtureChunks)
+	}
 }
+
+// vanillaFixtureChunks is how many chunks testdata/r.0.0.mca holds. A reader
+// that silently skipped one would otherwise pass a test that only asked for
+// more than none.
+const vanillaFixtureChunks = 9
 
 // TestAChestRoundTripsThroughARegionFile is where the containers live now:
 // inside the chunk, written where vanilla writes them, so a chunk save carries
@@ -347,10 +385,54 @@ func TestAChunkWithNoChestsRoundTrips(t *testing.T) {
 	}
 }
 
-// TestAVanillaChestReads is the other half of the missing fixture: only a
-// region file a vanilla server wrote can confirm that the Items list, the Slot
-// byte, and the id string are what an external reader expects. See
-// TestAVanillaRegionReads for why it is not here.
+// TestAVanillaChestReads is the other half of the fixture: only a region file
+// a vanilla server wrote can confirm that the Items list, the Slot byte, and
+// the id string are what an external reader expects.
+//
+// The chest is the one edit made to the fixture world, through the vanilla
+// server's own /setblock, so vanilla's tile-entity writer produced every byte
+// read back here. Stone is a full stack in the first slot and a damaged
+// diamond pickaxe sits in slot 13, which is where a chest's second row starts.
 func TestAVanillaChestReads(t *testing.T) {
-	t.Skip("no vanilla-written region fixture: see TestAVanillaRegionReads")
+	a, reg := javaCodec(t)
+	region, err := OpenRegion("testdata", 0, 0, world.Overworld18(), a, reg.Air())
+	if err != nil {
+		t.Fatalf("OpenRegion: %v", err)
+	}
+
+	c, present, err := region.Chunk(world.ChunkPos{X: 4, Z: 12})
+	if err != nil || !present {
+		t.Fatalf("the chunk holding the fixture chest: %v (present=%v)", err, present)
+	}
+
+	at := world.BlockPos{X: 72, Y: 80, Z: 200}
+
+	// The block and its tile entity are two records in the file, and a reader
+	// that found one without the other would leave a chest nothing can open.
+	chest := reg.Intern("minecraft:chest", world.Properties{{Key: "metadata", Value: "2"}})
+	section := c.Sections[world.Overworld18().SectionIndex(at.Y)]
+	if section == nil {
+		t.Fatalf("the section holding the fixture chest came back empty")
+	}
+	if state := section.At(world.SectionBlockIndex(at.X&0xF, at.Y&0xF, at.Z&0xF)); state != chest {
+		t.Errorf("the block at %v is %d, want the chest state %d", at, state, chest)
+	}
+
+	contents, ok := c.Chests[at]
+	if !ok {
+		t.Fatalf("the vanilla chest at %v did not come back; chunk holds %v", at, c.Chests)
+	}
+
+	stone, okStone := a.ItemID("minecraft:stone")
+	pickaxe, okPickaxe := a.ItemID("minecraft:diamond_pickaxe")
+	if !okStone || !okPickaxe {
+		t.Fatalf("this version does not name the fixture's items: stone=%v pickaxe=%v", okStone, okPickaxe)
+	}
+
+	want := world.EmptyChest()
+	want[0] = world.ItemStack{BlockID: stone, ItemCount: 64}
+	want[13] = world.ItemStack{BlockID: pickaxe, ItemCount: 1, ItemDamage: 42}
+	if !contents.Equal(want) {
+		t.Fatalf("the vanilla chest reads as %v, want %v", contents, want)
+	}
 }

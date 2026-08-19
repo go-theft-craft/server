@@ -14,9 +14,22 @@ func TestProtocolVersionMatchesTheGeneratedDescriptor(t *testing.T) {
 	}
 }
 
-func TestVersionNameStaysWhatTheServerAdvertised(t *testing.T) {
-	// Deliberately not v1_8.Version().Name, which is "1.8.9". Both are
-	// protocol 47 and this migration changes no byte on the wire.
+func TestVersionNameIsTheNameAClientIsTold(t *testing.T) {
+	// Deliberately not v1_8.Version().Name, which is "1.8.9" and names the
+	// dataset. The name a client is told is the generated data's
+	// MinecraftVersion, and M10 settled which is which —
+	// minecraft-protocol's docs/version-names.md is the record. Pinning the
+	// constant against that field rather than against the literal alone is
+	// what makes a disagreement fail naming the contract: if a later release
+	// changes what protocol 47 advertises, this fails here instead of
+	// changing a status response nobody was watching.
+	set, err := v1_8.Data()
+	if err != nil {
+		t.Fatalf("v1_8.Data: %v", err)
+	}
+	if got, want := protocolinfo.VersionName, set.Version().MinecraftVersion; got != want {
+		t.Errorf("server advertises %q, the generated data says a client is told %q", got, want)
+	}
 	if got := protocolinfo.VersionName; got != "1.8.8" {
 		t.Errorf("version name is %q, want 1.8.8", got)
 	}

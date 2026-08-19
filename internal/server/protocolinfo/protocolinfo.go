@@ -7,10 +7,10 @@
 // terminator is a codec detail the server's own entity metadata writer needs.
 //
 // minecraft-protocol's generated/java/v1_8 package now defines an equivalent
-// for all three, but its VersionName is "1.8.9" where the server advertises
-// "1.8.8"; these constants are kept local on purpose so a later reader does
-// not point this package at the generated one and silently change what the
-// status response puts on the wire.
+// for all three, but its exported VersionName is "1.8.9", which names the
+// dataset rather than what a client is told; these constants are kept local
+// on purpose so a later reader does not point this package at that one and
+// silently change what the status response puts on the wire.
 package protocolinfo
 
 const (
@@ -19,9 +19,14 @@ const (
 
 	// VersionName is what the status response advertises.
 	//
-	// It stays "1.8.8" rather than following minecraft-protocol's "1.8.9".
-	// Both are protocol 47, and this migration changes no byte the server
-	// puts on the wire. Reconciling the two names is a decision on its own.
+	// Protocol 47 has two names and this is the one a client is told, which
+	// M10 settled and minecraft-protocol's docs/version-names.md records:
+	// "1.8.9" names the dataset, because that is what the data was published
+	// as, and "1.8.8" is what protocol 47 clients call themselves and what
+	// the independent Node implementation lists. So this constant agrees
+	// with the generated data's MinecraftVersion and differs from its
+	// VersionName, and the test pins it against the former rather than
+	// against a literal alone.
 	VersionName string = "1.8.8"
 
 	// MetadataEnd terminates an entity metadata list in protocol 47.

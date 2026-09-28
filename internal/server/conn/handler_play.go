@@ -11,7 +11,6 @@ import (
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
 	"github.com/go-theft-craft/minecraft-protocol/data"
-	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
@@ -61,7 +60,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	c.resetHealth()
 
 	// 1. Join Game
-	if err := c.send(&v1_8.PlayClientboundLogin{
+	if err := c.send(c.dialect.Join(JoinFields{
 		EntityID:         entityID,
 		GameMode:         gameMode,
 		Dimension:        packet.DimensionOverworld,
@@ -69,36 +68,30 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 		MaxPlayers:       uint8(c.cfg.MaxPlayers),
 		LevelType:        c.cfg.GeneratorType,
 		ReducedDebugInfo: false,
-	}); err != nil {
+	})); err != nil {
 		return fmt.Errorf("write join game: %w", err)
 	}
 
 	// 2. Spawn Position
-	if err := c.send(&v1_8.PlayClientboundSpawnPosition{
-		Location: blockPos(0, spawnY, 0),
-	}); err != nil {
+	if err := c.send(c.dialect.SpawnPosition(world.BlockPos{X: 0, Y: spawnY, Z: 0})); err != nil {
 		return fmt.Errorf("write spawn position: %w", err)
 	}
 
 	// 3. Player Abilities (based on actual game mode)
 	abilities := abilitiesForGameMode(gameMode)
-	if err := c.send(&v1_8.PlayClientboundAbilities{
-		Flags:        abilities,
-		FlyingSpeed:  0.05,
-		WalkingSpeed: 0.1,
-	}); err != nil {
+	if err := c.send(c.dialect.Abilities(abilities, 0.05, 0.1)); err != nil {
 		return fmt.Errorf("write player abilities: %w", err)
 	}
 
 	// 4. Player Position And Look
-	if err := c.send(&v1_8.PlayClientboundPosition{
+	if err := c.send(c.dialect.Position(PositionFields{
 		X:     posX,
 		Y:     posY,
 		Z:     posZ,
 		Yaw:   posYaw,
 		Pitch: posPitch,
 		Flags: packet.PositionAbsolute,
-	}); err != nil {
+	})); err != nil {
 		return fmt.Errorf("write position and look: %w", err)
 	}
 
@@ -109,10 +102,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 
 	// 6. Update Time (send current world time)
 	worldAge, worldTime := c.world.GetTime()
-	if err := c.send(&v1_8.PlayClientboundUpdateTime{
-		Age:  worldAge,
-		Time: worldTime,
-	}); err != nil {
+	if err := c.send(c.dialect.UpdateTime(worldAge, worldTime)); err != nil {
 		return fmt.Errorf("write update time: %w", err)
 	}
 
@@ -122,10 +112,7 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	}
 
 	// 8. Chat Message — "Hello, world!"
-	if err := c.send(&v1_8.PlayClientboundChat{
-		Message:  `{"text":"Hello, world!","color":"gold"}`,
-		Position: 0,
-	}); err != nil {
+	if err := c.send(c.dialect.Chat(`{"text":"Hello, world!","color":"gold"}`, 0)); err != nil {
 		return fmt.Errorf("write chat message: %w", err)
 	}
 
@@ -139,10 +126,9 @@ func (c *Connection) startPlay(username, uuid string, skinProps []player.SkinPro
 	return nil
 }
 
-// blockPos builds a generated protocol 47 block Position. Its packed encoding
-// is byte-identical to java.EncodePosition written as an int64.
-func blockPos(x, y, z int) v1_8.Position {
-	return v1_8.Position{X: int32(x), Y: int16(y), Z: int32(z)}
+// blockPos is a block position from its coordinates.
+func blockPos(x, y, z int) world.BlockPos {
+	return world.BlockPos{X: x, Y: y, Z: z}
 }
 
 // abilitiesForGameMode returns the ability flags for a given game mode.
@@ -161,7 +147,7 @@ func (c *Connection) keepAliveLoop() {
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 
-	var id int32
+	var id int64
 	for {
 		select {
 		case <-c.ctx.Done():
@@ -171,9 +157,7 @@ func (c *Connection) keepAliveLoop() {
 			if !c.keepAliveAcked && id > 0 {
 				if time.Since(c.lastKeepAliveSent) > 30*time.Second {
 					c.mu.Unlock()
-					_ = c.send(&v1_8.PlayClientboundKickDisconnect{
-						Reason: `{"text":"Timed out"}`,
-					})
+					_ = c.send(c.dialect.Kick(`{"text":"Timed out"}`))
 					c.disconnect("keepalive timeout")
 					return
 				}
@@ -184,9 +168,7 @@ func (c *Connection) keepAliveLoop() {
 			c.keepAliveAcked = false
 			c.mu.Unlock()
 
-			if err := c.send(&v1_8.PlayClientboundKeepAlive{
-				KeepAliveID: id,
-			}); err != nil {
+			if err := c.send(c.dialect.KeepAlive(id)); err != nil {
 				c.log.Error("keep alive write failed", "error", err)
 				c.cancel()
 				return
@@ -195,20 +177,24 @@ func (c *Connection) keepAliveLoop() {
 	}
 }
 
-// handlePlay dispatches on the value the generated session already decoded, so
-// no play packet is decoded a second time here. A packet whose ID is not
-// serverbound-play in protocol 47 arrives as a protocol.UnknownPacket and falls
-// through to the default, exactly as an unmatched ID did before.
+// handlePlay dispatches on what the client asked for. The dialect turns the
+// value the session already decoded into an action, so no play packet is
+// decoded a second time here and nothing below this line names a version. A
+// packet the dialect does not know -- including a protocol.UnknownPacket for an
+// ID that is not serverbound-play -- is ignored, exactly as an unmatched ID was
+// before.
 func (c *Connection) handlePlay(inbound protocol.Packet) error {
-	switch value := inbound.Value.(type) {
-	case *v1_8.PlayServerboundKeepAlive:
+	action, _ := c.dialect.Read(inbound)
+
+	switch value := action.(type) {
+	case KeepAliveAction:
 		c.mu.Lock()
-		if value.KeepAliveID == c.lastKeepAliveID {
+		if value.ID == c.lastKeepAliveID {
 			c.keepAliveAcked = true
 		}
 		c.mu.Unlock()
 
-	case *v1_8.PlayServerboundChat:
+	case ChatAction:
 		c.log.Info("chat", "message", value.Message)
 		if c.handleCommand(value.Message) {
 			break
@@ -217,53 +203,32 @@ func (c *Connection) handlePlay(inbound protocol.Packet) error {
 			`{"translate":"chat.type.text","with":[%s,%s]}`,
 			escapeJSON(c.self.Username), escapeJSON(value.Message),
 		)
-		c.players.Broadcast(&v1_8.PlayClientboundChat{
-			Message:  chatJSON,
-			Position: 0,
-		})
+		c.players.Broadcast(c.dialect.Chat(chatJSON, 0))
 
-	case *v1_8.PlayServerboundUseEntity:
+	case UseEntityAction:
 		return c.handleUseEntity(value)
 
-	case *v1_8.PlayServerboundFlying: // Player (ground state)
-		// The heartbeat carries no position, but it is the only packet a
-		// player who stands still sends — and standing still inside a cactus
-		// has to keep hurting. The last known position is what to test.
-		if c.self != nil {
-			pos := c.self.GetPosition()
-			c.checkContactDamage(pos.X, pos.Y, pos.Z)
-		}
+	case MoveAction:
+		c.handleMove(value)
 
-	case *v1_8.PlayServerboundPosition:
-		c.handlePositionUpdate(value.X, value.Y, value.Z, 0, 0, value.OnGround, true, false)
-
-	case *v1_8.PlayServerboundLook:
-		c.handleLookUpdate(value.Yaw, value.Pitch, value.OnGround)
-
-	case *v1_8.PlayServerboundPositionLook:
-		c.handlePositionUpdate(value.X, value.Y, value.Z, value.Yaw, value.Pitch, value.OnGround, true, true)
-
-	case *v1_8.PlayServerboundBlockDig:
+	case DigAction:
 		return c.handleBlockDig(value)
 
-	case *v1_8.PlayServerboundBlockPlace:
+	case PlaceAction:
 		return c.handleBlockPlace(value)
 
-	case *v1_8.PlayServerboundHeldItemSlot:
-		if value.SlotID < 0 || value.SlotID > 8 {
+	case HeldSlotAction:
+		if value.Slot < 0 || value.Slot > 8 {
 			return nil
 		}
-		c.self.Inventory.SetHeldSlot(value.SlotID)
+		c.self.Inventory.SetHeldSlot(value.Slot)
 		heldItem := c.self.Inventory.HeldItem()
 		c.broadcastSingleEquipment(c.self.EntityID, 0, heldItem)
 
-	case *v1_8.PlayServerboundArmAnimation:
-		c.players.BroadcastToTrackers(&v1_8.PlayClientboundAnimation{
-			EntityID:  c.self.EntityID,
-			Animation: 0, // swing arm
-		}, c.self.EntityID)
+	case ArmSwingAction:
+		c.players.BroadcastToTrackers(c.dialect.EntityAnimation(c.self.EntityID, 0), c.self.EntityID) // swing arm
 
-	case *v1_8.PlayServerboundEntityAction:
+	case EntityActionAction:
 		switch value.ActionID {
 		case 0: // start sneak
 			c.self.SetSneaking(true)
@@ -279,62 +244,78 @@ func (c *Connection) handlePlay(inbound protocol.Packet) error {
 			c.players.BroadcastEntityMetadata(c.self)
 		}
 
-	case *v1_8.PlayServerboundSteerVehicle: // no vehicle support, ignore
-
-	case *v1_8.PlayServerboundCloseWindow:
+	case CloseWindowAction:
 		return c.handleCloseWindow()
 
-	case *v1_8.PlayServerboundWindowClick:
+	case ClickAction:
 		return c.handleWindowClick(value)
 
-	case *v1_8.PlayServerboundTransaction:
+	case TransactionAction:
 		return c.handleTransaction()
 
-	case *v1_8.PlayServerboundSetCreativeSlot:
+	case CreativeSlotAction:
 		return c.handleCreativeSlot(value)
 
-	case *v1_8.PlayServerboundEnchantItem: // no enchanting support, ignore
-
-	case *v1_8.PlayServerboundUpdateSign:
+	case SignAction:
 		c.log.Info("update sign",
-			"x", int(value.Location.X), "y", int(value.Location.Y), "z", int(value.Location.Z),
+			"x", value.Pos.X, "y", value.Pos.Y, "z", value.Pos.Z,
 			"line1", value.Text1, "line2", value.Text2, "line3", value.Text3, "line4", value.Text4)
 
-	case *v1_8.PlayServerboundAbilities:
+	case AbilitiesAction:
 		c.handleAbilitiesUpdate(value)
 
-	case *v1_8.PlayServerboundTabComplete:
+	case TabCompleteAction:
 		return c.handleTabComplete(value)
 
-	case *v1_8.PlayServerboundSettings:
+	case SettingsAction:
 		c.log.Info("client settings", "locale", value.Locale, "viewDistance", value.ViewDistance)
 		c.self.SetSkinParts(value.SkinParts)
 		c.players.BroadcastEntityMetadata(c.self)
 
-	case *v1_8.PlayServerboundClientCommand: // Client Status (respawn / stats request)
+	case ClientCommandAction: // Client Status (respawn / stats request)
 		return c.handleRespawn()
 
-	case *v1_8.PlayServerboundCustomPayload:
+	case PayloadAction:
 		return c.handleCustomPayload(value)
 
-	case *v1_8.PlayServerboundSpectate:
+	case SpectateAction:
 		if c.self.GetGameMode() != packet.GameModeSpectator {
 			break
 		}
-		target := c.players.GetByUUID(value.Target.String())
+		target := c.players.GetByUUID(value.Target)
 		if target != nil {
 			pos := target.GetPosition()
 			c.teleportSelf(pos.X, pos.Y, pos.Z)
 		}
 
-	case *v1_8.PlayServerboundResourcePackReceive:
+	case ResourcePackAction:
 		c.log.Info("resource pack status", "hash", value.Hash, "result", value.Result)
 
 	default:
-		// ignore unknown packets silently
+		// Ignored (steer_vehicle, enchant_item) and unknown packets alike.
 	}
 
 	return nil
+}
+
+// handleMove is any of the four movement packets.
+func (c *Connection) handleMove(move MoveAction) {
+	switch {
+	case move.HasPos:
+		c.handlePositionUpdate(move.X, move.Y, move.Z, move.Yaw, move.Pitch, move.OnGround, true, move.HasLook)
+
+	case move.HasLook:
+		c.handleLookUpdate(move.Yaw, move.Pitch, move.OnGround)
+
+	default: // Player (ground state)
+		// The heartbeat carries no position, but it is the only packet a
+		// player who stands still sends -- and standing still inside a cactus
+		// has to keep hurting. The last known position is what to test.
+		if c.self != nil {
+			pos := c.self.GetPosition()
+			c.checkContactDamage(pos.X, pos.Y, pos.Z)
+		}
+	}
 }
 
 func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, onGround bool, posChanged, lookChanged bool) {
@@ -378,7 +359,7 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 
 	switch {
 	case posChanged && lookChanged && fitsRelative:
-		c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityMoveLook{
+		c.players.BroadcastToTrackers(c.dialect.EntityMoveLook(player.EntityMoveLookFields{
 			EntityID: eid,
 			DX:       int8(dx),
 			DY:       int8(dy),
@@ -386,19 +367,13 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 			Yaw:      yawAngle,
 			Pitch:    pitchAngle,
 			OnGround: onGround,
-		}, eid)
+		}), eid)
 
 	case posChanged && !lookChanged && fitsRelative:
-		c.players.BroadcastToTrackers(&v1_8.PlayClientboundRelEntityMove{
-			EntityID: eid,
-			DX:       int8(dx),
-			DY:       int8(dy),
-			DZ:       int8(dz),
-			OnGround: onGround,
-		}, eid)
+		c.players.BroadcastToTrackers(c.dialect.EntityMove(eid, int8(dx), int8(dy), int8(dz), onGround), eid)
 
 	case posChanged:
-		c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityTeleport{
+		c.players.BroadcastToTrackers(c.dialect.EntityTeleport(player.EntityTeleportFields{
 			EntityID: eid,
 			X:        newFX,
 			Y:        newFY,
@@ -406,22 +381,19 @@ func (c *Connection) handlePositionUpdate(x, y, z float64, yaw, pitch float32, o
 			Yaw:      yawAngle,
 			Pitch:    pitchAngle,
 			OnGround: onGround,
-		}, eid)
+		}), eid)
 	}
 
 	if lookChanged {
-		c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityHeadRotation{
-			EntityID: eid,
-			HeadYaw:  yawAngle,
-		}, eid)
+		c.players.BroadcastToTrackers(c.dialect.EntityHeadRotation(eid, yawAngle), eid)
 	}
 
 	// Sprint particles: send block crack particles at player's feet.
 	if posChanged && c.self.IsSprinting() {
 		blockBelow := c.blockAt(int(math.Floor(x)), int(math.Floor(y))-1, int(math.Floor(z)))
 		if !c.isAir(blockBelow) {
-			particles := sprintParticles(x, y, z, c.wireState(blockBelow))
-			c.players.BroadcastToTrackers(&particles, eid)
+			particles := c.dialect.SprintParticles(x, y, z, c.wireState(blockBelow))
+			c.players.BroadcastToTrackers(particles, eid)
 		}
 	}
 
@@ -444,25 +416,17 @@ func (c *Connection) handleLookUpdate(yaw, pitch float32, onGround bool) {
 	pitchAngle := player.DegreesToAngle(pitch)
 	eid := c.self.EntityID
 
-	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityLook{
-		EntityID: eid,
-		Yaw:      yawAngle,
-		Pitch:    pitchAngle,
-		OnGround: onGround,
-	}, eid)
+	c.players.BroadcastToTrackers(c.dialect.EntityLook(eid, yawAngle, pitchAngle, onGround), eid)
 
-	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityHeadRotation{
-		EntityID: eid,
-		HeadYaw:  yawAngle,
-	}, eid)
+	c.players.BroadcastToTrackers(c.dialect.EntityHeadRotation(eid, yawAngle), eid)
 }
 
-func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
+func (c *Connection) handleBlockDig(value DigAction) error {
 	status := value.Status
-	x, y, z := int(value.Location.X), int(value.Location.Y), int(value.Location.Z)
+	x, y, z := value.Pos.X, value.Pos.Y, value.Pos.Z
 
 	switch status {
-	case 0: // Started digging
+	case DigStarted:
 		if c.self.GetGameMode() == packet.GameModeCreative {
 			// Creative mode: instant break.
 			c.breakBlock(x, y, z)
@@ -486,50 +450,34 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 				}
 			}
 			// Broadcast dig start animation to other players.
-			c.players.BroadcastToTrackers(&v1_8.PlayClientboundBlockBreakAnimation{
-				EntityID:     c.self.EntityID,
-				Location:     blockPos(x, y, z),
-				DestroyStage: 0,
-			}, c.self.EntityID)
+			c.players.BroadcastToTrackers(c.dialect.BlockBreakAnimation(c.self.EntityID, blockPos(x, y, z), 0), c.self.EntityID)
 		}
 		return nil
 
-	case 1: // Cancelled digging
+	case DigCancelled:
 		// Reset block break animation for other players.
-		c.players.BroadcastToTrackers(&v1_8.PlayClientboundBlockBreakAnimation{
-			EntityID:     c.self.EntityID,
-			Location:     blockPos(x, y, z),
-			DestroyStage: -1,
-		}, c.self.EntityID)
+		c.players.BroadcastToTrackers(c.dialect.BlockBreakAnimation(c.self.EntityID, blockPos(x, y, z), -1), c.self.EntityID)
 		return nil
 
-	case 2: // Finished digging
+	case DigFinished:
 		// Validate that the block is actually diggable.
 		state := c.blockAt(x, y, z)
 		if block, ok := c.blockOf(state); ok {
 			if !block.Diggable || block.Hardness == nil {
 				// Unbreakable — resend the block to the client.
-				_ = c.send(&v1_8.PlayClientboundBlockChange{
-					Location: blockPos(x, y, z),
-					Type:     c.wireState(state),
-				})
+				_ = c.send(c.dialect.BlockChange(blockPos(x, y, z), c.wireState(state)))
 
 				return nil
 			}
 		}
 
 		// Reset animation and break the block.
-		c.players.BroadcastToTrackers(&v1_8.PlayClientboundBlockBreakAnimation{
-			EntityID:     c.self.EntityID,
-			Location:     blockPos(x, y, z),
-			DestroyStage: -1,
-		}, c.self.EntityID)
+		c.players.BroadcastToTrackers(c.dialect.BlockBreakAnimation(c.self.EntityID, blockPos(x, y, z), -1), c.self.EntityID)
 		c.breakBlock(x, y, z)
 		return nil
 	}
 
-	// status 3 = drop stack, status 4 = drop single item
-	if status == 3 || status == 4 {
+	if status == DigDropStack || status == DigDropItem {
 		heldSlot := c.self.Inventory.GetHeldSlot()
 		heldItem := c.self.Inventory.HeldItem()
 		if heldItem.IsEmpty() {
@@ -537,7 +485,7 @@ func (c *Connection) handleBlockDig(value *v1_8.PlayServerboundBlockDig) error {
 		}
 
 		dropping := int(heldItem.ItemCount)
-		if status == 4 {
+		if status == DigDropItem {
 			dropping = 1
 		}
 		// Always the player window's coordinates: the hotbar is where the held
@@ -572,19 +520,11 @@ func (c *Connection) breakBlock(x, y, z int) {
 	}
 
 	c.setBlockAt(x, y, z, c.states.air)
-	blockChange := &v1_8.PlayClientboundBlockChange{
-		Location: blockPos(x, y, z),
-		Type:     c.wireState(c.states.air),
-	}
+	blockChange := c.dialect.BlockChange(blockPos(x, y, z), c.wireState(c.states.air))
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
 
 	if !c.isAir(oldState) {
-		c.players.BroadcastToTrackers(&v1_8.PlayClientboundWorldEvent{
-			EffectID: 2001,
-			Location: blockPos(x, y, z),
-			Data:     c.wireState(oldState),
-			Global:   false,
-		}, c.self.EntityID)
+		c.players.BroadcastToTrackers(c.dialect.WorldEvent(2001, blockPos(x, y, z), c.wireState(oldState), false), c.self.EntityID)
 	}
 
 	_ = c.send(blockChange)
@@ -672,12 +612,12 @@ func (c *Connection) groundAtFunc() func(x, y, z int) float64 {
 	}
 }
 
-func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) error {
-	face := value.Direction
+func (c *Connection) handleBlockPlace(value PlaceAction) error {
+	face := value.Face
 	heldBlockID := value.HeldItem.BlockID
 
 	// Special position -1,-1,-1 means the player is using an item (not placing a block).
-	if value.Location.X == -1 && value.Location.Y == -1 && value.Location.Z == -1 {
+	if value.Pos.X == -1 && value.Pos.Y == -1 && value.Pos.Z == -1 {
 		// Try to equip armor from hotbar via right-click.
 		if armorProtoSlot := armorSlotForItem(heldBlockID); armorProtoSlot >= 0 {
 			heldIdx := int16(slotHotbarStart) + int16(c.self.Inventory.GetHeldSlot())
@@ -687,7 +627,7 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 		return nil
 	}
 
-	clickedX, clickedY, clickedZ := int(value.Location.X), int(value.Location.Y), int(value.Location.Z)
+	clickedX, clickedY, clickedZ := value.Pos.X, value.Pos.Y, value.Pos.Z
 
 	// Right-clicking a block that has a use takes priority over placing, unless
 	// the player is sneaking — which is how vanilla lets you build against a
@@ -750,10 +690,7 @@ func (c *Connection) handleBlockPlace(value *v1_8.PlayServerboundBlockPlace) err
 	}
 	c.setBlockAt(x, y, z, state)
 
-	blockChange := &v1_8.PlayClientboundBlockChange{
-		Location: blockPos(x, y, z),
-		Type:     c.wireState(state),
-	}
+	blockChange := c.dialect.BlockChange(blockPos(x, y, z), c.wireState(state))
 	c.players.BroadcastExcept(blockChange, c.self.EntityID)
 	if err := c.send(blockChange); err != nil {
 		return err
@@ -852,10 +789,7 @@ func (c *Connection) isPlaceable(itemID int16) bool {
 // predicted a block into, so a refused placement does not leave a ghost block
 // on screen until the chunk is reloaded.
 func (c *Connection) revertPlacement(x, y, z int) error {
-	if err := c.send(&v1_8.PlayClientboundBlockChange{
-		Location: blockPos(x, y, z),
-		Type:     c.wireState(c.blockAt(x, y, z)),
-	}); err != nil {
+	if err := c.send(c.dialect.BlockChange(blockPos(x, y, z), c.wireState(c.blockAt(x, y, z)))); err != nil {
 		return err
 	}
 
@@ -1008,14 +942,14 @@ func (c *Connection) clampToWorldBounds(x, y, z float64, yaw, pitch float32) (fl
 	}
 
 	if clampedX != x || clampedZ != z {
-		_ = c.send(&v1_8.PlayClientboundPosition{
+		_ = c.send(c.dialect.Position(PositionFields{
 			X:     clampedX,
 			Y:     y,
 			Z:     clampedZ,
 			Yaw:   yaw,
 			Pitch: pitch,
 			Flags: packet.PositionAbsolute,
-		})
+		}))
 	}
 
 	return clampedX, clampedZ
@@ -1030,30 +964,9 @@ func (c *Connection) isChunkInBounds(cx, cz int) bool {
 	return cx >= -r && cx <= r && cz >= -r && cz <= r
 }
 
-// sprintParticles builds the WorldParticles (0x2A) block-crack effect at the
-// player's feet. Particle ID 37 = block crack, carrying the block state as its
-// single VarInt data element. The field order and widths match the raw builder
-// this replaced byte for byte.
-func sprintParticles(x, y, z float64, blockState int32) v1_8.PlayClientboundWorldParticles {
-	return v1_8.PlayClientboundWorldParticles{
-		ParticleID:   37,
-		LongDistance: false,
-		X:            float32(x),
-		Y:            float32(y),
-		Z:            float32(z),
-		OffsetX:      0.5,
-		OffsetY:      0.1,
-		OffsetZ:      0.5,
-		ParticleData: 0.0,
-		Particles:    5,
-		Data:         v1_8.PlayClientboundWorldParticlesDataSwitch{Case37: [1]int32{blockState}},
-	}
-}
-
-// handleUseEntity processes a UseEntity (0x02) packet. The generated model
-// carries the interact-at hit position (mouse==2) as switch fields the session
-// already consumed; only the target and mouse are needed here.
-func (c *Connection) handleUseEntity(value *v1_8.PlayServerboundUseEntity) error {
+// handleUseEntity processes a UseEntity (0x02) packet. Only the target and
+// mouse are needed here.
+func (c *Connection) handleUseEntity(value UseEntityAction) error {
 	targetID := value.Target
 	mouse := value.Mouse
 
@@ -1068,15 +981,9 @@ func (c *Connection) handleUseEntity(value *v1_8.PlayServerboundUseEntity) error
 	}
 
 	// Broadcast hurt animation to all trackers of the target.
-	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityStatus{
-		EntityID:     targetID,
-		EntityStatus: 2, // hurt animation
-	}, targetID)
+	c.players.BroadcastToTrackers(c.dialect.EntityStatus(targetID, 2), targetID) // hurt animation
 	// Also send to the target itself.
-	_ = target.WritePacket(&v1_8.PlayClientboundEntityStatus{
-		EntityID:     targetID,
-		EntityStatus: 2,
-	})
+	_ = target.WritePacket(c.dialect.EntityStatus(targetID, 2))
 
 	// Compute knockback direction from attacker to target.
 	attackerPos := c.self.GetPosition()
@@ -1094,12 +1001,7 @@ func (c *Connection) handleUseEntity(value *v1_8.PlayServerboundUseEntity) error
 	vx := int16(dx * 0.4 * 8000)
 	vy := int16(0.36 * 8000)
 	vz := int16(dz * 0.4 * 8000)
-	velPkt := &v1_8.PlayClientboundEntityVelocity{
-		EntityID:  targetID,
-		VelocityX: vx,
-		VelocityY: vy,
-		VelocityZ: vz,
-	}
+	velPkt := c.dialect.EntityVelocity(targetID, vx, vy, vz)
 	_ = target.WritePacket(velPkt)
 	c.players.BroadcastToTrackers(velPkt, targetID)
 
@@ -1107,18 +1009,14 @@ func (c *Connection) handleUseEntity(value *v1_8.PlayServerboundUseEntity) error
 }
 
 // handleAbilitiesUpdate processes a PlayerAbilities (0x13) server-bound packet.
-func (c *Connection) handleAbilitiesUpdate(value *v1_8.PlayServerboundAbilities) {
+func (c *Connection) handleAbilitiesUpdate(value AbilitiesAction) {
 	wantsFlying := value.Flags&int8(packet.AbilityFlying) != 0
 	mode := c.self.GetGameMode()
 
 	// Only creative and spectator may fly.
 	if wantsFlying && mode != packet.GameModeCreative && mode != packet.GameModeSpectator {
 		// Send corrective abilities back.
-		_ = c.send(&v1_8.PlayClientboundAbilities{
-			Flags:        abilitiesForGameMode(mode),
-			FlyingSpeed:  0.05,
-			WalkingSpeed: 0.1,
-		})
+		_ = c.send(c.dialect.Abilities(abilitiesForGameMode(mode), 0.05, 0.1))
 		return
 	}
 
@@ -1134,12 +1032,12 @@ func (c *Connection) handleRespawn() error {
 	c.dead = false
 
 	// Send Respawn packet.
-	if err := c.send(&v1_8.PlayClientboundRespawn{
+	if err := c.send(c.dialect.Respawn(RespawnFields{
 		Dimension:  int32(packet.DimensionOverworld),
 		Difficulty: packet.DifficultyEasy,
-		Gamemode:   c.self.GetGameMode(),
+		GameMode:   c.self.GetGameMode(),
 		LevelType:  c.cfg.GeneratorType,
-	}); err != nil {
+	})); err != nil {
 		return fmt.Errorf("write respawn: %w", err)
 	}
 
@@ -1154,31 +1052,23 @@ func (c *Connection) handleRespawn() error {
 	}
 
 	// Send position.
-	if err := c.send(&v1_8.PlayClientboundPosition{
+	if err := c.send(c.dialect.Position(PositionFields{
 		X:     0.5,
 		Y:     float64(spawnY),
 		Z:     0.5,
 		Yaw:   0,
 		Pitch: 0,
 		Flags: packet.PositionAbsolute,
-	}); err != nil {
+	})); err != nil {
 		return fmt.Errorf("write respawn position: %w", err)
 	}
 
 	// Restore health.
 	c.resetHealth()
-	_ = c.send(&v1_8.PlayClientboundUpdateHealth{
-		Health:         c.health,
-		Food:           maxFood,
-		FoodSaturation: 5,
-	})
+	_ = c.send(c.dialect.UpdateHealth(c.health, maxFood, 5))
 
 	// Send abilities.
-	_ = c.send(&v1_8.PlayClientboundAbilities{
-		Flags:        abilitiesForGameMode(c.self.GetGameMode()),
-		FlyingSpeed:  0.05,
-		WalkingSpeed: 0.1,
-	})
+	_ = c.send(c.dialect.Abilities(abilitiesForGameMode(c.self.GetGameMode()), 0.05, 0.1))
 
 	// Resync inventory.
 	_ = c.sendWindowItems()
@@ -1190,14 +1080,11 @@ func (c *Connection) handleRespawn() error {
 }
 
 // handleCustomPayload processes a CustomPayload (0x17) plugin channel packet.
-func (c *Connection) handleCustomPayload(value *v1_8.PlayServerboundCustomPayload) error {
+func (c *Connection) handleCustomPayload(value PayloadAction) error {
 	switch value.Channel {
 	case "MC|Brand":
 		c.log.Info("client brand", "brand", string(value.Data))
-		_ = c.send(&v1_8.PlayClientboundCustomPayload{
-			Channel: "MC|Brand",
-			Data:    []byte("GoTheftCraft"),
-		})
+		_ = c.send(c.dialect.CustomPayload("MC|Brand", []byte("GoTheftCraft")))
 	default:
 		c.log.Debug("plugin channel", "channel", value.Channel, "size", len(value.Data))
 	}

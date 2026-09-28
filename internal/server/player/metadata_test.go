@@ -4,15 +4,15 @@ import (
 	"testing"
 
 	protocol "github.com/go-theft-craft/minecraft-protocol"
-	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/internal/server/protocolinfo"
 )
 
-// encodeMetadata encodes an EntityMetadata to its 1.8 wire bytes so the tests
+// encodeMetadata encodes a metadata list to its 1.8 wire bytes so the tests
 // can assert the byte layout the server used to build by hand.
-func encodeMetadata(t *testing.T, md v1_8.EntityMetadata) []byte {
+func encodeMetadata(t *testing.T, entries []MetadataEntry) []byte {
+	md := v47Metadata(entries)
 	t.Helper()
 	limits, err := protocol.NewLimits()
 	if err != nil {

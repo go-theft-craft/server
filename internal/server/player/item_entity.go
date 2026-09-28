@@ -4,8 +4,6 @@ import (
 	"math"
 	"slices"
 
-	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-
 	"github.com/go-theft-craft/server/pkg/world"
 )
 
@@ -68,8 +66,8 @@ func (m *Manager) SpawnItemEntity(dropperEID int32, item Slot, x, y, z float64, 
 	// Build SpawnEntity using the original throw position so the client
 	// animates the arc from the player's hand. The stored X/Y/Z (landing)
 	// is only used server-side for pickup distance checks.
-	spawn := spawnItemEntityValue(ie, x, y, z, true)
-	meta := itemMetadataPacket(ie)
+	spawn := m.spawnItemEntity(ie, x, y, z, true)
+	meta := m.itemMetadataPacket(ie)
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -135,7 +133,7 @@ func (m *Manager) cleanupExpiredItems(currentTick int64) {
 	m.itemMu.Unlock()
 
 	if len(expired) > 0 {
-		destroy := &v1_8.PlayClientboundEntityDestroy{EntityIds: expired}
+		destroy := m.packets.DestroyEntities(expired)
 		m.mu.RLock()
 		for _, pl := range m.players {
 			_ = pl.WritePacket(destroy)
@@ -218,17 +216,14 @@ func (m *Manager) TryPickupItems(p *Player) int {
 	defer m.mu.RUnlock()
 
 	for _, ci := range collectPackets {
-		collect := &v1_8.PlayClientboundCollect{
-			CollectedEntityID: ci.collectedEID,
-			CollectorEntityID: ci.collectorEID,
-		}
+		collect := m.packets.CollectItem(ci.collectedEID, ci.collectorEID)
 		for _, pl := range m.players {
 			_ = pl.WritePacket(collect)
 		}
 	}
 
 	if len(toRemove) > 0 {
-		destroy := &v1_8.PlayClientboundEntityDestroy{EntityIds: toRemove}
+		destroy := m.packets.DestroyEntities(toRemove)
 		for _, pl := range m.players {
 			_ = pl.WritePacket(destroy)
 		}
@@ -305,8 +300,8 @@ func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64, origin Item
 	m.itemMu.Unlock()
 
 	// Visual spawn at block height; stored X/Y/Z at ground level for pickup.
-	spawn := spawnItemEntityValue(ie, x, spawnY, z, true)
-	meta := itemMetadataPacket(ie)
+	spawn := m.spawnItemEntity(ie, x, spawnY, z, true)
+	meta := m.itemMetadataPacket(ie)
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -319,13 +314,13 @@ func (m *Manager) SpawnBlockDrop(item Slot, x, y, z, spawnY float64, origin Item
 	return entityID, ie.Item.IDs
 }
 
-// spawnItemEntityValue builds the SpawnEntity (0x0E) packet for an item entity
+// spawnItemEntity builds the SpawnEntity (0x0E) packet for an item entity
 // (object type 2 = item stack) at the given visual position. When withVelocity
 // is true the object-data int is 1 and the velocity short triple follows; when
 // false it is 0 and no velocity follows (used for late-joining players seeing an
 // item at rest).
-func spawnItemEntityValue(ie *ItemEntity, spawnX, spawnY, spawnZ float64, withVelocity bool) *v1_8.PlayClientboundSpawnEntity {
-	spawn := &v1_8.PlayClientboundSpawnEntity{
+func (m *Manager) spawnItemEntity(ie *ItemEntity, spawnX, spawnY, spawnZ float64, withVelocity bool) world.Packet {
+	fields := SpawnEntityFields{
 		EntityID: ie.EntityID,
 		Type:     2, // item stack
 		X:        FixedPoint(spawnX),
@@ -335,12 +330,13 @@ func spawnItemEntityValue(ie *ItemEntity, spawnX, spawnY, spawnZ float64, withVe
 		Yaw:      0,
 	}
 	if withVelocity {
-		spawn.IntField = 1
-		spawn.ObjectData.Default.VelocityX = ie.VelX
-		spawn.ObjectData.Default.VelocityY = ie.VelY
-		spawn.ObjectData.Default.VelocityZ = ie.VelZ
+		fields.ObjectData = 1
+		fields.VelocityX = ie.VelX
+		fields.VelocityY = ie.VelY
+		fields.VelocityZ = ie.VelZ
 	}
-	return spawn
+
+	return m.packets.SpawnEntity(fields)
 }
 
 // estimateLanding approximates where an item entity will land by simulating
@@ -384,21 +380,12 @@ func estimateLanding(x, y, z float64, velX, velY, velZ int16, groundAt func(x, y
 }
 
 // itemMetadataPacket builds the EntityMetadata packet for an item entity.
-func itemMetadataPacket(ie *ItemEntity) *v1_8.PlayClientboundEntityMetadata {
-	return &v1_8.PlayClientboundEntityMetadata{
-		EntityID: ie.EntityID,
-		Metadata: itemMetadataValue(ie),
-	}
+func (m *Manager) itemMetadataPacket(ie *ItemEntity) world.Packet {
+	return m.packets.EntityMetadata(ie.EntityID, itemMetadataValue(ie))
 }
 
 // itemMetadataValue builds the entity metadata for an item entity.
 // Index 10 (type 5 = slot) carries the item stack.
-func itemMetadataValue(ie *ItemEntity) v1_8.EntityMetadata {
-	return v1_8.EntityMetadata{{
-		AnonymousBitField1: v1_8.EntityMetadataItemAnonymousBitField1Bits{
-			Type: metaTypeSlot,
-			Key:  10,
-		},
-		Value: v1_8.EntityMetadataItemValueSwitch{Case5: ToGeneratedSlot(ie.Item)},
-	}}
+func itemMetadataValue(ie *ItemEntity) []MetadataEntry {
+	return []MetadataEntry{{Index: 10, Kind: MetadataItem, Item: ie.Item}}
 }

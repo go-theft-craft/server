@@ -115,13 +115,14 @@ func newTestConnectionInState(t *testing.T, state protocol.State) (*Connection, 
 	})
 
 	c := &Connection{
-		conn:   serverEnd,
-		stream: stream,
-		limits: limits,
-		ctx:    ctx,
-		cancel: cancel,
-		state:  state,
-		log:    slog.New(slog.DiscardHandler),
+		conn:    serverEnd,
+		stream:  stream,
+		limits:  limits,
+		ctx:     ctx,
+		cancel:  cancel,
+		state:   state,
+		log:     slog.New(slog.DiscardHandler),
+		dialect: newV47Dialect(),
 	}
 
 	return c, clientEnd

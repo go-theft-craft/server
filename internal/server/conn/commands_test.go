@@ -145,6 +145,7 @@ func newTestConnWithCapture(t *testing.T, username string) (*Connection, *sentPa
 		cfg:            config.DefaultConfig(),
 		self:           p,
 		players:        m,
+		dialect:        newV47Dialect(),
 		world:          w,
 		gameData:       gameData,
 		loadedChunks:   make(map[world.ChunkPos]struct{}),
@@ -222,7 +223,7 @@ func TestACommandWithNoDispatcherIsRefusedRatherThanBroadcast(t *testing.T) {
 func TestTabCompleteWithNoCompleterAnswersNothing(t *testing.T) {
 	c, _, _ := newTestConn(t, "Alice")
 
-	if err := c.handleTabComplete(&v1_8.PlayServerboundTabComplete{Text: "/t"}); err != nil {
+	if err := c.handleTabComplete(TabCompleteAction{Text: "/t"}); err != nil {
 		t.Fatalf("handleTabComplete: %v", err)
 	}
 }

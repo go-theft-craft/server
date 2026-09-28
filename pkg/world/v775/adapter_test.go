@@ -2,6 +2,7 @@ package v775
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/go-theft-craft/minecraft-protocol/data"
@@ -9,6 +10,7 @@ import (
 	v26_1 "github.com/go-theft-craft/minecraft-protocol/generated/java/v26_1"
 
 	"github.com/go-theft-craft/server/pkg/world"
+	"github.com/go-theft-craft/server/pkg/world/v47"
 )
 
 var _ world.Adapter = (*Adapter)(nil)
@@ -170,5 +172,57 @@ func TestEncodeChunkWaitsOnTheColumnEncoder(t *testing.T) {
 	b := world.NewBuilder(a.Dimension(), world.ChunkPos{}, a.Registry().Air())
 	if _, err := a.EncodeChunk(b.Build()); !errors.Is(err, ErrNoColumnEncoder) {
 		t.Fatalf("EncodeChunk = %v, want ErrNoColumnEncoder", err)
+	}
+}
+
+// TestTheTwoAdaptersAgreeOnBlocksAndNotOnNumbers is
+// TestTheTwoJavaRegistriesAgreeOnNamesAndNotOnHandles one layer up. The same
+// canonical name, interned into each version's registry and encoded by each
+// version's adapter, becomes two different numbers that each decode back to
+// that name: the world model stayed version-neutral while gaining a second
+// version.
+func TestTheTwoAdaptersAgreeOnBlocksAndNotOnNumbers(t *testing.T) {
+	modern, _ := newAdapter(t)
+
+	oldSet, err := v1_8.Data()
+	if err != nil {
+		t.Fatalf("v1_8.Data: %v", err)
+	}
+	oldReg, err := world.NewJavaRegistry(oldSet)
+	if err != nil {
+		t.Fatalf("NewJavaRegistry(1.8): %v", err)
+	}
+	old, err := v47.New(oldReg, oldSet)
+	if err != nil {
+		t.Fatalf("v47.New: %v", err)
+	}
+
+	for _, name := range []string{"minecraft:stone", "minecraft:dirt", "minecraft:sand", "minecraft:bedrock"} {
+		oldValue, err := old.EncodeState(old.Registry().Intern(name, nil))
+		if err != nil {
+			t.Fatalf("v47 %s: %v", name, err)
+		}
+		modernValue, err := modern.EncodeState(modern.Registry().Intern(name, nil))
+		if err != nil {
+			t.Fatalf("v775 %s: %v", name, err)
+		}
+		if oldValue == modernValue {
+			t.Errorf("%s encodes to %d in both versions; this test no longer distinguishes them",
+				name, oldValue)
+		}
+
+		for _, side := range []struct {
+			adapter world.Adapter
+			value   int32
+		}{{old, oldValue}, {modern, modernValue}} {
+			s, err := side.adapter.DecodeState(side.value)
+			if err != nil {
+				t.Fatalf("decode %d: %v", side.value, err)
+			}
+			got, _, _ := side.adapter.Registry().Lookup(s)
+			if !strings.EqualFold(got, name) {
+				t.Errorf("%d decoded to %s, want %s", side.value, got, name)
+			}
+		}
 	}
 }

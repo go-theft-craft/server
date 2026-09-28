@@ -8,6 +8,7 @@ github.com/go-theft-craft/server/pkg/world/anvil github.com_go-theft-craft_serve
 github.com/go-theft-craft/server/pkg/world/gen github.com_go-theft-craft_server_pkg_world_gen.export
 github.com/go-theft-craft/server/pkg/world/nbt github.com_go-theft-craft_server_pkg_world_nbt.export
 github.com/go-theft-craft/server/pkg/world/v47 github.com_go-theft-craft_server_pkg_world_v47.export
+github.com/go-theft-craft/server/pkg/world/v775 github.com_go-theft-craft_server_pkg_world_v775.export
 github.com/go-theft-craft/server/server github.com_go-theft-craft_server_server.export
 github.com/go-theft-craft/server/server/commands/v775 github.com_go-theft-craft_server_server_commands_v775.export
 github.com/go-theft-craft/server/server/commands/vanilla github.com_go-theft-craft_server_server_commands_vanilla.export

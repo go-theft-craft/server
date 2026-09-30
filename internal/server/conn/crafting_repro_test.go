@@ -9,18 +9,19 @@ import (
 )
 
 // clickPacket builds a decoded Window Click (0x0E) value the way the generated
-// session hands it to the play handler: window 0, action 1, and the echoed
-// clicked item carried as a generated Slot.
-func clickPacket(t *testing.T, slot int16, button int8, mode int8, item player.Slot) *v1_8.PlayServerboundWindowClick {
+// session hands it to the play handler -- window 0, action 1, and the echoed
+// clicked item carried as a generated Slot -- and reads it through the
+// protocol 47 dialect, as the play handler does.
+func clickPacket(t *testing.T, slot int16, button int8, mode int8, item player.Slot) ClickAction {
 	t.Helper()
-	return &v1_8.PlayServerboundWindowClick{
+	return readV47[ClickAction](&v1_8.PlayServerboundWindowClick{
 		WindowID:    0,
 		Slot:        slot,
 		MouseButton: button,
 		Action:      1,
 		Mode:        mode,
-		Item:        player.ToGeneratedSlot(item),
-	}
+		Item:        player.V47Slot(item),
+	})
 }
 
 // TestClientFlow_PlaceAndCraft reproduces a real client session: pick a log

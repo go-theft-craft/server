@@ -6,7 +6,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
 	"github.com/go-theft-craft/minecraft-protocol/wire/java"
 
 	"github.com/go-theft-craft/server/pkg/world"
@@ -29,6 +28,12 @@ type Manager struct {
 	// the manager is on the write path as much as the click handlers are.
 	index world.ItemIndex
 	log   *slog.Logger
+
+	// packets spells what the manager sends. Every player on this server
+	// speaks protocol 47, so one speller serves every recipient; a server
+	// that speaks two versions has to choose it per recipient, and that
+	// choice is made where the second version gets its join.
+	packets Packets
 }
 
 // NewManager creates a new player manager with the given view distance (in chunks).
@@ -39,6 +44,7 @@ func NewManager(viewDistance int) *Manager {
 		viewDistance: viewDistance,
 		itemEntities: make(map[int32]*ItemEntity),
 		log:          slog.New(slog.DiscardHandler),
+		packets:      V47Packets{},
 	}
 	return mgr
 }
@@ -82,15 +88,7 @@ func (m *Manager) resyncPositions() {
 
 	for _, p := range m.players {
 		pos := p.GetPosition()
-		tp := &v1_8.PlayClientboundEntityTeleport{
-			EntityID: p.EntityID,
-			X:        FixedPoint(pos.X),
-			Y:        FixedPoint(pos.Y),
-			Z:        FixedPoint(pos.Z),
-			Yaw:      DegreesToAngle(pos.Yaw),
-			Pitch:    DegreesToAngle(pos.Pitch),
-			OnGround: pos.OnGround,
-		}
+		tp := m.packets.EntityTeleport(teleportFields(p.EntityID, pos))
 		for _, other := range m.players {
 			if other.EntityID != p.EntityID && other.IsTracking(p.EntityID) {
 				_ = other.WritePacket(tp)
@@ -107,7 +105,7 @@ func (m *Manager) Add(p *Player) {
 	m.players[p.EntityID] = p
 	m.byUUID[p.UUID] = p.EntityID
 
-	newPlayerInfo := playerInfoAdd(p)
+	newPlayerInfo := m.playerInfoAdd(p)
 	cx, cz := p.ChunkX(), p.ChunkZ()
 
 	// Send the player their own PlayerInfo so the client knows its skin for the inventory.
@@ -119,7 +117,7 @@ func (m *Manager) Add(p *Player) {
 		}
 
 		// Send existing player's info to the new player.
-		_ = p.WritePacket(playerInfoAdd(other))
+		_ = p.WritePacket(m.playerInfoAdd(other))
 
 		// Send new player's info to existing players.
 		_ = other.WritePacket(newPlayerInfo)
@@ -138,16 +136,16 @@ func (m *Manager) Add(p *Player) {
 
 	// Send existing item entities to the new player.
 	type itemSnapshot struct {
-		spawn *v1_8.PlayClientboundSpawnEntity
-		meta  *v1_8.PlayClientboundEntityMetadata
+		spawn world.Packet
+		meta  world.Packet
 	}
 
 	m.itemMu.Lock()
 	items := make([]itemSnapshot, 0, len(m.itemEntities))
 	for _, ie := range m.itemEntities {
 		items = append(items, itemSnapshot{
-			spawn: spawnItemEntityValue(ie, ie.X, ie.Y, ie.Z, false),
-			meta:  itemMetadataPacket(ie),
+			spawn: m.spawnItemEntity(ie, ie.X, ie.Y, ie.Z, false),
+			meta:  m.itemMetadataPacket(ie),
 		})
 	}
 	m.itemMu.Unlock()
@@ -166,13 +164,13 @@ func (m *Manager) Remove(p *Player) {
 	delete(m.players, p.EntityID)
 	delete(m.byUUID, p.UUID)
 
-	removeInfo := playerInfoRemove(p)
+	removeInfo := m.playerInfoRemove(p)
 
 	for _, other := range m.players {
 		_ = other.WritePacket(removeInfo)
 
 		if other.IsTracking(p.EntityID) {
-			_ = other.WritePacket(&v1_8.PlayClientboundEntityDestroy{EntityIds: []int32{p.EntityID}})
+			_ = other.WritePacket(m.packets.DestroyEntities([]int32{p.EntityID}))
 			other.Untrack(p.EntityID)
 		}
 	}
@@ -236,11 +234,11 @@ func (m *Manager) UpdateTracking(moved *Player) {
 			}
 		} else if !inRange && otherTracksMoved {
 			// Leave range: destroy for each other.
-			_ = other.WritePacket(&v1_8.PlayClientboundEntityDestroy{EntityIds: []int32{moved.EntityID}})
+			_ = other.WritePacket(m.packets.DestroyEntities([]int32{moved.EntityID}))
 			other.Untrack(moved.EntityID)
 
 			if movedTracksOther {
-				_ = moved.WritePacket(&v1_8.PlayClientboundEntityDestroy{EntityIds: []int32{other.EntityID}})
+				_ = moved.WritePacket(m.packets.DestroyEntities([]int32{other.EntityID}))
 				moved.Untrack(other.EntityID)
 			}
 		}
@@ -249,10 +247,7 @@ func (m *Manager) UpdateTracking(moved *Player) {
 
 // BroadcastEntityMetadata sends an EntityMetadata packet to all trackers of the given player.
 func (m *Manager) BroadcastEntityMetadata(p *Player) {
-	m.BroadcastToTrackers(&v1_8.PlayClientboundEntityMetadata{
-		EntityID: p.EntityID,
-		Metadata: BuildEntityMetadata(p),
-	}, p.EntityID)
+	m.BroadcastToTrackers(m.packets.EntityMetadata(p.EntityID, BuildEntityMetadata(p)), p.EntityID)
 }
 
 // PlayerCount returns the number of connected players.
@@ -306,49 +301,47 @@ func (m *Manager) ForEach(fn func(*Player)) {
 func (m *Manager) spawnPlayerFor(viewer, target *Player) {
 	pos := target.GetPosition()
 
-	_ = viewer.WritePacket(namedEntitySpawnValue(target, pos))
+	_ = viewer.WritePacket(m.namedEntitySpawn(target, pos))
 
-	_ = viewer.WritePacket(&v1_8.PlayClientboundEntityHeadRotation{
-		EntityID: target.EntityID,
-		HeadYaw:  DegreesToAngle(pos.Yaw),
-	})
+	_ = viewer.WritePacket(m.packets.EntityHeadRotation(target.EntityID, DegreesToAngle(pos.Yaw)))
 
-	_ = viewer.WritePacket(&v1_8.PlayClientboundEntityTeleport{
-		EntityID: target.EntityID,
+	_ = viewer.WritePacket(m.packets.EntityTeleport(teleportFields(target.EntityID, pos)))
+
+	// Send entity metadata (flags + skin parts).
+	_ = viewer.WritePacket(m.packets.EntityMetadata(target.EntityID, BuildEntityMetadata(target)))
+
+	// Send 5 equipment packets (held item + 4 armor slots).
+	for _, eq := range BuildEquipmentValues(m.packets, target.EntityID, target.Inventory) {
+		_ = viewer.WritePacket(eq)
+	}
+
+	viewer.Track(target.EntityID)
+}
+
+// teleportFields is an absolute move to where a player is.
+func teleportFields(entityID int32, pos Position) EntityTeleportFields {
+	return EntityTeleportFields{
+		EntityID: entityID,
 		X:        FixedPoint(pos.X),
 		Y:        FixedPoint(pos.Y),
 		Z:        FixedPoint(pos.Z),
 		Yaw:      DegreesToAngle(pos.Yaw),
 		Pitch:    DegreesToAngle(pos.Pitch),
 		OnGround: pos.OnGround,
-	})
-
-	// Send entity metadata (flags + skin parts).
-	_ = viewer.WritePacket(&v1_8.PlayClientboundEntityMetadata{
-		EntityID: target.EntityID,
-		Metadata: BuildEntityMetadata(target),
-	})
-
-	// Send 5 equipment packets (held item + 4 armor slots).
-	eqs := BuildEquipmentValues(target.EntityID, target.Inventory)
-	for i := range eqs {
-		_ = viewer.WritePacket(&eqs[i])
 	}
-
-	viewer.Track(target.EntityID)
 }
 
-// namedEntitySpawnValue builds the NamedEntitySpawn packet for a player.
-func namedEntitySpawnValue(p *Player, pos Position) *v1_8.PlayClientboundNamedEntitySpawn {
+// namedEntitySpawn builds the NamedEntitySpawn packet for a player.
+func (m *Manager) namedEntitySpawn(p *Player, pos Position) world.Packet {
 	// Current item in hand: the block ID, or 0 when the hand is empty.
 	var currentItem int16
 	if heldItem := p.Inventory.HeldItem(); !heldItem.IsEmpty() {
 		currentItem = heldItem.BlockID
 	}
 
-	return &v1_8.PlayClientboundNamedEntitySpawn{
+	return m.packets.SpawnPlayer(SpawnPlayerFields{
 		EntityID:    p.EntityID,
-		PlayerUUID:  java.UUID(p.UUIDBytes),
+		UUID:        p.UUIDBytes,
 		X:           FixedPoint(pos.X),
 		Y:           FixedPoint(pos.Y),
 		Z:           FixedPoint(pos.Z),
@@ -356,61 +349,38 @@ func namedEntitySpawnValue(p *Player, pos Position) *v1_8.PlayClientboundNamedEn
 		Pitch:       DegreesToAngle(pos.Pitch),
 		CurrentItem: currentItem,
 		Metadata:    BuildSpawnMetadata(p),
-	}
+	})
 }
 
 // playerInfoAdd builds a PlayerInfo packet with action=add_player for a player.
-func playerInfoAdd(p *Player) *v1_8.PlayClientboundPlayerInfo {
-	props := make([]v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1SwitchAddPlayerPropertiesItem, 0, len(p.Properties))
-	for _, prop := range p.Properties {
-		item := v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1SwitchAddPlayerPropertiesItem{
-			Name:  prop.Name,
-			Value: prop.Value,
-		}
-		if prop.Signature != "" {
-			sig := prop.Signature
-			item.Signature = &sig
-		}
-		props = append(props, item)
-	}
-
-	return &v1_8.PlayClientboundPlayerInfo{
-		Action: "add_player",
-		Data: []v1_8.PlayClientboundPlayerInfoDataItem{{
-			UUID: java.UUID(p.UUIDBytes),
-			AnonymousSwitch1: v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1Switch{
-				AddPlayer: v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1SwitchAddPlayer{
-					Name:       p.Username,
-					Properties: props,
-					Gamemode:   int32(p.GetGameMode()),
-					Ping:       0,
-				},
-			},
-		}},
-	}
-}
-
-// BroadcastGameMode sends a PlayerInfo update_game_mode packet to all players.
-func (m *Manager) BroadcastGameMode(p *Player) {
-	m.Broadcast(&v1_8.PlayClientboundPlayerInfo{
-		Action: "update_game_mode",
-		Data: []v1_8.PlayClientboundPlayerInfoDataItem{{
-			UUID: java.UUID(p.UUIDBytes),
-			AnonymousSwitch1: v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1Switch{
-				UpdateGameMode: v1_8.PlayClientboundPlayerInfoDataItemAnonymousSwitch1SwitchUpdateGameMode{
-					Gamemode: int32(p.GetGameMode()),
-				},
-			},
+func (m *Manager) playerInfoAdd(p *Player) world.Packet {
+	return m.packets.PlayerInfo(PlayerInfoFields{
+		Action: PlayerInfoAdd,
+		Players: []PlayerInfoEntry{{
+			UUID:       p.UUIDBytes,
+			Name:       p.Username,
+			Properties: p.Properties,
+			GameMode:   int32(p.GetGameMode()),
+			Ping:       0,
 		}},
 	})
 }
 
-// playerInfoRemove builds a PlayerInfo packet with action=remove_player.
-func playerInfoRemove(p *Player) *v1_8.PlayClientboundPlayerInfo {
-	return &v1_8.PlayClientboundPlayerInfo{
-		Action: "remove_player",
-		Data: []v1_8.PlayClientboundPlayerInfoDataItem{{
-			UUID: java.UUID(p.UUIDBytes),
+// BroadcastGameMode sends a PlayerInfo update_game_mode packet to all players.
+func (m *Manager) BroadcastGameMode(p *Player) {
+	m.Broadcast(m.packets.PlayerInfo(PlayerInfoFields{
+		Action: PlayerInfoUpdateGameMode,
+		Players: []PlayerInfoEntry{{
+			UUID:     p.UUIDBytes,
+			GameMode: int32(p.GetGameMode()),
 		}},
-	}
+	}))
+}
+
+// playerInfoRemove builds a PlayerInfo packet with action=remove_player.
+func (m *Manager) playerInfoRemove(p *Player) world.Packet {
+	return m.packets.PlayerInfo(PlayerInfoFields{
+		Action:  PlayerInfoRemove,
+		Players: []PlayerInfoEntry{{UUID: p.UUIDBytes}},
+	})
 }

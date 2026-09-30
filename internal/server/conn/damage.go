@@ -5,8 +5,6 @@ import (
 	"math"
 	"time"
 
-	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-
 	"github.com/go-theft-craft/server/internal/server/packet"
 )
 
@@ -115,16 +113,9 @@ func (c *Connection) applyDamage(amount float32, deathKey string) {
 		c.health = 0
 	}
 
-	_ = c.send(&v1_8.PlayClientboundUpdateHealth{
-		Health:         c.health,
-		Food:           maxFood,
-		FoodSaturation: 5,
-	})
+	_ = c.send(c.dialect.UpdateHealth(c.health, maxFood, 5))
 
-	status := &v1_8.PlayClientboundEntityStatus{
-		EntityID:     c.self.EntityID,
-		EntityStatus: entityStatusHurt,
-	}
+	status := c.dialect.EntityStatus(c.self.EntityID, entityStatusHurt)
 	// The hurt flash is sent to the player as well as to everyone tracking
 	// them: BroadcastToTrackers excludes the player themselves, and a client
 	// that never receives its own status shows no damage tint.
@@ -143,18 +134,12 @@ func (c *Connection) applyDamage(amount float32, deathKey string) {
 func (c *Connection) die(deathKey string) {
 	c.dead = true
 
-	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityStatus{
-		EntityID:     c.self.EntityID,
-		EntityStatus: entityStatusDead,
-	}, c.self.EntityID)
+	c.players.BroadcastToTrackers(c.dialect.EntityStatus(c.self.EntityID, entityStatusDead), c.self.EntityID)
 
-	c.players.Broadcast(&v1_8.PlayClientboundChat{
-		Message: fmt.Sprintf(
-			`{"translate":%s,"with":[%s]}`,
-			escapeJSON(deathKey), escapeJSON(c.self.Username),
-		),
-		Position: 0,
-	})
+	c.players.Broadcast(c.dialect.Chat(fmt.Sprintf(
+		`{"translate":%s,"with":[%s]}`,
+		escapeJSON(deathKey), escapeJSON(c.self.Username),
+	), 0))
 }
 
 // resetHealth restores a full bar. Join and respawn both use it, so the field

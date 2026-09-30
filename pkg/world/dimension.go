@@ -30,3 +30,13 @@ func (d Dimension) Contains(y int) bool { return y >= d.MinY && y < d.MinY+d.Hei
 func Overworld18() Dimension {
 	return Dimension{Name: "minecraft:overworld", MinY: 0, Height: 256}
 }
+
+// Overworld261 is Java 26.1's overworld.
+//
+// A protocol 775 column does not say where it starts: the bottom comes from the
+// dimension_type registry a server sends during configuration. That payload and
+// this value must agree on MinY, or a client stands inside the ground by four
+// sections' worth of blocks with nothing reporting an error.
+func Overworld261() Dimension {
+	return Dimension{Name: "minecraft:overworld", MinY: -64, Height: 384}
+}

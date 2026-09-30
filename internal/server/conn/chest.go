@@ -4,8 +4,6 @@ import (
 	"math"
 	"sort"
 
-	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/pkg/world"
 )
@@ -195,10 +193,7 @@ func (c *Connection) refreshChestFacing(kind string, pos world.BlockPos) {
 
 	c.setBlockAt(pos.X, pos.Y, pos.Z, next)
 
-	change := &v1_8.PlayClientboundBlockChange{
-		Location: blockPos(pos.X, pos.Y, pos.Z),
-		Type:     c.wireState(next),
-	}
+	change := c.dialect.BlockChange(pos, c.wireState(next))
 	c.players.BroadcastExcept(change, c.self.EntityID)
 	_ = c.send(change)
 }
@@ -358,12 +353,12 @@ func (c *Connection) openChest(x, y, z int) error {
 		title = `{"translate":"container.chestDouble"}`
 	}
 
-	if err := c.send(&v1_8.PlayClientboundOpenWindow{
-		WindowID:      uint8(c.windowID),
+	if err := c.send(c.dialect.OpenWindow(OpenWindowFields{
+		WindowID:      c.windowID,
 		InventoryType: "minecraft:chest",
 		WindowTitle:   title,
 		SlotCount:     uint8(len(c.chestItems)),
-	}); err != nil {
+	})); err != nil {
 		return err
 	}
 

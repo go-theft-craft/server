@@ -4,6 +4,18 @@ This file records notable user-visible changes. It follows [Keep a Changelog](ht
 
 ## Unreleased
 
+### Changed
+
+- The play path is behind a version boundary. `internal/server/conn` gains a
+  `Dialect`: serverbound packets are read into version-neutral actions and
+  clientbound ones are built by the dialect, so the handlers, the inventory
+  and window code, and the player manager no longer name `v1_8`. Protocol 47
+  is the only dialect, and **no byte on the wire changed**: the byte-parity
+  fixtures and the pinned Node interop lane pass unmodified, which is the
+  whole claim. `TestThePlayPathNamesNoVersion` keeps a version from leaking
+  back in. This is stage C of the protocol 775 play path plan; the public API
+  is unchanged.
+
 ## 0.1.0 — 2026-08-19
 
 First tagged release. Everything below is what the module is, rather than what

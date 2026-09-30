@@ -205,14 +205,14 @@ func TestCraftingTable_StaleWindowClickIsRefused(t *testing.T) {
 	openTableAt(t, c, 0, 4, 0)
 	c.craftingGrid[0] = stone(4)
 
-	stale := &v1_8.PlayServerboundWindowClick{
+	stale := readV47[ClickAction](&v1_8.PlayServerboundWindowClick{
 		WindowID:    uint8(c.windowID + 1),
 		Slot:        slotCraftStart,
 		MouseButton: 0,
 		Action:      1,
 		Mode:        0,
-		Item:        player.ToGeneratedSlot(player.EmptySlot),
-	}
+		Item:        player.V47Slot(player.EmptySlot),
+	})
 	if err := c.handleWindowClick(stale); err != nil {
 		t.Fatalf("handleWindowClick: %v", err)
 	}

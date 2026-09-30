@@ -57,6 +57,11 @@ type Connection struct {
 	mu    sync.Mutex
 	state protocol.State
 
+	// dialect is the play path's version: every play packet this connection
+	// reads is turned into an action by it, and every one it writes is spelled
+	// by it. See dialect.go.
+	dialect Dialect
+
 	// Player management
 	players *player.Manager
 	self    *player.Player
@@ -65,7 +70,7 @@ type Connection struct {
 	loadedChunks map[world.ChunkPos]struct{}
 
 	// KeepAlive tracking
-	lastKeepAliveID   int32
+	lastKeepAliveID   int64
 	lastKeepAliveSent time.Time
 	keepAliveAcked    bool
 
@@ -203,6 +208,7 @@ func NewConnection(ctx context.Context, conn net.Conn, cfg *config.Config, log *
 		world:          w,
 		storage:        store,
 		players:        players,
+		dialect:        newV47Dialect(),
 		loadedChunks:   make(map[world.ChunkPos]struct{}),
 		keepAliveAcked: true,
 		cursorSlot:     player.EmptySlot,

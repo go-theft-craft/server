@@ -1,9 +1,5 @@
 package conn
 
-import (
-	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-)
-
 // Tab-complete, from the connection's side.
 //
 // What used to be here was a switch statement with a case per command and per
@@ -16,11 +12,11 @@ import (
 // kept them all.
 
 // handleTabComplete processes a TabComplete (0x14) packet and sends completions
-// back. The looked-at block (value.Block) is decoded by the session but unused:
-// coordinates complete to the block the player stands in, not the one they are
-// looking at, because there is no ray cast here and the standing position is
-// more useful for typing a destination.
-func (c *Connection) handleTabComplete(value *v1_8.PlayServerboundTabComplete) error {
+// back. The looked-at block the packet carries is decoded by the session but
+// unused: coordinates complete to the block the player stands in, not the one
+// they are looking at, because there is no ray cast here and the standing
+// position is more useful for typing a destination.
+func (c *Connection) handleTabComplete(value TabCompleteAction) error {
 	var matches []string
 	if c.complete != nil {
 		matches = c.complete(c, value.Text)
@@ -40,5 +36,5 @@ func (c *Connection) sendTabCompleteResponse(matches []string) error {
 		}
 	}
 
-	return c.send(&v1_8.PlayClientboundTabComplete{Matches: kept})
+	return c.send(c.dialect.TabComplete(kept))
 }

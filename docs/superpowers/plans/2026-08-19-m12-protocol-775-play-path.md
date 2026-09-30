@@ -1,5 +1,34 @@
 # Protocol 775 Play Path Implementation Plan
 
+> **Status, 2026-09-28: stages C and D (tasks 8 and 10) landed; A, B, and
+> task 9 have not.** Stages A and B are `minecraft-protocol` changes and were
+> not made from this repository. Task 9 consumes stage A's encoder, so
+> `v775.Adapter.EncodeChunk` returns `ErrNoColumnEncoder` until that release is
+> taken, and a test pins the gap. Stages E through H still need their own plans.
+>
+> Deviations, each recorded where the code is:
+>
+> - The dialect's write methods return no error. Protocol 47 cannot fail to
+>   spell any of them, and how a later version fails (an item with no mapping)
+>   is shaped when it has a caller, which is this plan's own rule for the
+>   interface.
+> - `MultiBlockChange` is not on the interface: nothing on the 47 path sends
+>   one. The keep-alive timeout's kick is `Kick`, not `Disconnect`, because a
+>   stream shutdown already owns the disconnect.
+> - The entity half is `player.Packets`, implemented in
+>   `player/dialect_v47.go` and embedded by the conn dialect, so the player
+>   manager keeps a default and its tests keep their bytes.
+> - `TestThePlayPathNamesNoVersion` also allows the pre-play files (`stream.go`,
+>   `connection.go`, the handshake and status handlers), each with its reason.
+>   They choose and drive the session, which is stage B's swap and stage E's
+>   job.
+> - The player manager spells every recipient's packets with one dialect. A
+>   server speaking two versions has to choose per recipient, and stage E is
+>   where that choice is made.
+> - `server/` still broadcasts `v1_8.PlayClientboundUpdateTime` directly; the
+>   gate covers `conn` and `player`, and stage E moves it with the rest of the
+>   per-recipient broadcast.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Serve a protocol 775 client everything this server already serves a protocol 47 client — join, world, movement, inventory, crafting, mining, combat, persistence — from one version-neutral play path with two adapters under it.
@@ -686,7 +715,7 @@ The order matters: the seam is defined and implemented for 47 *before* any 775 c
 - Consumes: `world.Packet` (`interface{ PacketID() int32 }`), `player.Slot`, `world.BlockPos`, `protocol.Packet`.
 - Produces: the `Dialect` interface and the neutral action types below. Every later task in stages C through H names these.
 
-- [ ] **Step 1: Write the interface**
+- [x] **Step 1: Write the interface**
 
 `dialect.go` defines two halves and nothing else. Inbound, one type per thing a client can ask for:
 
@@ -834,7 +863,7 @@ judgement call:
   defined there too.
 
 
-- [ ] **Step 2: Write the compile-time assertion test**
+- [x] **Step 2: Write the compile-time assertion test**
 
 ```go
 func TestV47SatisfiesTheDialect(t *testing.T) {
@@ -842,12 +871,12 @@ func TestV47SatisfiesTheDialect(t *testing.T) {
 }
 ```
 
-- [ ] **Step 3: Run it to verify it fails**
+- [x] **Step 3: Run it to verify it fails**
 
 Run: `devbox run -- go test ./internal/server/conn -run TestV47Satisfies -v`
 Expected: FAIL, `undefined: v47Dialect`.
 
-- [ ] **Step 4: Commit the interface alone**
+- [x] **Step 4: Commit the interface alone**
 
 ```bash
 devbox run -- task precommit
@@ -865,7 +894,7 @@ git commit -m "feat(conn): define the play path's version boundary"
 - Consumes: `Dialect` and every action type from Task 4; `v1_8` generated types.
 - Produces: `func newV47Dialect() *v47Dialect` and the `v47Dialect` type satisfying `Dialect`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Two table tests, one per direction. Inbound: one case for each serverbound
 packet the 47 path handles today. Outbound: one case per method, pairing
@@ -978,9 +1007,9 @@ fills that this omits — the handler is right and the case is wrong. Read the
 call site before changing either.
 
 
-- [ ] **Step 2: Run to verify failure**, then **Step 3: implement** — each method is the packet literal that is in the handler today, moved, not rewritten. **Step 4: run to verify pass.**
+- [x] **Step 2: Run to verify failure**, then **Step 3: implement** — each method is the packet literal that is in the handler today, moved, not rewritten. **Step 4: run to verify pass.**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add internal/server/conn/dialect_v47.go internal/server/conn/dialect_v47_test.go
@@ -1000,16 +1029,16 @@ git commit -m "feat(conn): implement the dialect for protocol 47"
 
 `player.Manager` cannot name `conn.Dialect` — it sits below `conn`. Give it the narrow interface it actually needs, declared in `player` and satisfied structurally by the dialect, the way `world.Generator` is declared in `world` and satisfied by `gen.Generator`. Do not move `player` above `conn` to avoid this.
 
-- [ ] **Step 1: Run the fixtures before touching anything, and keep the output**
+- [x] **Step 1: Run the fixtures before touching anything, and keep the output**
 
 Run: `devbox run -- go test ./internal/server/conn -run TestParity -v`
 Expected: PASS. This output is the baseline the rest of the task is measured against.
 
-- [ ] **Step 2: Migrate one file at a time, running the fixtures after each**
+- [x] **Step 2: Migrate one file at a time, running the fixtures after each**
 
 Order: `handler_play.go`, then `inventory.go`, `chest.go`, `crafting.go`, `damage.go`, `mining.go`, `commands.go`, `tab_complete.go`, `slot.go`, then the `player` package. After each file: `devbox run -- go test ./internal/server/... -count=1`.
 
-- [ ] **Step 3: Assert the boundary holds**
+- [x] **Step 3: Assert the boundary holds**
 
 Add to `dialect_test.go`:
 
@@ -1026,12 +1055,12 @@ func TestThePlayPathNamesNoVersion(t *testing.T) {
 
 Write it with `go/parser` over the package directory rather than by shelling out to grep.
 
-- [ ] **Step 4: Run everything**
+- [x] **Step 4: Run everything**
 
 Run: `devbox run -- task verify`
 Expected: PASS, with the byte-parity fixtures **unchanged** — no `-update`, no diff. If a fixture disagrees, the migration changed a byte and the fix is in the migration, never in the fixture.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 devbox run -- task precommit
@@ -1045,11 +1074,11 @@ git commit -m "refactor(conn): put the play path behind the dialect"
 - Modify: `CLAUDE.md` (the `internal/server/` bullet)
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: Describe the seam in CLAUDE.md** beside the `world.Adapter` description it mirrors: what a `Dialect` is, that `player` takes a structural interface of its own because it sits below `conn`, and that `TestThePlayPathNamesNoVersion` is what keeps it true.
+- [x] **Step 1: Describe the seam in CLAUDE.md** beside the `world.Adapter` description it mirrors: what a `Dialect` is, that `player` takes a structural interface of its own because it sits below `conn`, and that `TestThePlayPathNamesNoVersion` is what keeps it true.
 
-- [ ] **Step 2: Changelog entry**, noting that no bytes changed and the fixtures are what says so.
+- [x] **Step 2: Changelog entry**, noting that no bytes changed and the fixtures are what says so.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add CLAUDE.md CHANGELOG.md
@@ -1076,11 +1105,11 @@ The mapping differs entirely. Protocol 47 packs an ID and a metadata nibble; 775
 
 `Overworld261()` is `world.Dimension{Name: "minecraft:overworld", MinY: -64, Height: 384}`. It goes in `pkg/world/dimension.go` beside `Overworld18()`, not in the adapter.
 
-- [ ] **Step 1: Write the failing test** — every state in the 26.1 registry round-trips through `EncodeState`/`DecodeState`, and the encoded value for `minecraft:stone` equals the data set's `DefaultState` for stone.
-- [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run to verify pass.**
-- [ ] **Step 5: Commit** — `feat(v775): encode a block state as protocol 775 numbers it`.
+- [x] **Step 1: Write the failing test** — every state in the 26.1 registry round-trips through `EncodeState`/`DecodeState`, and the encoded value for `minecraft:stone` equals the data set's `DefaultState` for stone.
+- [x] **Step 2: Run to verify failure.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run to verify pass.**
+- [x] **Step 5: Commit** — `feat(v775): encode a block state as protocol 775 numbers it`.
 
 ### Task 9: Column rendering
 
@@ -1109,8 +1138,8 @@ Three decisions this task makes, each of which needs its reason in a comment:
 **Files:**
 - Modify: `pkg/world/v775/adapter_test.go`
 
-- [ ] **Step 1: Write the test.** The same canonical block name, interned into each version's registry, encodes to different numbers and to the same block. This is `TestTheTwoJavaRegistriesAgreeOnNamesAndNotOnHandles` one layer up, and it is what says the world model stayed version-neutral while gaining a second version.
-- [ ] **Step 2: Run, then commit** — `test(v775): the two adapters agree on blocks and not on numbers`.
+- [x] **Step 1: Write the test.** The same canonical block name, interned into each version's registry, encodes to different numbers and to the same block. This is `TestTheTwoJavaRegistriesAgreeOnNamesAndNotOnHandles` one layer up, and it is what says the world model stayed version-neutral while gaining a second version.
+- [x] **Step 2: Run, then commit** — `test(v775): the two adapters agree on blocks and not on numbers`.
 
 ---
 

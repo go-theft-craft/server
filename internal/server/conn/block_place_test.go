@@ -11,15 +11,15 @@ import (
 
 // placeOnTopOf builds the BlockPlace a client sends when it right-clicks the
 // upward face of the block at (x, y, z), which puts the new block at y+1.
-func placeOnTopOf(x, y, z int, held player.Slot) *v1_8.PlayServerboundBlockPlace {
-	return &v1_8.PlayServerboundBlockPlace{
-		Location:  blockPos(x, y, z),
+func placeOnTopOf(x, y, z int, held player.Slot) PlaceAction {
+	return readV47[PlaceAction](&v1_8.PlayServerboundBlockPlace{
+		Location:  v1_8.Position{X: int32(x), Y: int16(y), Z: int32(z)},
 		Direction: 1, // +Y
-		HeldItem:  player.ToGeneratedSlot(held),
+		HeldItem:  player.V47Slot(held),
 		CursorX:   8,
 		CursorY:   8,
 		CursorZ:   8,
-	}
+	})
 }
 
 func TestBlockPlace_ConsumesHeldItemInSurvival(t *testing.T) {

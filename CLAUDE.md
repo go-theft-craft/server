@@ -63,6 +63,19 @@ Run a single test: `go test -run TestName ./path/to/package/...`
     connection dispatches by state. Handshake, status, login, and play all run
     on generated `minecraft-protocol` packets; login is delegated whole to
     `login.Acceptor`.
+  - **The play path names no version.** A `conn.Dialect` (`dialect.go`) is
+    to play packets what `world.Adapter` is to blocks: `Read` turns a decoded
+    serverbound packet into a version-neutral `Action`, and the write methods
+    turn a neutral message back into a generated packet. `handlePlay` is a
+    switch over actions, and every handler sends `c.dialect.X(…)`.
+    `dialect_v47.go` is the only play file that imports `v1_8`; its methods
+    are the literals the handlers used to build, moved, and the byte-parity
+    fixtures passing untouched is what says so. `player` sits below `conn`, so
+    it declares its own narrow `player.Packets` (the entity half) with its own
+    `player/dialect_v47.go`, and the conn dialect embeds it rather than the
+    other way round. `TestThePlayPathNamesNoVersion` parses both packages and
+    is what keeps this true; the pre-play files it allows are listed in it,
+    each with its reason.
   - `player/`, `storage/`, `packet/` — player state, persistence, and the
     protocol constants the handlers name instead of writing hex literals.
 - **`pkg/world/`** — the version-neutral world model, plus generation, Anvil

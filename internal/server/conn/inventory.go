@@ -1,8 +1,6 @@
 package conn
 
 import (
-	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-
 	"github.com/go-theft-craft/server/internal/server/player"
 	"github.com/go-theft-craft/server/pkg/world"
 )
@@ -189,29 +187,25 @@ func emptyCraftingGrid() [9]player.Slot {
 func (c *Connection) sendWindowItems() error {
 	l := c.layout()
 
-	items := make([]v1_8.Slot, l.total)
+	items := make([]player.Slot, l.total)
 	for i := range items {
-		items[i] = player.ToGeneratedSlot(c.getWindowSlot(int16(i)))
+		items[i] = c.getWindowSlot(int16(i))
 	}
 
-	return c.send(&v1_8.PlayClientboundWindowItems{WindowID: uint8(l.id), Items: items})
+	return c.send(c.dialect.WindowItems(l.id, items))
 }
 
 // sendSetSlot sends a single slot update to the client.
 func (c *Connection) sendSetSlot(windowID int8, slotIndex int16, slot player.Slot) error {
-	return c.send(&v1_8.PlayClientboundSetSlot{
-		WindowID: windowID,
-		Slot:     slotIndex,
-		Item:     player.ToGeneratedSlot(slot),
-	})
+	return c.send(c.dialect.SetSlot(windowID, slotIndex, slot))
 }
 
 // handleWindowClick processes a WindowClick (0x0E) packet. The clicked item
 // the client echoes back (value.Item) is not needed for validation.
-func (c *Connection) handleWindowClick(value *v1_8.PlayServerboundWindowClick) error {
+func (c *Connection) handleWindowClick(value ClickAction) error {
 	c.counted(world.MeasureInventory, 1)
 
-	windowID := int8(value.WindowID)
+	windowID := value.WindowID
 	slotIndex := value.Slot
 	button := value.MouseButton
 	actionID := value.Action
@@ -242,11 +236,7 @@ func (c *Connection) handleWindowClick(value *v1_8.PlayServerboundWindowClick) e
 }
 
 func (c *Connection) sendTransaction(windowID int8, actionID int16, accepted bool) error {
-	return c.send(&v1_8.PlayClientboundTransaction{
-		WindowID: windowID,
-		Action:   actionID,
-		Accepted: accepted,
-	})
+	return c.send(c.dialect.Transaction(windowID, actionID, accepted))
 }
 
 func (c *Connection) dispatchClick(slot int16, button int8, mode int) {
@@ -335,8 +325,7 @@ func (c *Connection) setSlotIn(l windowLayout, slot int16, item player.Slot) {
 // broadcastSingleEquipment sends one EntityEquipment (0x04) update to the
 // player's trackers.
 func (c *Connection) broadcastSingleEquipment(entityID int32, equipSlot int16, slot player.Slot) {
-	value := player.BuildSingleEquipmentValue(entityID, equipSlot, slot)
-	c.players.BroadcastToTrackers(&value, entityID)
+	c.players.BroadcastToTrackers(c.dialect.EntityEquipment(entityID, equipSlot, slot), entityID)
 }
 
 // broadcastEquipmentIfNeeded sends equipment updates to trackers when
@@ -769,9 +758,9 @@ func (c *Connection) handleDoubleClick(_ int16) {
 }
 
 // handleCreativeSlot processes a SetCreativeSlot (0x10) packet.
-func (c *Connection) handleCreativeSlot(value *v1_8.PlayServerboundSetCreativeSlot) error {
+func (c *Connection) handleCreativeSlot(value CreativeSlotAction) error {
 	slotIndex := value.Slot
-	item := slotFromGenerated(value.Item)
+	item := value.Item
 
 	// Slot -1: drop item.
 	if slotIndex == -1 {
@@ -788,7 +777,8 @@ func (c *Connection) handleCreativeSlot(value *v1_8.PlayServerboundSetCreativeSl
 		return nil
 	}
 
-	// Convert conn.Slot to player.Slot.
+	// Only the three fields a client sends: whatever else the decoded slot
+	// carries is not the client's to set.
 	pSlot := player.EmptySlot
 	if item.BlockID != -1 {
 		pSlot = player.Slot{BlockID: item.BlockID, ItemCount: item.ItemCount, ItemDamage: item.ItemDamage}
@@ -824,15 +814,15 @@ func (c *Connection) openCraftingTable() error {
 	c.windowID = c.nextWindowID
 	c.windowKind = windowTable
 
-	if err := c.send(&v1_8.PlayClientboundOpenWindow{
-		WindowID:      uint8(c.windowID),
+	if err := c.send(c.dialect.OpenWindow(OpenWindowFields{
+		WindowID:      c.windowID,
 		InventoryType: "minecraft:crafting_table",
 		// The title vanilla sends: BlockWorkbench's display name, which is a
 		// translation key rather than text, so a client shows it in its own
 		// language.
 		WindowTitle: `{"translate":"tile.workbench.name"}`,
 		SlotCount:   tableAdvertisedSlots,
-	}); err != nil {
+	})); err != nil {
 		return err
 	}
 

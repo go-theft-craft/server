@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	v1_8 "github.com/go-theft-craft/minecraft-protocol/generated/java/v1_8"
-
 	"github.com/go-theft-craft/server/internal/server/packet"
 	"github.com/go-theft-craft/server/internal/server/player"
 )
@@ -81,20 +79,19 @@ func (c *Connection) SendMessage(text, color string) { c.sendSystemMsg(text, col
 // SendTranslated says something the client renders from its own language file,
 // which is how /me is drawn.
 func (c *Connection) SendTranslated(key string, with []string) {
-	_ = c.send(&v1_8.PlayClientboundChat{Message: translatedJSON(key, with), Position: 1})
+	_ = c.send(c.dialect.Chat(translatedJSON(key, with), 1))
 }
 
 // BroadcastMessage says something to everyone.
 func (c *Connection) BroadcastMessage(text, color string) {
-	c.players.Broadcast(&v1_8.PlayClientboundChat{
-		Message:  fmt.Sprintf(`{"text":%s,"color":%s}`, escapeJSON(text), escapeJSON(color)),
-		Position: 0,
-	})
+	c.players.Broadcast(c.dialect.Chat(
+		fmt.Sprintf(`{"text":%s,"color":%s}`, escapeJSON(text), escapeJSON(color)), 0,
+	))
 }
 
 // BroadcastTranslated is BroadcastMessage for a translated component.
 func (c *Connection) BroadcastTranslated(key string, with []string) {
-	c.players.Broadcast(&v1_8.PlayClientboundChat{Message: translatedJSON(key, with), Position: 0})
+	c.players.Broadcast(c.dialect.Chat(translatedJSON(key, with), 0))
 }
 
 func translatedJSON(key string, with []string) string {
@@ -118,7 +115,7 @@ func (c *Connection) OnlineNames() []string {
 // KillPlayer kills the player on this connection.
 func (c *Connection) KillPlayer() {
 	c.health = 0
-	_ = c.send(&v1_8.PlayClientboundUpdateHealth{Health: 0, Food: 0, FoodSaturation: 0})
+	_ = c.send(c.dialect.UpdateHealth(0, 0, 0))
 	c.die("death.attack.generic")
 }
 
@@ -149,16 +146,9 @@ func (c *Connection) SetGameModeByName(name string) (string, bool) {
 		return "", false
 	}
 
-	_ = c.send(&v1_8.PlayClientboundGameStateChange{
-		Reason:   3, // Change game mode
-		GameMode: float32(mode),
-	})
+	_ = c.send(c.dialect.GameStateChange(3, float32(mode))) // Change game mode
 	c.self.SetGameMode(mode)
-	_ = c.send(&v1_8.PlayClientboundAbilities{
-		Flags:        abilities,
-		FlyingSpeed:  0.05,
-		WalkingSpeed: 0.1,
-	})
+	_ = c.send(c.dialect.Abilities(abilities, 0.05, 0.1))
 	// Broadcast the change so the tab list updates for everyone.
 	c.players.BroadcastGameMode(c.self)
 
@@ -167,10 +157,9 @@ func (c *Connection) SetGameModeByName(name string) (string, bool) {
 
 // sendSystemMsg sends a chat message (position=1, system) to this connection only.
 func (c *Connection) sendSystemMsg(text, color string) {
-	_ = c.send(&v1_8.PlayClientboundChat{
-		Message:  fmt.Sprintf(`{"text":%s,"color":%s}`, escapeJSON(text), escapeJSON(color)),
-		Position: 1,
-	})
+	_ = c.send(c.dialect.Chat(
+		fmt.Sprintf(`{"text":%s,"color":%s}`, escapeJSON(text), escapeJSON(color)), 1,
+	))
 }
 
 // sendErrorMsg sends a red system message.
@@ -186,16 +175,16 @@ func (c *Connection) teleportSelf(x, y, z float64) {
 	pos := c.self.GetPosition()
 	c.setPositionAndUpdateChunks(x, y, z, pos.Yaw, pos.Pitch, false)
 
-	_ = c.send(&v1_8.PlayClientboundPosition{
+	_ = c.send(c.dialect.Position(PositionFields{
 		X:     x,
 		Y:     y,
 		Z:     z,
 		Yaw:   pos.Yaw,
 		Pitch: pos.Pitch,
 		Flags: packet.PositionAbsolute,
-	})
+	}))
 
-	c.players.BroadcastToTrackers(&v1_8.PlayClientboundEntityTeleport{
+	c.players.BroadcastToTrackers(c.dialect.EntityTeleport(player.EntityTeleportFields{
 		EntityID: c.self.EntityID,
 		X:        player.FixedPoint(x),
 		Y:        player.FixedPoint(y),
@@ -203,7 +192,7 @@ func (c *Connection) teleportSelf(x, y, z float64) {
 		Yaw:      player.DegreesToAngle(pos.Yaw),
 		Pitch:    player.DegreesToAngle(pos.Pitch),
 		OnGround: false,
-	}, c.self.EntityID)
+	}), c.self.EntityID)
 
 	c.players.UpdateTracking(c.self)
 }
